@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 import { 
   ArrowLeft,
   ArrowRight,
@@ -13,22 +16,39 @@ import {
   FileText,
   MapPin,
   Megaphone,
-  Users
+  Users,
+  Plus,
+  Trash2
 } from "lucide-react"
 import { Link } from "react-router-dom"
 
 const CreateCampaign = () => {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
-    budget: "",
-    objectives: ""
+    // Campaign Information
+    campaignName: "",
+    campaignType: "",
+    clients: [],
+    validityStartDate: "",
+    validityEndDate: "",
+    countries: [],
+    campaignValue: "",
+    campaignCurrency: "USD",
+    
+    // Contact Details
+    clientContacts: [{ name: "", email: "", phone: "" }],
+    salesContacts: [{ name: "", email: "", phone: "" }],
+    
+    // Billing Details
+    billingCompanyName: "",
+    billingCompanyAddress: "",
+    billingCycle: "",
+    advancePaymentRequired: false,
+    
+    // Media Agency Details
+    orderRegion: "",
+    orderType: "",
+    orderId: ""
   })
 
   const steps = [
@@ -39,10 +59,36 @@ const CreateCampaign = () => {
     { number: 5, title: "Review & Publish", icon: Check }
   ]
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }))
+  }
+
+  const addContact = (type: 'client' | 'sales') => {
+    const field = type === 'client' ? 'clientContacts' : 'salesContacts'
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...prev[field], { name: "", email: "", phone: "" }]
+    }))
+  }
+
+  const removeContact = (type: 'client' | 'sales', index: number) => {
+    const field = type === 'client' ? 'clientContacts' : 'salesContacts'
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateContact = (type: 'client' | 'sales', index: number, field: string, value: string) => {
+    const contactField = type === 'client' ? 'clientContacts' : 'salesContacts'
+    setFormData(prev => ({
+      ...prev,
+      [contactField]: prev[contactField].map((contact, i) => 
+        i === index ? { ...contact, [field]: value } : contact
+      )
     }))
   }
 
@@ -62,126 +108,318 @@ const CreateCampaign = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-semibold text-foreground mb-2">Campaign Details</h2>
               <p className="text-muted-foreground">
-                Start by providing basic information about your theatrical advertising campaign.
+                Configure your theatrical advertising campaign with detailed information across all sections.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
+            {/* Section 1: Campaign Information */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Campaign Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Campaign Name *</Label>
+                  <Label htmlFor="campaignName">Campaign Name *</Label>
                   <Input
-                    id="name"
+                    id="campaignName"
                     placeholder="e.g. Summer Blockbuster Promotion"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    value={formData.campaignName}
+                    onChange={(e) => handleInputChange("campaignName", e.target.value)}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Brief description of the campaign goals and target audience..."
-                    value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    className="mt-1"
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="startDate">Start Date *</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => handleInputChange("startDate", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="endDate">End Date *</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => handleInputChange("endDate", e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
+                  <Label htmlFor="campaignType">Campaign Type *</Label>
+                  <Select value={formData.campaignType} onValueChange={(value) => handleInputChange("campaignType", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select campaign type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="political">Political</SelectItem>
+                      <SelectItem value="psu">PSU</SelectItem>
+                      <SelectItem value="government-central">Government - Central</SelectItem>
+                      <SelectItem value="government-state">Government - State</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="budget">Campaign Budget</Label>
+                  <Label htmlFor="clients">Clients</Label>
                   <Input
-                    id="budget"
-                    placeholder="$50,000"
-                    value={formData.budget}
-                    onChange={(e) => handleInputChange("budget", e.target.value)}
+                    id="clients"
+                    placeholder="Search & Select clients (optional)"
                     className="mt-1"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="validityStartDate">Validity Start Date *</Label>
+                  <Input
+                    id="validityStartDate"
+                    type="date"
+                    value={formData.validityStartDate}
+                    onChange={(e) => handleInputChange("validityStartDate", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="validityEndDate">Validity End Date *</Label>
+                  <Input
+                    id="validityEndDate"
+                    type="date"
+                    value={formData.validityEndDate}
+                    onChange={(e) => handleInputChange("validityEndDate", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="countries">Country *</Label>
+                  <Input
+                    id="countries"
+                    placeholder="Search & Select countries (multi-select)"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="campaignCurrency">Currency</Label>
+                    <Select value={formData.campaignCurrency} onValueChange={(value) => handleInputChange("campaignCurrency", value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="INR">INR</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="campaignValue">Campaign Value</Label>
+                    <Input
+                      id="campaignValue"
+                      placeholder="0.00"
+                      type="number"
+                      value={formData.campaignValue}
+                      onChange={(e) => handleInputChange("campaignValue", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Section 2: Contact Details */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Contact Details</h3>
+              
+              {/* Client Contacts */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-base">Client Contact</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => addContact('client')}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Contact
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {formData.clientContacts.map((contact, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border border-border rounded-lg">
+                      <Input
+                        placeholder="Name"
+                        value={contact.name}
+                        onChange={(e) => updateContact('client', index, 'name', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={contact.email}
+                        onChange={(e) => updateContact('client', index, 'email', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Phone"
+                        value={contact.phone}
+                        onChange={(e) => updateContact('client', index, 'phone', e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeContact('client', index)}
+                        disabled={formData.clientContacts.length === 1}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Contact Information</h3>
-                </div>
+              <Separator className="my-6" />
 
+              {/* Sales Representative Contacts */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-base">Sales Representative Contact</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => addContact('sales')}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Contact
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {formData.salesContacts.map((contact, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border border-border rounded-lg">
+                      <Input
+                        placeholder="Name"
+                        value={contact.name}
+                        onChange={(e) => updateContact('sales', index, 'name', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={contact.email}
+                        onChange={(e) => updateContact('sales', index, 'email', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Phone"
+                        value={contact.phone}
+                        onChange={(e) => updateContact('sales', index, 'phone', e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeContact('sales', index)}
+                        disabled={formData.salesContacts.length === 1}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* Section 3: Billing Details */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Billing Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="contactName">Contact Name *</Label>
+                  <Label htmlFor="billingCompanyName">Billing Company Name</Label>
                   <Input
-                    id="contactName"
-                    placeholder="John Doe"
-                    value={formData.contactName}
-                    onChange={(e) => handleInputChange("contactName", e.target.value)}
+                    id="billingCompanyName"
+                    placeholder="Company Name"
+                    value={formData.billingCompanyName}
+                    onChange={(e) => handleInputChange("billingCompanyName", e.target.value)}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="contactEmail">Contact Email *</Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    placeholder="john.doe@company.com"
-                    value={formData.contactEmail}
-                    onChange={(e) => handleInputChange("contactEmail", e.target.value)}
-                    className="mt-1"
-                  />
+                  <Label htmlFor="billingCycle">Billing Cycle</Label>
+                  <Select value={formData.billingCycle} onValueChange={(value) => handleInputChange("billingCycle", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select billing cycle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="on-completion">On Campaign Completion</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="contactPhone">Contact Phone</Label>
-                  <Input
-                    id="contactPhone"
-                    placeholder="+1 (555) 123-4567"
-                    value={formData.contactPhone}
-                    onChange={(e) => handleInputChange("contactPhone", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="objectives">Campaign Objectives</Label>
+                <div className="md:col-span-2">
+                  <Label htmlFor="billingCompanyAddress">Billing Company Address</Label>
                   <Textarea
-                    id="objectives"
-                    placeholder="What are the key goals for this campaign?"
-                    value={formData.objectives}
-                    onChange={(e) => handleInputChange("objectives", e.target.value)}
+                    id="billingCompanyAddress"
+                    placeholder="Complete billing address"
+                    value={formData.billingCompanyAddress}
+                    onChange={(e) => handleInputChange("billingCompanyAddress", e.target.value)}
                     className="mt-1"
                     rows={3}
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="advancePaymentRequired"
+                      checked={formData.advancePaymentRequired}
+                      onCheckedChange={(checked) => handleInputChange("advancePaymentRequired", checked)}
+                    />
+                    <Label htmlFor="advancePaymentRequired">Advance Payment Required</Label>
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
+
+            {/* Section 4: Media Agency Details */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Media Agency Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="orderRegion">Order Region</Label>
+                  <Select value={formData.orderRegion} onValueChange={(value) => handleInputChange("orderRegion", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ahmedabad">Ahmedabad</SelectItem>
+                      <SelectItem value="bangalore">Bangalore</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
+                      <SelectItem value="hyderabad">Hyderabad</SelectItem>
+                      <SelectItem value="kerala">Kerala</SelectItem>
+                      <SelectItem value="kolkata">Kolkata</SelectItem>
+                      <SelectItem value="mumbai">Mumbai</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="orderType">Order Type</Label>
+                  <Select value={formData.orderType} onValueChange={(value) => handleInputChange("orderType", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select order type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="purchase-order">Purchase Order ID</SelectItem>
+                      <SelectItem value="davp-order">DAVP Order ID</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="orderId">Order ID</Label>
+                  <Input
+                    id="orderId"
+                    placeholder="Enter order ID"
+                    value={formData.orderId}
+                    onChange={(e) => handleInputChange("orderId", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </Card>
           </div>
         )
       default:
