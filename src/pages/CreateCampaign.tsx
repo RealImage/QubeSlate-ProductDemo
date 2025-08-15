@@ -395,28 +395,30 @@ const CreateCampaign = () => {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="orderType">Order Type</Label>
-                  <Select value={formData.orderType} onValueChange={(value) => handleInputChange("orderType", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select order type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="purchase-order">Purchase Order ID</SelectItem>
-                      <SelectItem value="davp-order">DAVP Order ID</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="orderType">Order Type</Label>
+                    <Select value={formData.orderType} onValueChange={(value) => handleInputChange("orderType", value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select order type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="purchase-order">Purchase Order ID</SelectItem>
+                        <SelectItem value="davp-order">DAVP Order ID</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="md:col-span-2">
-                  <Label htmlFor="orderId">Order ID</Label>
-                  <Input
-                    id="orderId"
-                    placeholder="Enter order ID"
-                    value={formData.orderId}
-                    onChange={(e) => handleInputChange("orderId", e.target.value)}
-                    className="mt-1"
-                  />
+                  <div>
+                    <Label htmlFor="orderId">Order ID</Label>
+                    <Input
+                      id="orderId"
+                      placeholder="Enter order ID"
+                      value={formData.orderId}
+                      onChange={(e) => handleInputChange("orderId", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
