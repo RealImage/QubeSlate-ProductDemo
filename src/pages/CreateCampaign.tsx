@@ -424,6 +424,115 @@ const CreateCampaign = () => {
             </Card>
           </div>
         )
+      case 2:
+        return (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Target Groups</h2>
+              <p className="text-muted-foreground">
+                Define and manage Target Groups (TGs) for precise screen selection and campaign targeting.
+              </p>
+            </div>
+
+            {/* Target Groups Management */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground">Target Groups List</h3>
+                <Button variant="primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Target Group
+                </Button>
+              </div>
+
+              {/* Search and Filters */}
+              <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <Input
+                      placeholder="Search by TG name, theatre, or screen..."
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Select>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Filter by region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mumbai">Mumbai</SelectItem>
+                      <SelectItem value="delhi">Delhi</SelectItem>
+                      <SelectItem value="bangalore">Bangalore</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline">
+                    <Users className="w-4 h-4 mr-2" />
+                    Bulk Actions
+                  </Button>
+                </div>
+              </div>
+
+              {/* Target Groups Table */}
+              <div className="border border-border rounded-lg">
+                <div className="grid grid-cols-6 gap-4 p-4 bg-muted/50 font-medium text-sm">
+                  <div>TG Name</div>
+                  <div>Screen Count</div>
+                  <div>Theatre Count</div>
+                  <div>Valid From</div>
+                  <div>Valid Till</div>
+                  <div>Actions</div>
+                </div>
+                
+                {/* Empty State */}
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Target Groups Created</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first Target Group to start defining screen selections for this campaign.
+                  </p>
+                  <Button variant="primary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Target Group
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Target Groups</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Total Screens</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Total Theatres</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">Ready</div>
+                  <div className="text-sm text-muted-foreground">TG Status</div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )
       default:
         return (
           <div className="text-center py-12">
