@@ -434,6 +434,34 @@ const CreateCampaign = () => {
               </p>
             </div>
 
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Target Groups</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Total Screens</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">0</div>
+                  <div className="text-sm text-muted-foreground">Total Theatres</div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">Ready</div>
+                  <div className="text-sm text-muted-foreground">TG Status</div>
+                </div>
+              </Card>
+            </div>
+
             {/* Target Groups Management */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -503,34 +531,6 @@ const CreateCampaign = () => {
                 </div>
               </div>
             </Card>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">0</div>
-                  <div className="text-sm text-muted-foreground">Target Groups</div>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">0</div>
-                  <div className="text-sm text-muted-foreground">Total Screens</div>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">0</div>
-                  <div className="text-sm text-muted-foreground">Total Theatres</div>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">Ready</div>
-                  <div className="text-sm text-muted-foreground">TG Status</div>
-                </div>
-              </Card>
-            </div>
           </div>
         )
       default:
