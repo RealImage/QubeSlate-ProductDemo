@@ -196,14 +196,9 @@ export function ManageScreensModal({ open, onOpenChange, targetGroupName, onSave
                           </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" onClick={handleAddScreenIds} className="flex-1">
-                          Add to Excluded Screens
-                        </Button>
-                        <Button onClick={handleAddScreenIds} className="flex-1">
-                          Add to Included Screens
-                        </Button>
-                      </div>
+                      <Button onClick={handleAddScreenIds} className="w-full">
+                        Add to Included Screens
+                      </Button>
                       {invalidIds.length > 0 && (
                         <div className="p-3 bg-destructive/10 rounded-md">
                           <div className="flex items-center justify-between">
