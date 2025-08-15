@@ -197,7 +197,7 @@ export function ManageScreensModal({ open, onOpenChange, targetGroupName, onSave
                         </div>
                       </div>
                       <Button onClick={handleAddScreenIds} className="w-full">
-                        Add Screens
+                        Add to Included Screens
                       </Button>
                       {invalidIds.length > 0 && (
                         <div className="p-3 bg-destructive/10 rounded-md">
