@@ -390,22 +390,6 @@ export function ManageScreensModal({ open, onOpenChange, targetGroupName, onSave
                   </CardContent>
                 </Card>
                 
-                <div className="flex flex-col justify-center space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => moveToExcluded(filteredIncluded)}
-                  >
-                    <MoveRight className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => moveToIncluded(filteredExcluded)}
-                  >
-                    <MoveLeft className="w-4 h-4" />
-                  </Button>
-                </div>
                 
                 <Card className="flex-1">
                   <CardHeader>
