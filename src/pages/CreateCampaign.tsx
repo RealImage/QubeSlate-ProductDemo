@@ -178,16 +178,7 @@ const CreateCampaign = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="countries">Country *</Label>
-                  <Input
-                    id="countries"
-                    placeholder="Search & Select countries (multi-select)"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="campaignCurrency">Currency</Label>
                     <Select value={formData.campaignCurrency} onValueChange={(value) => handleInputChange("campaignCurrency", value)}>
@@ -202,7 +193,7 @@ const CreateCampaign = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="col-span-2">
                     <Label htmlFor="campaignValue">Campaign Value</Label>
                     <Input
                       id="campaignValue"
@@ -213,6 +204,15 @@ const CreateCampaign = () => {
                       className="mt-1"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="countries">Country *</Label>
+                  <Input
+                    id="countries"
+                    placeholder="Search & Select countries (multi-select)"
+                    className="mt-1"
+                  />
                 </div>
               </div>
             </Card>
