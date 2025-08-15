@@ -402,39 +402,6 @@ export function ManageScreensModal({ open, onOpenChange, targetGroupName, onSave
                 </Card>
                 
                 
-                <Card className="flex-1">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Excluded Screens</CardTitle>
-                      <Badge variant="secondary">{excludedScreens.length}</Badge>
-                    </div>
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search excluded screens..."
-                        value={searchExcluded}
-                        onChange={(e) => setSearchExcluded(e.target.value)}
-                        className="pl-8"
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {filteredExcluded.map(screen => (
-                        <div
-                          key={screen.id}
-                          className="p-2 border rounded hover:bg-muted cursor-pointer"
-                          onClick={() => moveToIncluded([screen])}
-                        >
-                          <div className="font-medium">{screen.id}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {screen.theatreName} • {screen.location}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </Tabs>
