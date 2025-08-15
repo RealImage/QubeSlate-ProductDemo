@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Upload, Search, MoveRight, MoveLeft, Download } from "lucide-react";
+import { Upload, Search, MoveRight, MoveLeft, Download, Trash } from "lucide-react";
 
 interface ManageScreensModalProps {
   open: boolean;
@@ -377,12 +377,23 @@ export function ManageScreensModal({ open, onOpenChange, targetGroupName, onSave
                       {filteredIncluded.map(screen => (
                         <div
                           key={screen.id}
-                          className="p-2 border rounded hover:bg-muted cursor-pointer"
-                          onClick={() => moveToExcluded([screen])}
+                          className="p-2 border rounded hover:bg-muted group"
                         >
-                          <div className="font-medium">{screen.id}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {screen.theatreName} • {screen.location}
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="font-medium">{screen.id}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {screen.theatreName} • {screen.location}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => setIncludedScreens(prev => prev.filter(s => s.id !== screen.id))}
+                            >
+                              <Trash className="w-4 h-4 text-destructive" />
+                            </Button>
                           </div>
                         </div>
                       ))}
