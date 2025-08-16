@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import TargetGroupsManager from "@/components/TargetGroupsManager"
 import { 
   ArrowLeft,
   ArrowRight,
@@ -24,6 +25,7 @@ import { Link } from "react-router-dom"
 
 const CreateCampaign = () => {
   const [currentStep, setCurrentStep] = useState(1)
+  const [selectedTargetGroups, setSelectedTargetGroups] = useState<string[]>([])
   const [formData, setFormData] = useState({
     // Campaign Information
     campaignName: "",
@@ -422,6 +424,23 @@ const CreateCampaign = () => {
                 </div>
               </div>
             </Card>
+          </div>
+        )
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
+                Target Groups
+              </h2>
+              <p className="text-muted-foreground">
+                Select and manage target groups for your campaign
+              </p>
+            </div>
+            <TargetGroupsManager 
+              selectedGroups={selectedTargetGroups}
+              onSelectionChange={setSelectedTargetGroups}
+            />
           </div>
         )
       default:
