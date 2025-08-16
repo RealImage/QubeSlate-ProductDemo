@@ -434,8 +434,6 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Valid From</TableHead>
-                <TableHead>Valid Till</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-[50px]">Actions</TableHead>
               </TableRow>
@@ -455,8 +453,6 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
                   <TableCell>{tg.screenCount}</TableCell>
                   <TableCell>{tg.theatreCount}</TableCell>
                   <TableCell>{formatDate(tg.createdOn)}</TableCell>
-                  <TableCell>{formatDate(tg.validFrom)}</TableCell>
-                  <TableCell>{formatDate(tg.validTill)}</TableCell>
                   <TableCell>{getStatusBadge(tg.status)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
