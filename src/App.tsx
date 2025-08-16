@@ -7,6 +7,7 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import CreateCampaign from "./pages/CreateCampaign";
 import CampaignManagement from "./pages/CampaignManagement";
+import TargetGroups from "./pages/TargetGroups";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
                 backText="Back to Campaigns"
               />
             } />
+            <Route path="/target-groups" element={<TargetGroups />} />
             <Route path="/approvals/campaigns" element={
               <PlaceholderPage 
                 title="Campaign Approvals" 

@@ -44,6 +44,7 @@ const navigationItems = [
     items: [
       { title: "Create Campaign", url: "/campaigns/create", icon: Plus },
       { title: "Campaign Management", url: "/campaigns", icon: Search },
+      { title: "Target Groups", url: "/target-groups", icon: Building2 },
       { title: "Campaign Rate Bias", url: "/campaigns/rate-bias", icon: BarChart3 },
     ]
   },
