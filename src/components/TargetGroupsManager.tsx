@@ -54,11 +54,11 @@ interface TargetGroup {
   name: string
   screenCount: number
   theatreCount: number
-  createdOn: string
   createdBy: string
   validFrom: string
   validTill: string
-  status: 'active' | 'expired' | 'upcoming'
+  updatedBy: string
+  updatedOn: string
   isSelected?: boolean
 }
 
@@ -74,44 +74,44 @@ const mockTargetGroups: TargetGroup[] = [
     name: "Premium Metro Screens",
     screenCount: 45,
     theatreCount: 12,
-    createdOn: "2024-01-15",
     createdBy: "John Smith",
     validFrom: "2024-02-01",
     validTill: "2024-03-31",
-    status: 'active'
+    updatedBy: "John Smith",
+    updatedOn: "2024-01-15"
   },
   {
     id: "tg-002", 
     name: "Tier 2 City Multiplex",
     screenCount: 78,
     theatreCount: 25,
-    createdOn: "2024-01-20",
     createdBy: "Sarah Johnson",
     validFrom: "2024-02-15", 
     validTill: "2024-04-15",
-    status: 'active'
+    updatedBy: "Sarah Johnson",
+    updatedOn: "2024-01-20"
   },
   {
     id: "tg-003",
     name: "Weekend Prime Time",
     screenCount: 120,
     theatreCount: 40,
-    createdOn: "2024-01-10",
     createdBy: "Mike Chen",
     validFrom: "2024-01-25",
     validTill: "2024-01-31",
-    status: 'expired'
+    updatedBy: "Mike Chen",
+    updatedOn: "2024-01-10"
   },
   {
     id: "tg-004",
     name: "Summer Campaign Screens",
     screenCount: 95,
     theatreCount: 30,
-    createdOn: "2024-02-01",
     createdBy: "Lisa Wong",
     validFrom: "2024-05-01",
     validTill: "2024-08-31",
-    status: 'upcoming'
+    updatedBy: "Lisa Wong",
+    updatedOn: "2024-02-01"
   }
 ]
 
@@ -125,7 +125,7 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
   )
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [sortField, setSortField] = useState<keyof TargetGroup>("createdOn")
+  const [sortField, setSortField] = useState<keyof TargetGroup>("updatedOn")
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newGroupName, setNewGroupName] = useState("")
@@ -134,11 +134,10 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
     .filter(tg => {
       const matchesSearch = searchQuery === "" || 
         tg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tg.createdBy.toLowerCase().includes(searchQuery.toLowerCase())
+        tg.createdBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tg.updatedBy.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesStatus = statusFilter === "all" || tg.status === statusFilter
-      
-      return matchesSearch && matchesStatus
+      return matchesSearch
     })
     .sort((a, b) => {
       const aValue = a[sortField]
@@ -217,11 +216,11 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
         name: newGroupName.trim(),
         screenCount: 0,
         theatreCount: 0,
-        createdOn: new Date().toISOString().split('T')[0],
         createdBy: "Current User",
         validFrom: new Date().toISOString().split('T')[0],
         validTill: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'upcoming',
+        updatedBy: "Current User",
+        updatedOn: new Date().toISOString().split('T')[0],
         isSelected: false
       }
       
@@ -236,18 +235,6 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-success text-success-foreground">Active</Badge>
-      case 'expired':
-        return <Badge variant="secondary" className="bg-muted text-muted-foreground">Expired</Badge>
-      case 'upcoming':
-        return <Badge variant="outline" className="border-warning text-warning">Upcoming</Badge>
-      default:
-        return <Badge variant="secondary">{status}</Badge>
-    }
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -334,18 +321,6 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border border-border z-50">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="upcoming">Upcoming</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
@@ -428,13 +403,23 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
                     variant="ghost"
                     size="sm"
                     className="h-auto p-0 font-semibold"
-                    onClick={() => handleSort('createdOn')}
+                    onClick={() => handleSort('updatedBy')}
                   >
-                    Created On
+                    Updated By
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-semibold"
+                    onClick={() => handleSort('updatedOn')}
+                  >
+                    Updated On
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="w-[50px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -452,8 +437,8 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
                   <TableCell className="font-medium">{tg.name}</TableCell>
                   <TableCell>{tg.screenCount}</TableCell>
                   <TableCell>{tg.theatreCount}</TableCell>
-                  <TableCell>{formatDate(tg.createdOn)}</TableCell>
-                  <TableCell>{getStatusBadge(tg.status)}</TableCell>
+                  <TableCell>{tg.updatedBy}</TableCell>
+                  <TableCell>{formatDate(tg.updatedOn)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
