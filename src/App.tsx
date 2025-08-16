@@ -7,7 +7,6 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import CreateCampaign from "./pages/CreateCampaign";
 import CampaignManagement from "./pages/CampaignManagement";
-import TargetGroups from "./pages/TargetGroups";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -24,7 +23,6 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/campaigns" element={<CampaignManagement />} />
             <Route path="/campaigns/create" element={<CreateCampaign />} />
-            <Route path="/campaigns/target-groups" element={<TargetGroups />} />
             <Route path="/campaigns/rate-bias" element={
               <PlaceholderPage 
                 title="Campaign Rate Bias" 
