@@ -240,7 +240,6 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                       <TableHead className="w-[50px]">Action</TableHead>
                       <TableHead>Theatre Name</TableHead>
                       <TableHead>Screen Name</TableHead>
-                      <TableHead>Theatre ID</TableHead>
                       <TableHead>Screen ID</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Status</TableHead>
@@ -272,9 +271,11 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                             </Button>
                           )}
                         </TableCell>
-                        <TableCell className="font-medium">{screen.theatreName}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{screen.theatreName}</div>
+                          <div className="text-sm text-muted-foreground">{screen.theatreId}</div>
+                        </TableCell>
                         <TableCell>{screen.screenName}</TableCell>
-                        <TableCell>{screen.theatreId}</TableCell>
                         <TableCell>{screen.screenId}</TableCell>
                         <TableCell>{screen.location}</TableCell>
                         <TableCell>
