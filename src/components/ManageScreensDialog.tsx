@@ -120,8 +120,7 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
       screen.screenName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       screen.theatreId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       screen.screenId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      screen.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (screen.previousCampaign && screen.previousCampaign.toLowerCase().includes(searchQuery.toLowerCase()))
+      screen.location.toLowerCase().includes(searchQuery.toLowerCase())
     
     if (searchFilter === "in-group") return matchesSearch && screen.isInTargetGroup
     if (searchFilter === "available") return matchesSearch && !screen.isInTargetGroup
@@ -207,7 +206,7 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Search by Theatre Name, Theatre ID, Screen ID, Location, or Previous Campaign..."
+                    placeholder="Search by Theatre Name, Theatre ID, Screen ID, or Location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -244,7 +243,6 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                       <TableHead>Theatre ID</TableHead>
                       <TableHead>Screen ID</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead>Previous Campaign</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -279,7 +277,6 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                         <TableCell>{screen.theatreId}</TableCell>
                         <TableCell>{screen.screenId}</TableCell>
                         <TableCell>{screen.location}</TableCell>
-                        <TableCell>{screen.previousCampaign || "-"}</TableCell>
                         <TableCell>
                           {screen.isInTargetGroup ? (
                             <Badge variant="default">In Group</Badge>
