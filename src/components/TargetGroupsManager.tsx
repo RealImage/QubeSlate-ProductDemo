@@ -49,6 +49,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import TargetGroupDetailsDialog from "./TargetGroupDetailsDialog"
+import ManageScreensDialog from "./ManageScreensDialog"
 
 interface TargetGroup {
   id: string
@@ -132,6 +133,8 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
   const [newGroupName, setNewGroupName] = useState("")
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [selectedTargetGroup, setSelectedTargetGroup] = useState<TargetGroup | null>(null)
+  const [isManageScreensOpen, setIsManageScreensOpen] = useState(false)
+  const [selectedGroupForScreens, setSelectedGroupForScreens] = useState<TargetGroup | null>(null)
 
   const filteredAndSortedGroups = targetGroups
     .filter(tg => {
@@ -188,10 +191,8 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
   }
 
   const handleManageScreens = (tg: TargetGroup) => {
-    toast({
-      title: "Manage Screens",
-      description: `Managing screens for ${tg.name}`,
-    })
+    setSelectedGroupForScreens(tg)
+    setIsManageScreensOpen(true)
   }
 
   const handleDeleteGroup = (tg: TargetGroup) => {
@@ -512,6 +513,20 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
           setSelectedTargetGroup(null)
         }}
         onSave={handleSaveTargetGroup}
+      />
+
+      {/* Manage Screens Dialog */}
+      <ManageScreensDialog
+        isOpen={isManageScreensOpen}
+        onClose={() => {
+          setIsManageScreensOpen(false)
+          setSelectedGroupForScreens(null)
+        }}
+        targetGroupName={selectedGroupForScreens?.name || ""}
+        onSave={(screens) => {
+          // Handle screen updates here
+          console.log("Updated screens:", screens)
+        }}
       />
     </div>
   )
