@@ -240,7 +240,6 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                       <TableHead className="w-[50px]">Action</TableHead>
                       <TableHead>Theatre Name</TableHead>
                       <TableHead>Screen Name</TableHead>
-                      <TableHead>Screen ID</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -275,8 +274,10 @@ const ManageScreensDialog = ({ isOpen, onClose, targetGroupName, onSave }: Manag
                           <div className="font-medium">{screen.theatreName}</div>
                           <div className="text-sm text-muted-foreground">{screen.theatreId}</div>
                         </TableCell>
-                        <TableCell>{screen.screenName}</TableCell>
-                        <TableCell>{screen.screenId}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{screen.screenName}</div>
+                          <div className="text-sm text-muted-foreground">{screen.screenId}</div>
+                        </TableCell>
                         <TableCell>{screen.location}</TableCell>
                         <TableCell>
                           {screen.isInTargetGroup ? (
