@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import TargetGroupsManager from "@/components/TargetGroupsManager"
+import MediaManager from "@/components/MediaManager"
 import { 
   ArrowLeft,
   ArrowRight,
@@ -441,6 +442,20 @@ const CreateCampaign = () => {
               selectedGroups={selectedTargetGroups}
               onSelectionChange={setSelectedTargetGroups}
             />
+          </div>
+        )
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
+                Media Selection
+              </h2>
+              <p className="text-muted-foreground">
+                Choose the advertising content for your campaign from available media library.
+              </p>
+            </div>
+            <MediaManager />
           </div>
         )
       default:
