@@ -48,6 +48,7 @@ import {
   Check
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import TargetGroupDetailsDialog from "./TargetGroupDetailsDialog"
 
 interface TargetGroup {
   id: string
@@ -129,6 +130,8 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newGroupName, setNewGroupName] = useState("")
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [selectedTargetGroup, setSelectedTargetGroup] = useState<TargetGroup | null>(null)
 
   const filteredAndSortedGroups = targetGroups
     .filter(tg => {
@@ -180,10 +183,8 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
   }
 
   const handleViewDetails = (tg: TargetGroup) => {
-    toast({
-      title: "View Details",
-      description: `Viewing details for ${tg.name}`,
-    })
+    setSelectedTargetGroup(tg)
+    setIsDetailsDialogOpen(true)
   }
 
   const handleManageScreens = (tg: TargetGroup) => {
@@ -235,6 +236,11 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
     }
   }
 
+  const handleSaveTargetGroup = (updatedGroup: TargetGroup) => {
+    setTargetGroups(prev => 
+      prev.map(tg => tg.id === updatedGroup.id ? updatedGroup : tg)
+    )
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -496,6 +502,17 @@ const TargetGroupsManager = ({ selectedGroups = [], onSelectionChange }: TargetG
           </CardContent>
         </Card>
       )}
+
+      {/* Target Group Details Dialog */}
+      <TargetGroupDetailsDialog
+        targetGroup={selectedTargetGroup}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false)
+          setSelectedTargetGroup(null)
+        }}
+        onSave={handleSaveTargetGroup}
+      />
     </div>
   )
 }
