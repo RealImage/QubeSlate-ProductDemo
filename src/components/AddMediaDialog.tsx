@@ -18,7 +18,7 @@ interface Media {
   mediaName: string
   cplName: string
   cplUuid: string
-  contentStatus: 'Available' | 'Missing' | 'Pending'
+  contentStatus: 'Available' | 'Missing'
   contentStatusDate: string
   size?: string
   duration?: string
@@ -144,10 +144,8 @@ const AddMediaDialog = ({ open, onOpenChange, onAddMedia }: AddMediaDialogProps)
       return
     }
 
-    const contentStatus: 'Available' | 'Missing' | 'Pending' = 
-      libraryResult.searched 
-        ? (libraryResult.found ? 'Available' : 'Missing')
-        : 'Pending'
+    const contentStatus: 'Available' | 'Missing' = 
+      libraryResult.searched && libraryResult.found ? 'Available' : 'Missing'
 
     const newMedia = {
       mediaName: formData.mediaName.trim(),

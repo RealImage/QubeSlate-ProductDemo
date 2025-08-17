@@ -46,7 +46,7 @@ interface Media {
   mediaName: string
   cplName: string
   cplUuid: string
-  contentStatus: 'Available' | 'Missing' | 'Pending'
+  contentStatus: 'Available' | 'Missing'
   contentStatusDate: string
   size?: string
   duration?: string
@@ -88,7 +88,7 @@ const mockMedia: Media[] = [
     mediaName: "Product Launch Teaser",
     cplName: "PRODUCT_LAUNCH_TEASER_15SEC",
     cplUuid: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-    contentStatus: "Pending",
+    contentStatus: "Missing",
     contentStatusDate: "2024-01-20",
     updatedOn: "2024-01-20",
     updatedBy: "Mike Chen"
@@ -178,16 +178,13 @@ const MediaManager = ({ selectedMedia = [], onSelectionChange }: MediaManagerPro
         return <CheckCircle className="h-4 w-4 text-success" />
       case 'Missing':
         return <AlertTriangle className="h-4 w-4 text-destructive" />
-      case 'Pending':
-        return <Clock className="h-4 w-4 text-warning" />
     }
   }
 
   const getStatusBadge = (status: Media['contentStatus']) => {
     const variants = {
       Available: "bg-success/10 text-success border-success/20",
-      Missing: "bg-destructive/10 text-destructive border-destructive/20", 
-      Pending: "bg-warning/10 text-warning border-warning/20"
+      Missing: "bg-destructive/10 text-destructive border-destructive/20"
     }
     
     return (
@@ -233,17 +230,6 @@ const MediaManager = ({ selectedMedia = [], onSelectionChange }: MediaManagerPro
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">
-              {media.filter(m => m.contentStatus === 'Pending').length}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Search and Filter Bar */}
@@ -269,7 +255,6 @@ const MediaManager = ({ selectedMedia = [], onSelectionChange }: MediaManagerPro
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="Available">Available</SelectItem>
                   <SelectItem value="Missing">Missing</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
