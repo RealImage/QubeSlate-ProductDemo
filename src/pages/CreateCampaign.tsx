@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import TargetGroupsManager from "@/components/TargetGroupsManager"
 import MediaManager from "@/components/MediaManager"
+import PlacementManager from "@/components/PlacementManager"
 import { 
   ArrowLeft,
   ArrowRight,
@@ -456,6 +457,20 @@ const CreateCampaign = () => {
               </p>
             </div>
             <MediaManager />
+          </div>
+        )
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
+                Placement Planning
+              </h2>
+              <p className="text-muted-foreground">
+                Configure target group and media combinations with playback parameters.
+              </p>
+            </div>
+            <PlacementManager />
           </div>
         )
       default:
