@@ -9,7 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Plus, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Plus, AlertTriangle, CheckCircle, CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 interface AddPlacementDialogProps {
   open: boolean
@@ -21,6 +25,10 @@ const AddPlacementDialog = ({ open, onOpenChange, onSave }: AddPlacementDialogPr
   const [formData, setFormData] = useState({
     targetGroup: '',
     media: '',
+    placementStartDate: undefined as Date | undefined,
+    placementStartTime: '',
+    placementEndDate: undefined as Date | undefined,
+    placementEndTime: '',
     playlistPack: '',
     segment: '',
     position: '',
@@ -147,6 +155,38 @@ const AddPlacementDialog = ({ open, onOpenChange, onSave }: AddPlacementDialogPr
       newErrors.positionUnavailability = 'Position Unavailability is required'
     }
 
+    if (!formData.placementStartDate) {
+      newErrors.placementStartDate = 'Placement Start Date is required'
+    }
+
+    if (!formData.placementStartTime) {
+      newErrors.placementStartTime = 'Placement Start Time is required'
+    }
+
+    if (!formData.placementEndDate) {
+      newErrors.placementEndDate = 'Placement End Date is required'
+    }
+
+    if (!formData.placementEndTime) {
+      newErrors.placementEndTime = 'Placement End Time is required'
+    }
+
+    // Validate that end date/time is after start date/time
+    if (formData.placementStartDate && formData.placementEndDate && formData.placementStartTime && formData.placementEndTime) {
+      const startDateTime = new Date(formData.placementStartDate)
+      const endDateTime = new Date(formData.placementEndDate)
+      
+      const [startHour, startMinute] = formData.placementStartTime.split(':').map(Number)
+      const [endHour, endMinute] = formData.placementEndTime.split(':').map(Number)
+      
+      startDateTime.setHours(startHour, startMinute)
+      endDateTime.setHours(endHour, endMinute)
+      
+      if (endDateTime <= startDateTime) {
+        newErrors.placementEndDate = 'End date and time must be after start date and time'
+      }
+    }
+
     if (formData.playbackMode === 'Weekly') {
       const weeklyCount = parseInt(formData.weeklyPlayCount)
       if (!formData.weeklyPlayCount || weeklyCount <= 0) {
@@ -186,6 +226,10 @@ const AddPlacementDialog = ({ open, onOpenChange, onSave }: AddPlacementDialogPr
     setFormData({
       targetGroup: '',
       media: '',
+      placementStartDate: undefined,
+      placementStartTime: '',
+      placementEndDate: undefined,
+      placementEndTime: '',
       playlistPack: '',
       segment: '',
       position: '',
@@ -304,6 +348,95 @@ const AddPlacementDialog = ({ open, onOpenChange, onSave }: AddPlacementDialogPr
                     )}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Placement Date & Time Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Placement Start Date */}
+              <div>
+                <Label htmlFor="placementStartDate">Placement Start Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal mt-1",
+                        !formData.placementStartDate && "text-muted-foreground",
+                        errors.placementStartDate ? 'border-destructive' : ''
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.placementStartDate ? format(formData.placementStartDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.placementStartDate}
+                      onSelect={(date) => handleInputChange('placementStartDate', date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.placementStartDate && <p className="text-sm text-destructive mt-1">{errors.placementStartDate}</p>}
+              </div>
+
+              {/* Placement Start Time */}
+              <div>
+                <Label htmlFor="placementStartTime">Placement Start Time *</Label>
+                <Input
+                  id="placementStartTime"
+                  type="time"
+                  value={formData.placementStartTime}
+                  onChange={(e) => handleInputChange('placementStartTime', e.target.value)}
+                  className={`mt-1 ${errors.placementStartTime ? 'border-destructive' : ''}`}
+                />
+                {errors.placementStartTime && <p className="text-sm text-destructive mt-1">{errors.placementStartTime}</p>}
+              </div>
+
+              {/* Placement End Date */}
+              <div>
+                <Label htmlFor="placementEndDate">Placement End Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal mt-1",
+                        !formData.placementEndDate && "text-muted-foreground",
+                        errors.placementEndDate ? 'border-destructive' : ''
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.placementEndDate ? format(formData.placementEndDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.placementEndDate}
+                      onSelect={(date) => handleInputChange('placementEndDate', date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.placementEndDate && <p className="text-sm text-destructive mt-1">{errors.placementEndDate}</p>}
+              </div>
+
+              {/* Placement End Time */}
+              <div>
+                <Label htmlFor="placementEndTime">Placement End Time *</Label>
+                <Input
+                  id="placementEndTime"
+                  type="time"
+                  value={formData.placementEndTime}
+                  onChange={(e) => handleInputChange('placementEndTime', e.target.value)}
+                  className={`mt-1 ${errors.placementEndTime ? 'border-destructive' : ''}`}
+                />
+                {errors.placementEndTime && <p className="text-sm text-destructive mt-1">{errors.placementEndTime}</p>}
               </div>
             </div>
           </CardContent>
