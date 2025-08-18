@@ -108,6 +108,10 @@ const CreateCampaign = () => {
     }
   }
 
+  const handleStepClick = (stepNumber: number) => {
+    setCurrentStep(stepNumber)
+  }
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -512,7 +516,11 @@ const CreateCampaign = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-8">
           {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
+            <button 
+              key={step.number} 
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleStepClick(step.number)}
+            >
               <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
                 currentStep >= step.number
                   ? "bg-accent-brand border-accent-brand text-accent-brand-foreground"
@@ -539,7 +547,7 @@ const CreateCampaign = () => {
                   currentStep > step.number ? "bg-accent-brand" : "bg-border"
                 }`} />
               )}
-            </div>
+            </button>
           ))}
         </div>
 
