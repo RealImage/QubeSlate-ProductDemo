@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import AddPlacementDialog from '@/components/AddPlacementDialog'
 import { 
   Plus, 
   Search, 
@@ -97,6 +99,7 @@ const PlacementManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [playlistPackFilter, setPlaylistPackFilter] = useState('all')
   const [segmentFilter, setSegmentFilter] = useState('all')
+  const [addPlacementOpen, setAddPlacementOpen] = useState(false)
 
   const filteredPlacements = placements.filter(placement => {
     const matchesSearch = 
@@ -177,6 +180,28 @@ const PlacementManager: React.FC = () => {
         : p
     ))
     setSelectedPlacements([])
+  }
+
+  const handleAddPlacement = (placementData: any) => {
+    const newPlacement: Placement = {
+      id: Date.now().toString(),
+      ...placementData,
+      status: placementData.media && getSelectedMedia(placementData.media)?.status === 'Available' ? 'Active' : 'Pending',
+      updatedOn: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      updatedBy: 'Current User',
+      targetGroupSize: { theatres: 25, screens: 85 }, // Mock data
+      mediaDetails: { size: '2.1 GB', duration: '30s', contentStatus: 'Available' } // Mock data
+    }
+    setPlacements([...placements, newPlacement])
+  }
+
+  const getSelectedMedia = (mediaId: string) => {
+    const mediaList = [
+      { id: '1', name: 'Summer Campaign Video', cplUuid: 'CPL-123-ABC-456', status: 'Available', size: '2.4 GB', duration: '45s' },
+      { id: '2', name: 'Product Launch Teaser', cplUuid: 'CPL-789-DEF-012', status: 'Missing', size: '', duration: '' },
+      { id: '3', name: 'Brand Awareness Static', cplUuid: 'CPL-345-GHI-678', status: 'Available', size: '15 MB', duration: '10s' }
+    ]
+    return mediaList.find(media => media.id === mediaId)
   }
 
   return (
@@ -329,10 +354,19 @@ const PlacementManager: React.FC = () => {
       {/* Add Placement Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Placements</h3>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Placement
-        </Button>
+        <Dialog open={addPlacementOpen} onOpenChange={setAddPlacementOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Placement
+            </Button>
+          </DialogTrigger>
+          <AddPlacementDialog
+            open={addPlacementOpen}
+            onOpenChange={setAddPlacementOpen}
+            onSave={handleAddPlacement}
+          />
+        </Dialog>
       </div>
 
       {/* Placements Table */}
