@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "qube-slate",
+      "version": "0.1.0",
+      "title": "qube-slate"
+    },
+    "tools": [
+      {
+        "name": "list_campaigns",
+        "title": "List campaigns",
+        "description": "List theatrical ad campaigns in Qube Slate, optionally filtered by status or a text search on campaign name, client, or campaign ID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Text to match against campaign name, client, or campaign ID."
+            },
+            "status": {
+              "type": "string",
+              "description": "Filter by campaign status, e.g. Active, Pending Approval, In Review."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_campaign",
+        "title": "Get campaign",
+        "description": "Get one Qube Slate campaign by ID, including its target groups and media items.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "campaign_id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Campaign ID, e.g. CAM-001."
+            }
+          },
+          "required": [
+            "campaign_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_target_groups",
+        "title": "List target groups",
+        "description": "List target groups (screen selections) in Qube Slate, optionally filtered by campaign ID or a name search.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "campaign_id": {
+              "type": "string",
+              "description": "Only target groups of this campaign ID."
+            },
+            "query": {
+              "type": "string",
+              "description": "Text to match against target group name or ID."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_media",
+        "title": "List media",
+        "description": "List campaign media (CPLs) in Qube Slate with their content status, optionally filtered by campaign ID, content status, or a text search on media name, CPL name, or CPL UUID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "campaign_id": {
+              "type": "string",
+              "description": "Only media of this campaign ID."
+            },
+            "content_status": {
+              "type": "string",
+              "description": "Filter by content status: Available or Missing."
+            },
+            "query": {
+              "type": "string",
+              "description": "Text to match against media name, CPL name, or CPL UUID."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
