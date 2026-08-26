@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/prefab/fonts.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/prefab/colors.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/prefab/spacing.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/prefab/qube-wire.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/tokens/figma/fig-tokens.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/components/avatar/fig-assets.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/components/forms/fig-assets.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/components/prefab/prefab.css">
+<link rel="stylesheet" href="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/styles.css">
+<script src="_ds/qube-design-system-169a274d-37a3-4224-b419-bde3a6a40856/_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: Commissioner, system-ui, sans-serif; background: #F5F8FA; color: #08090A; -webkit-font-smoothing: antialiased; }
+  a { color: #084782; text-decoration: none; }
+  a:hover { color: #063A6B; text-decoration: underline; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #D3DAE2; border-radius: 8px; border: 3px solid #F5F8FA; }
+</style>
+</helmet>
+
+<div style="display: flex; height: 100vh; overflow: hidden; background: #F5F8FA; font-family: Commissioner, system-ui, sans-serif">
+
+  <nav style="width: {{ sidebarWidth }}; flex: 0 0 auto; background: #FFFFFF; border-right: 1px solid #E1E4E9; display: flex; flex-direction: column; overflow: hidden">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid #E1E4E9; min-height: 65px">
+      <img src="assets/QubeLogoOnlyBlueIcon.svg" alt="Qube" style="width: 26px; height: 26px; flex: 0 0 auto">
+      <div style="display: {{ labelDisplay }}; flex-direction: column; gap: 1px; min-width: 0">
+        <div style="font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #08090A; white-space: nowrap">Qube Slate</div>
+        <div style="font-size: 11px; color: #677A90; white-space: nowrap">Campaign Manager</div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; padding: 8px 8px 24px">
+      <sc-for list="{{ nav }}" as="g" hint-placeholder-count="9">
+        <div style="display: flex; flex-direction: column; gap: 1px; margin-bottom: 1px">
+          <button data-key="{{ g.key }}" data-route="{{ g.route }}" onClick="{{ onNavGroup }}" title="{{ g.title }}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: {{ g.bg }}; color: {{ g.color }}; font-family: inherit; font-size: 13.5px; font-weight: {{ g.weight }}; text-align: left; cursor: pointer; line-height: 20px" style-hover="background: #F0F4F8">
+            <span style="width: 22px; height: 22px; flex: 0 0 auto; background: currentColor; mask: {{ g.mask }}; -webkit-mask: {{ g.mask }}"></span>
+            <span style="display: {{ labelDisplay }}; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ g.title }}</span>
+            <span style="display: {{ g.caretDisplay }}; width: 18px; height: 18px; flex: 0 0 auto; background: #97A5B5; mask: {{ caretMask }}; -webkit-mask: {{ caretMask }}; transform: rotate({{ g.caretRotate }}); transition: transform .15s"></span>
+          </button>
+          <sc-if value="{{ g.expanded }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 1px; padding: 2px 0 6px 15px; margin-left: 8px; border-left: 1px solid #E7EBF0">
+              <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+                <button data-route="{{ it.route }}" onClick="{{ onNav }}" style="display: block; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px; background: {{ it.bg }}; color: {{ it.color }}; font-family: inherit; font-size: 13px; font-weight: {{ it.weight }}; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" style-hover="background: #F0F4F8">{{ it.title }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </nav>
+
+  <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0">
+
+    <header style="flex: 0 0 auto; display: flex; align-items: center; gap: 16px; padding: 0 28px; height: 65px; background: #FFFFFF; border-bottom: 1px solid #E1E4E9">
+      <button onClick="{{ toggleSidebar }}" title="Toggle navigation" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #E1E4E9; border-radius: 6px; background: #FFFFFF; cursor: pointer; flex: 0 0 auto" style-hover="background: #F0F4F8">
+        <span style="width: 20px; height: 20px; background: #4A5A6C; mask: url(assets/icons/Hamburger.svg) center / contain no-repeat; -webkit-mask: url(assets/icons/Hamburger.svg) center / contain no-repeat"></span>
+      </button>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #677A90; min-width: 0">
+        <span>Qube Slate</span>
+        <span style="color: #C3CCD6">/</span>
+        <span style="color: #677A90">{{ crumbGroup }}</span>
+        <span style="color: #C3CCD6">/</span>
+        <span style="color: #08090A; font-weight: 500">{{ crumbLeaf }}</span>
+      </div>
+      <div style="flex: 1 1 auto"></div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 5px 10px 5px 6px; border: 1px solid #E1E4E9; border-radius: 1000px">
+        <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 1000px; background: #084782; color: #FFFFFF; font-size: 11px; font-weight: 600; letter-spacing: .02em">RD</div>
+        <div style="display: flex; flex-direction: column; line-height: 1.25">
+          <span style="font-size: 12.5px; font-weight: 500; color: #08090A">Riya Deshpande</span>
+          <span style="font-size: 10.5px; color: #677A90">Ad Operations · QCN</span>
+        </div>
+      </div>
+    </header>
+
+    <main onMouseEnter="{{ onMainEnter }}" style="flex: 1 1 auto; overflow-y: auto; padding: 28px 28px 64px">
+
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px">
+            <div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Dashboard</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Network-wide view of campaigns, inventory and playback for the current week.</p>
+            </div>
+            <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="primary" size="medium" onClick="{{ goCreate }}" hint-size="auto,40px">Create Campaign</x-import>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12.5px; color: #677A90; font-weight: 500">{{ k.label }}</span>
+                <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: #08090A; line-height: 1.1">{{ k.value }}</span>
+                <span style="font-size: 12px; color: {{ k.deltaColor }}; font-weight: 500">{{ k.delta }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+            <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden; flex: 1 1 560px; min-width: 0">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #E1E4E9">
+                <h2 style="margin: 0; font-size: 15px; font-weight: 600; color: #08090A">Recent Campaigns</h2>
+                <button data-route="/campaigns" onClick="{{ onNav }}" style="border: 1px solid #E1E4E9; border-radius: 6px; background: #FFFFFF; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 500; color: #084782; cursor: pointer" style-hover="background: #F0F4F8">View all</button>
+              </div>
+              <table style="width: 100%; border-collapse: collapse">
+                <thead>
+                  <tr>
+                    <th style="text-align: left; padding: 9px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Campaign</th>
+                    <th style="text-align: left; padding: 9px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Client</th>
+                    <th style="text-align: left; padding: 9px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                    <th style="text-align: right; padding: 9px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screens</th>
+                    <th style="text-align: right; padding: 9px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Budget</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ recentCampaigns }}" as="c" hint-placeholder-count="4">
+                    <tr>
+                      <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3">
+                        <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ c.name }}</div>
+                        <div style="font-size: 11.5px; color: #677A90; font-family: 'JetBrains Mono', ui-monospace, monospace">{{ c.id }}</div>
+                      </td>
+                      <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #4A5A6C">{{ c.client }}</td>
+                      <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ c.tone }} pf-tag--small"><span class="pf-tag__content">{{ c.status }}</span></span></td>
+                      <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.screens }}</td>
+                      <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.budget }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; flex: 1 1 300px; min-width: 0">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px">
+                <h2 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #08090A">Network inventory this week</h2>
+                <p style="margin: 0 0 16px; font-size: 12.5px; color: #677A90">Pre-show seconds across all bookable screens.</p>
+                <div style="display: flex; flex-direction: column; gap: 14px">
+                  <sc-for list="{{ inventoryMeters }}" as="m" hint-placeholder-count="3">
+                    <div style="display: flex; flex-direction: column; gap: 6px">
+                      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+                        <span style="font-size: 13px; color: #08090A; font-weight: 500">{{ m.label }}</span>
+                        <span style="font-size: 12px; color: #677A90; font-variant-numeric: tabular-nums">{{ m.detail }}</span>
+                      </div>
+                      <div style="height: 8px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                        <div style="height: 100%; width: {{ m.pct }}; background: {{ m.color }}; border-radius: 1000px"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px">
+                <h2 style="margin: 0 0 14px; font-size: 15px; font-weight: 600; color: #08090A">Needs attention</h2>
+                <div style="display: flex; flex-direction: column; gap: 10px">
+                  <sc-for list="{{ attention }}" as="a" hint-placeholder-count="3">
+                    <button data-route="{{ a.route }}" onClick="{{ onNav }}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 1px solid #E7EBF0; border-radius: 6px; background: #FFFFFF; text-align: left; cursor: pointer; font-family: inherit" style-hover="background: #F7FAFC">
+                      <span style="width: 3px; align-self: stretch; border-radius: 1000px; background: {{ a.color }}; flex: 0 0 auto"></span>
+                      <span style="flex: 1 1 auto; min-width: 0">
+                        <span style="display: block; font-size: 13px; font-weight: 500; color: #08090A">{{ a.title }}</span>
+                        <span style="display: block; font-size: 12px; color: #677A90; margin-top: 2px">{{ a.detail }}</span>
+                      </span>
+                      <span style="width: 18px; height: 18px; flex: 0 0 auto; background: #97A5B5; mask: url(assets/icons/ChevronRight.svg) center / contain no-repeat; -webkit-mask: url(assets/icons/ChevronRight.svg) center / contain no-repeat"></span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCampaigns }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px">
+            <div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Campaign Management</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Every theatrical advertising campaign booked on the network.</p>
+            </div>
+            <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="primary" size="medium" onClick="{{ goCreate }}" hint-size="auto,40px">Create Campaign</x-import>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <input value="{{ campSearch }}" onInput="{{ onCampSearch }}" placeholder="Search campaigns, clients or IDs…" style="flex: 1 1 280px; min-width: 220px; height: 36px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+            <div style="display: flex; align-items: center; gap: 6px">
+              <sc-for list="{{ campStatusChips }}" as="s" hint-placeholder-count="5">
+                <button data-value="{{ s.value }}" onClick="{{ onCampStatus }}" style="padding: 7px 12px; border: 1px solid {{ s.border }}; border-radius: 1000px; background: {{ s.bg }}; color: {{ s.color }}; font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer" style-hover="border-color: #084782">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12.5px; color: #677A90; margin-left: auto">{{ campCount }}</span>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Campaign</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Client</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Flight</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screens</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Weekly plays</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Budget</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ filteredCampaigns }}" as="c" hint-placeholder-count="6">
+                  <tr style="cursor: default" style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ c.name }}</div>
+                      <div style="font-size: 11.5px; color: #677A90; font-family: 'JetBrains Mono', ui-monospace, monospace">{{ c.id }}</div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #4A5A6C">{{ c.client }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ c.tone }} pf-tag--small"><span class="pf-tag__content">{{ c.status }}</span></span></td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90; white-space: nowrap">{{ c.flight }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.screens }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.plays }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.budget }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <sc-if value="{{ campEmpty }}">
+              <div style="padding: 48px 20px; text-align: center">
+                <div style="font-size: 15px; font-weight: 600; color: #08090A">No campaigns match that search</div>
+                <div style="font-size: 13px; color: #677A90; margin-top: 4px">Try a different name, client or status filter.</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1500px">
+          <div>
+            <button data-route="/campaigns" onClick="{{ onNav }}" style="display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 0; margin-bottom: 10px; font-family: inherit; font-size: 13px; font-weight: 500; color: #084782; cursor: pointer">
+              <span style="width: 16px; height: 16px; background: currentColor; mask: url(assets/icons/ChevronLeft.svg) center / contain no-repeat; -webkit-mask: url(assets/icons/ChevronLeft.svg) center / contain no-repeat"></span>
+              Back to Campaigns
+            </button>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Create New Campaign</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Booking, targeting, content and placement — the commercial intent that becomes a pre-show schedule.</p>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+            <div style="display: flex; flex-direction: column; gap: 20px; flex: 1 1 560px; min-width: 0">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px">
+                  <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+                    <button data-step="{{ s.n }}" onClick="{{ onStep }}" style="display: flex; align-items: center; gap: 10px; flex: 1 1 160px; min-width: 0; padding: 8px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; text-align: left; cursor: pointer" style-hover="background: #F7FAFC">
+                      <span style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: 0 0 auto; border: 2px solid {{ s.ring }}; border-radius: 1000px; background: {{ s.fill }}; color: {{ s.numColor }}; font-size: 12.5px; font-weight: 600">{{ s.badge }}</span>
+                      <span style="min-width: 0">
+                        <span style="display: block; font-size: 13px; font-weight: {{ s.weight }}; color: {{ s.color }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ s.title }}</span>
+                        <span style="display: block; font-size: 11px; color: #97A5B5">Step {{ s.n }}</span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <sc-if value="{{ step1 }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Campaign Information</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px">
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Campaign Name <span style="color: #CF1322">*</span></span>
+                        <input data-field="name" value="{{ fName }}" onInput="{{ onField }}" placeholder="e.g. Summer Blockbuster Promotion" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Campaign Type <span style="color: #CF1322">*</span></span>
+                        <select data-field="type" value="{{ fType }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="">Select campaign type</option>
+                          <option value="Private">Private</option>
+                          <option value="Political">Political</option>
+                          <option value="PSU">PSU</option>
+                          <option value="Government - Central">Government — Central</option>
+                          <option value="Government - State">Government — State</option>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Client <span style="color: #CF1322">*</span></span>
+                        <select data-field="client" value="{{ fClient }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="">Search &amp; select client</option>
+                          <sc-for list="{{ clientOptions }}" as="c" hint-placeholder-count="4">
+                            <option value="{{ c.value }}">{{ c.label }}</option>
+                          </sc-for>
+                        </select>
+                        <span style="font-size: 11.5px; color: #97A5B5">Brand owner this campaign is booked for.</span>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Brand <span style="color: #CF1322">*</span></span>
+                        <select data-field="brand" value="{{ fBrand }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="">Select brand</option>
+                          <sc-for list="{{ brandOptions }}" as="b" hint-placeholder-count="3">
+                            <option value="{{ b.value }}">{{ b.label }}</option>
+                          </sc-for>
+                        </select>
+                        <span style="font-size: 11.5px; color: #97A5B5">{{ brandHint }}</span>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Validity Start Date <span style="color: #CF1322">*</span></span>
+                        <input type="date" data-field="start" value="{{ fStart }}" onInput="{{ onField }}" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Validity End Date <span style="color: #CF1322">*</span></span>
+                        <input type="date" data-field="end" value="{{ fEnd }}" onInput="{{ onField }}" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                    </div>
+                  </div>
+
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #08090A">Campaign Specifications</h3>
+                    <p style="margin: 0 0 16px; font-size: 12.5px; color: #677A90">Which advertising surfaces this campaign buys, and how its commercial terms are set.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 16px">
+                      <sc-for list="{{ surfaceOptions }}" as="s" hint-placeholder-count="4">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 1px solid {{ s.border }}; border-radius: 6px; background: {{ s.bg }}; cursor: pointer" style-hover="border-color: #084782">
+                          <input type="checkbox" data-field="{{ s.field }}" checked="{{ s.checked }}" onChange="{{ onField }}" style="width: 16px; height: 16px; accent-color: #084782; cursor: pointer; flex: 0 0 auto">
+                          <span style="font-size: 13px; font-weight: 500; color: #08090A">{{ s.label }}</span>
+                        </label>
+                      </sc-for>
+                    </div>
+                    <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 16px; max-width: 340px">
+                      <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Campaign Mode <span style="color: #CF1322">*</span></span>
+                      <select data-field="mode" value="{{ fMode }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                        <option value="Fixed Commercial Terms">Fixed Commercial Terms</option>
+                        <option value="Dynamic - Views Reach">Dynamic — Views Reach</option>
+                      </select>
+                      <span style="font-size: 11.5px; color: #97A5B5">{{ modeHint }}</span>
+                    </label>
+                  </div>
+
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Contacts</h3>
+                    <div style="display: flex; flex-direction: column; gap: 18px">
+                      <sc-for list="{{ contactGroups }}" as="g" hint-placeholder-count="3">
+                        <div style="display: flex; flex-direction: column; gap: 10px">
+                          <span style="font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #677A90">{{ g.title }}</span>
+                          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+                            <label style="display: flex; flex-direction: column; gap: 5px">
+                              <span style="font-size: 12px; color: #4A5A6C">Name</span>
+                              <input data-field="{{ g.nameField }}" value="{{ g.name }}" onInput="{{ onField }}" placeholder="Full name" style="height: 36px; padding: 0 11px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 5px">
+                              <span style="font-size: 12px; color: #4A5A6C">Email</span>
+                              <input type="email" data-field="{{ g.emailField }}" value="{{ g.email }}" onInput="{{ onField }}" placeholder="name@company.com" style="height: 36px; padding: 0 11px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 5px">
+                              <span style="font-size: 12px; color: #4A5A6C">Phone Number</span>
+                              <input type="tel" data-field="{{ g.phoneField }}" value="{{ g.phone }}" onInput="{{ onField }}" placeholder="+1 555 0100" style="height: 36px; padding: 0 11px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                            </label>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Billing &amp; Media Agency</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px">
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Billing Company Name</span>
+                        <select data-field="billingName" value="{{ fBillingName }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <sc-for list="{{ billingCompanyOptions }}" as="b" hint-placeholder-count="3">
+                            <option value="{{ b.value }}">{{ b.label }}</option>
+                          </sc-for>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Billing Company Address</span>
+                        <select data-field="billingAddress" value="{{ fBillingAddress }}" onChange="{{ onField }}" disabled="{{ addressLocked }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #4A5A6C; background: #F7FAFC; outline: none">
+                          <sc-for list="{{ billingAddressOptions }}" as="a" hint-placeholder-count="2">
+                            <option value="{{ a.value }}">{{ a.label }}</option>
+                          </sc-for>
+                        </select>
+                        <span style="font-size: 11.5px; color: #97A5B5">{{ addressHint }}</span>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Billing Cycle</span>
+                        <select data-field="billingCycle" value="{{ fBillingCycle }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="Weekly">Weekly</option>
+                          <option value="Fortnightly">Fortnightly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="On Campaign Completion">On Campaign Completion</option>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Order Region</span>
+                        <select data-field="orderRegion" value="{{ fOrderRegion }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="">Select region</option>
+                          <option value="Northeast">Northeast</option>
+                          <option value="West">West</option>
+                          <option value="Midwest">Midwest</option>
+                          <option value="South">South</option>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Purchase Order ID / RO ID</span>
+                        <input data-field="orderId" value="{{ fOrderId }}" onInput="{{ onField }}" placeholder="Enter PO or RO ID" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Third-Party Order ID</span>
+                        <input data-field="thirdPartyOrderId" value="{{ fThirdPartyOrderId }}" onInput="{{ onField }}" placeholder="Agency or platform reference" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 9px; grid-column: 1 / -1; padding: 11px 14px; border: 1px solid #E7EBF0; border-radius: 6px; background: #F7FAFC; cursor: pointer">
+                        <input type="checkbox" data-field="advance" checked="{{ fAdvance }}" onChange="{{ onField }}" style="width: 16px; height: 16px; accent-color: #084782; cursor: pointer">
+                        <span style="font-size: 13px; color: #08090A">Advance payment required before scheduling</span>
+                      </label>
+                      <sc-if value="{{ fAdvance }}">
+                        <label style="display: flex; flex-direction: column; gap: 6px">
+                          <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Advance Payment</span>
+                          <input data-field="advanceAmount" value="{{ fAdvanceAmount }}" onInput="{{ onField }}" placeholder="Amount or % of booked value" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                        </label>
+                      </sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ step2 }}" hint-placeholder-val="{{ true }}">
+                <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+                  <div style="padding: 18px 24px; border-bottom: 1px solid #E1E4E9">
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: #08090A">Target Groups</h3>
+                    <p style="margin: 4px 0 0; font-size: 12.5px; color: #677A90">Select the theatre and screen groupings this campaign should reach.</p>
+                  </div>
+                  <div style="display: flex; flex-direction: column">
+                    <sc-for list="{{ targetGroupOptions }}" as="t" hint-placeholder-count="6">
+                      <label style="display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid #EDF0F3; cursor: pointer; background: {{ t.rowBg }}" style-hover="background: #F7FAFC">
+                        <input type="checkbox" data-id="{{ t.id }}" checked="{{ t.checked }}" onChange="{{ onToggleTG }}" style="width: 16px; height: 16px; accent-color: #084782; cursor: pointer; flex: 0 0 auto">
+                        <span style="flex: 1 1 auto; min-width: 0">
+                          <span style="display: block; font-size: 13.5px; font-weight: 500; color: #08090A">{{ t.name }}</span>
+                          <span style="display: block; font-size: 12px; color: #677A90; margin-top: 2px">{{ t.meta }}</span>
+                        </span>
+                        <span class="pf-tag pf-tag--{{ t.tone }} pf-tag--small"><span class="pf-tag__content">{{ t.statusLabel }}</span></span>
+                        <span style="width: 92px; text-align: right; font-size: 13px; font-weight: 500; color: #08090A; font-variant-numeric: tabular-nums">{{ t.screenCount }} screens</span>
+                      </label>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ step3 }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 24px">
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: #08090A">Media Selection</h3>
+                    <p style="margin: 4px 0 0; font-size: 12.5px; color: #677A90">Creative that will be packaged into pre-show playlists. Missing content blocks scheduling.</p>
+                  </div>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px">
+                    <sc-for list="{{ mediaOptions }}" as="m" hint-placeholder-count="6">
+                      <button data-id="{{ m.id }}" onClick="{{ onToggleMedia }}" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1.5px solid {{ m.border }}; border-radius: 8px; background: {{ m.bg }}; text-align: left; cursor: pointer; font-family: inherit" style-hover="border-color: #084782">
+                        <span style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+                          <span class="pf-tag pf-tag--{{ m.tone }} pf-tag--small"><span class="pf-tag__content">{{ m.status }}</span></span>
+                          <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1.5px solid {{ m.checkBorder }}; border-radius: 4px; background: {{ m.checkBg }}; color: #FFFFFF; font-size: 12px; font-weight: 700">{{ m.check }}</span>
+                        </span>
+                        <span style="display: block; font-size: 13.5px; font-weight: 600; color: #08090A">{{ m.name }}</span>
+                        <span style="display: block; font-size: 11.5px; color: #677A90; font-family: 'JetBrains Mono', ui-monospace, monospace; word-break: break-all">{{ m.cpl }}</span>
+                        <span style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #4A5A6C">
+                          <span>{{ m.duration }}</span>
+                          <span style="color: #C3CCD6">·</span>
+                          <span>{{ m.format }}</span>
+                          <span style="color: #C3CCD6">·</span>
+                          <span>{{ m.size }}</span>
+                        </span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ step4 }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #08090A">Add Placement</h3>
+                    <p style="margin: 0 0 16px; font-size: 12.5px; color: #677A90">A placement pairs a target group with a creative and its playback parameters.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; align-items: end">
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Target Group</span>
+                        <select data-field="pTG" value="{{ pTG }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                          <sc-for list="{{ selectedTGNames }}" as="n" hint-placeholder-count="2">
+                            <option value="{{ n.value }}">{{ n.label }}</option>
+                          </sc-for>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Media</span>
+                        <select data-field="pMedia" value="{{ pMedia }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                          <sc-for list="{{ selectedMediaNames }}" as="n" hint-placeholder-count="2">
+                            <option value="{{ n.value }}">{{ n.label }}</option>
+                          </sc-for>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Playlist Pack · Position</span>
+                        <select data-field="pPack" value="{{ pPack }}" onChange="{{ onField }}" style="height: 38px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                          <option value="Pre Show · A">Pre Show · Position A</option>
+                          <option value="Pre Show · B">Pre Show · Position B</option>
+                          <option value="Pre Show · C">Pre Show · Position C</option>
+                          <option value="Intermission · A">Intermission · Position A</option>
+                          <option value="Intermission · B">Intermission · Position B</option>
+                        </select>
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 6px">
+                        <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Weekly Play Count</span>
+                        <input type="number" data-field="pPlays" value="{{ pPlays }}" onInput="{{ onField }}" style="height: 38px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                      </label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px">
+                      <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="primary" size="small" onClick="{{ addPlacement }}" hint-size="auto,32px">Add Placement</x-import>
+                      <span style="font-size: 12.5px; color: #677A90">{{ placementHint }}</span>
+                    </div>
+                  </div>
+
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+                    <table style="width: 100%; border-collapse: collapse">
+                      <thead>
+                        <tr>
+                          <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Target Group</th>
+                          <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Media</th>
+                          <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Pack · Position</th>
+                          <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Weekly plays</th>
+                          <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Weekly seconds</th>
+                          <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                          <th style="padding: 10px 20px; border-bottom: 2px solid #E1E4E9"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <sc-for list="{{ placementRows }}" as="p" hint-placeholder-count="3">
+                          <tr style-hover="background: #F7FAFC">
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">
+                              {{ p.targetGroup }}
+                              <span style="display: block; font-size: 11.5px; font-weight: 400; color: #677A90; margin-top: 2px">{{ p.tgMeta }}</span>
+                            </td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A">
+                              {{ p.mediaName }}
+                              <span style="display: block; font-size: 11.5px; color: #677A90; margin-top: 2px">{{ p.mediaMeta }}</span>
+                            </td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C; white-space: nowrap">{{ p.pack }}</td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ p.plays }}</td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ p.seconds }}</td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ p.tone }} pf-tag--small"><span class="pf-tag__content">{{ p.status }}</span></span></td>
+                            <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; text-align: right">
+                              <button data-id="{{ p.id }}" onClick="{{ removePlacement }}" title="Remove placement" style="border: 1px solid #E1E4E9; border-radius: 6px; background: #FFFFFF; padding: 5px 9px; font-family: inherit; font-size: 12px; color: #CF1322; cursor: pointer" style-hover="background: #FDF2F2; border-color: #F0C4C7">Remove</button>
+                            </td>
+                          </tr>
+                        </sc-for>
+                      </tbody>
+                    </table>
+                    <sc-if value="{{ noPlacements }}">
+                      <div style="padding: 40px 20px; text-align: center">
+                        <div style="font-size: 14px; font-weight: 600; color: #08090A">No placements yet</div>
+                        <div style="font-size: 12.5px; color: #677A90; margin-top: 4px">Add a placement above to turn this booking into playback instructions.</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ step5 }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                  <sc-if value="{{ published }}">
+                    <div class="pf-alert pf-alert--positive" style="display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #BFE3CD; border-radius: 8px; background: #F1F9F4">
+                      <span style="font-size: 13.5px; color: #0F7B3F; font-weight: 500">Campaign published to the network. Placements are queued for distribution to {{ totalScreens }} screens.</span>
+                    </div>
+                  </sc-if>
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Review &amp; Publish</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 32px">
+                      <sc-for list="{{ reviewRows }}" as="r" hint-placeholder-count="10">
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid #EDF0F3">
+                          <span style="font-size: 12.5px; color: #677A90">{{ r.label }}</span>
+                          <span style="font-size: 13.5px; font-weight: 500; color: #08090A; text-align: right">{{ r.value }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+                    <h3 style="margin: 0 0 12px; font-size: 15px; font-weight: 600; color: #08090A">Pre-flight checks</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px">
+                      <sc-for list="{{ preflight }}" as="c" hint-placeholder-count="4">
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid #E7EBF0; border-radius: 6px">
+                          <span style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 1000px; background: {{ c.color }}; color: #FFFFFF; font-size: 12px; font-weight: 700; flex: 0 0 auto">{{ c.glyph }}</span>
+                          <span style="flex: 1 1 auto; font-size: 13px; color: #08090A">{{ c.label }}</span>
+                          <span style="font-size: 12.5px; color: #677A90">{{ c.detail }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06)">
+                <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="secondary" size="medium" onClick="{{ prevStep }}" isDisabled="{{ atFirstStep }}" hint-size="auto,40px">Previous</x-import>
+                <span style="font-size: 12.5px; color: #677A90">{{ stepLabel }}</span>
+                <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="primary" size="medium" onClick="{{ nextStep }}" hint-size="auto,40px">{{ nextLabel }}</x-import>
+              </div>
+            </div>
+
+            <aside style="position: sticky; top: 0; flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px; background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px">
+              <div>
+                <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #08090A">Booking summary</h3>
+                <p style="margin: 4px 0 0; font-size: 12px; color: #677A90">Recomputes as you select.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0">
+                <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="7">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #EDF0F3">
+                    <span style="font-size: 12.5px; color: #677A90">{{ c.label }}</span>
+                    <span style="font-size: 13.5px; font-weight: 500; color: #08090A; font-variant-numeric: tabular-nums">{{ c.value }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 6px; background: #F0F5FA">
+                <span style="font-size: 12.5px; font-weight: 500; color: #084782">Est. weekly spend</span>
+                <span style="font-size: 19px; font-weight: 600; color: #084782; font-variant-numeric: tabular-nums">{{ weeklySpend }}</span>
+              </div>
+              <p style="margin: 0; font-size: 11.5px; color: #97A5B5; line-height: 1.5">Rate card: {{ rateLabel }} per second per screen. Inventory is held for 24 hours after publish.</p>
+            </aside>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAvailability }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1500px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Inventory Availability</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Pre-show seconds sold and available, per screen and per show. Select screens to build a booking.</p>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <label style="display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Week of</span>
+              <input type="date" data-field="invDate" value="{{ invDate }}" onInput="{{ onField }}" style="height: 34px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; outline: none">
+            </label>
+            <span style="width: 1px; height: 24px; background: #E1E4E9"></span>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+              <sc-for list="{{ circuitChips }}" as="s" hint-placeholder-count="5">
+                <button data-value="{{ s.value }}" onClick="{{ onCircuit }}" style="padding: 7px 12px; border: 1px solid {{ s.border }}; border-radius: 1000px; background: {{ s.bg }}; color: {{ s.color }}; font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer" style-hover="border-color: #084782">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12.5px; color: #677A90; margin-left: auto">{{ availSummary }}</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start">
+            <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+              <div style="padding: 14px 16px; border-bottom: 1px solid #E1E4E9; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90">Theatres</div>
+              <div style="display: flex; flex-direction: column">
+                <sc-for list="{{ theatreList }}" as="t" hint-placeholder-count="6">
+                  <button data-id="{{ t.id }}" onClick="{{ onSelectTheatre }}" style="display: flex; flex-direction: column; gap: 7px; padding: 13px 16px; border: 0; border-bottom: 1px solid #EDF0F3; border-left: 3px solid {{ t.bar }}; background: {{ t.bg }}; text-align: left; cursor: pointer; font-family: inherit" style-hover="background: #F7FAFC">
+                    <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+                      <span style="font-size: 13.5px; font-weight: {{ t.weight }}; color: #08090A">{{ t.name }}</span>
+                      <span style="font-size: 12px; color: #677A90; font-variant-numeric: tabular-nums">{{ t.util }}</span>
+                    </span>
+                    <span style="font-size: 11.5px; color: #677A90">{{ t.meta }}</span>
+                    <span style="display: block; height: 5px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                      <span style="display: block; height: 100%; width: {{ t.pct }}; background: {{ t.utilColor }}; border-radius: 1000px"></span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap">
+                <div>
+                  <h2 style="margin: 0; font-size: 17px; font-weight: 600; color: #08090A">{{ detailName }}</h2>
+                  <p style="margin: 4px 0 0; font-size: 13px; color: #677A90">{{ detailMeta }}</p>
+                </div>
+                <div style="display: flex; gap: 28px">
+                  <sc-for list="{{ detailStats }}" as="s" hint-placeholder-count="3">
+                    <div style="display: flex; flex-direction: column; gap: 2px">
+                      <span style="font-size: 11.5px; color: #677A90; text-transform: uppercase; letter-spacing: .04em; font-weight: 600">{{ s.label }}</span>
+                      <span style="font-size: 20px; font-weight: 600; color: {{ s.color }}; font-variant-numeric: tabular-nums; letter-spacing: -0.01em">{{ s.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+                <table style="width: 100%; border-collapse: collapse">
+                  <thead>
+                    <tr>
+                      <th style="width: 44px; padding: 10px 0 10px 20px; border-bottom: 2px solid #E1E4E9"></th>
+                      <th style="text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screen</th>
+                      <th style="text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Shows / day</th>
+                      <th style="text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9; min-width: 200px">Pre-show capacity</th>
+                      <th style="text-align: right; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Sold</th>
+                      <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Available</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ screenRows }}" as="s" hint-placeholder-count="6">
+                      <tr style="background: {{ s.rowBg }}" style-hover="background: #F7FAFC">
+                        <td style="padding: 12px 0 12px 20px; border-bottom: 1px solid #EDF0F3">
+                          <input type="checkbox" data-id="{{ s.id }}" checked="{{ s.checked }}" onChange="{{ onToggleScreen }}" style="width: 16px; height: 16px; accent-color: #084782; cursor: pointer">
+                        </td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #EDF0F3">
+                          <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ s.name }}</div>
+                          <div style="font-size: 11.5px; color: #677A90">{{ s.seats }} seats · {{ s.format }}</div>
+                        </td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #4A5A6C; white-space: nowrap">{{ s.shows }}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #EDF0F3">
+                          <div style="display: flex; height: 10px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                            <div style="height: 100%; width: {{ s.pct }}; background: {{ s.barColor }}"></div>
+                          </div>
+                          <div style="font-size: 11px; color: #677A90; margin-top: 5px; font-variant-numeric: tabular-nums">{{ s.capLabel }}</div>
+                        </td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ s.sold }}</td>
+                        <td style="padding: 12px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 600; color: {{ s.availColor }}; text-align: right; font-variant-numeric: tabular-nums">{{ s.available }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 20px; padding: 16px 20px; background: #F0F5FA; border: 1px solid #CFE0EE; border-radius: 8px; flex-wrap: wrap">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #084782">Selection</span>
+                  <span style="font-size: 13.5px; color: #08090A">{{ selectionLabel }}</span>
+                </div>
+                <div style="flex: 1 1 auto"></div>
+                <div style="display: flex; flex-direction: column; gap: 2px; text-align: right">
+                  <span style="font-size: 11.5px; color: #4A5A6C">Available seconds in selection</span>
+                  <span style="font-size: 20px; font-weight: 600; color: #084782; font-variant-numeric: tabular-nums">{{ selectionSeconds }}</span>
+                </div>
+                <x-import component-from-global-scope="QubeDesignSystem_169a27.Button" variant="primary" size="medium" onClick="{{ goCreate }}" hint-size="auto,40px">Book selection</x-import>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTargetGroups }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Target Groups</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Theatre and screen groupings used for campaign targeting.</p>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+            <sc-for list="{{ tgKpis }}" as="k" hint-placeholder-count="4">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px; display: flex; flex-direction: column; gap: 5px">
+                <span style="font-size: 12.5px; color: #677A90; font-weight: 500">{{ k.label }}</span>
+                <span style="font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: #08090A; line-height: 1.1">{{ k.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <input value="{{ tgSearch }}" onInput="{{ onTgSearch }}" placeholder="Search by group name or owner…" style="flex: 1 1 260px; min-width: 220px; height: 36px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+            <div style="display: flex; align-items: center; gap: 6px">
+              <sc-for list="{{ tgStatusChips }}" as="s" hint-placeholder-count="4">
+                <button data-value="{{ s.value }}" onClick="{{ onTgStatus }}" style="padding: 7px 12px; border: 1px solid {{ s.border }}; border-radius: 1000px; background: {{ s.bg }}; color: {{ s.color }}; font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer" style-hover="border-color: #084782">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12.5px; color: #677A90; margin-left: auto">{{ tgCount }}</span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <sc-for list="{{ tgHeads }}" as="h" hint-placeholder-count="7">
+                    <th style="text-align: {{ h.align }}; padding: 0; border-bottom: 2px solid #E1E4E9">
+                      <button data-field="{{ h.field }}" onClick="{{ onSort }}" style="width: 100%; padding: 11px 20px; border: 0; background: transparent; font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: {{ h.color }}; text-align: {{ h.align }}; cursor: pointer; white-space: nowrap" style-hover="background: #F7FAFC">{{ h.label }}</button>
+                    </th>
+                  </sc-for>
+                  <th style="text-align: left; padding: 11px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ tgRows }}" as="t" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">{{ t.name }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ t.screens }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ t.theatres }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90; white-space: nowrap">{{ t.createdOn }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ t.createdBy }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90; white-space: nowrap">{{ t.validFrom }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90; white-space: nowrap">{{ t.validTill }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ t.tone }} pf-tag--small"><span class="pf-tag__content">{{ t.statusLabel }}</span></span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTheatres }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Network Theatres &amp; Screens</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Every theatre carrying Qube Slate inventory, with this week's utilisation.</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px">
+            <input value="{{ thSearch }}" onInput="{{ onThSearch }}" placeholder="Search theatres, circuits or cities…" style="width: 100%; height: 36px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13.5px; color: #08090A; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Theatre</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Circuit</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Formats</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screens</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Seats</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9; min-width: 180px">Utilisation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ theatreDir }}" as="t" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ t.name }}</div>
+                      <div style="font-size: 11.5px; color: #677A90">{{ t.city }} · {{ t.id }}</div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ t.circuit }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90">{{ t.formats }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ t.screens }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ t.seats }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="display: flex; align-items: center; gap: 10px">
+                        <div style="flex: 1 1 auto; height: 8px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                          <div style="height: 100%; width: {{ t.pct }}; background: {{ t.color }}; border-radius: 1000px"></div>
+                        </div>
+                        <span style="font-size: 12.5px; color: #4A5A6C; font-variant-numeric: tabular-nums; width: 38px; text-align: right">{{ t.util }}</span>
+                      </div>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTemplates }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1300px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Playlist Templates</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Ad block layouts, and the theatre-level boundaries that cap how much content each segment can hold.</p>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+            <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #08090A">Playlist boundaries</h3>
+            <p style="margin: 0 0 18px; font-size: 12.5px; color: #677A90">Maximum durations enforced at the theatre. Content beyond the boundary is dropped by priority.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px">
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <label style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                  <span style="font-size: 13px; font-weight: 500; color: #08090A">Max pre-show duration</span>
+                  <span style="display: flex; align-items: center; gap: 6px">
+                    <input type="number" data-field="pre" value="{{ bPre }}" onInput="{{ onBoundary }}" style="width: 92px; height: 34px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; text-align: right; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                    <span style="font-size: 12.5px; color: #677A90">seconds</span>
+                  </span>
+                </label>
+                <div style="height: 10px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                  <div style="height: 100%; width: {{ prePct }}; background: {{ preColor }}; border-radius: 1000px"></div>
+                </div>
+                <span style="font-size: 12px; color: #677A90; font-variant-numeric: tabular-nums">{{ preTotalLabel }} allocated</span>
+                <sc-if value="{{ preWarn }}">
+                  <div style="padding: 10px 12px; border: 1px solid #F0C4C7; border-radius: 6px; background: #FDF2F2; font-size: 12.5px; color: #CF1322; line-height: 1.5">{{ preWarnLabel }}</div>
+                </sc-if>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <label style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                  <span style="font-size: 13px; font-weight: 500; color: #08090A">Max intermission duration</span>
+                  <span style="display: flex; align-items: center; gap: 6px">
+                    <input type="number" data-field="int" value="{{ bInt }}" onInput="{{ onBoundary }}" style="width: 92px; height: 34px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; text-align: right; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                    <span style="font-size: 12.5px; color: #677A90">seconds</span>
+                  </span>
+                </label>
+                <div style="height: 10px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                  <div style="height: 100%; width: {{ intPct }}; background: {{ intColor }}; border-radius: 1000px"></div>
+                </div>
+                <span style="font-size: 12px; color: #677A90; font-variant-numeric: tabular-nums">{{ intTotalLabel }} allocated</span>
+                <sc-if value="{{ intWarn }}">
+                  <div style="padding: 10px 12px; border: 1px solid #F0C4C7; border-radius: 6px; background: #FDF2F2; font-size: 12.5px; color: #CF1322; line-height: 1.5">{{ intWarnLabel }}</div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px">
+            <sc-for list="{{ templates }}" as="t" hint-placeholder-count="4">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+                  <span style="font-size: 14.5px; font-weight: 600; color: #08090A">{{ t.name }}</span>
+                  <span style="font-size: 12px; color: #677A90">{{ t.theatres }} theatres</span>
+                </div>
+                <span style="font-size: 12.5px; color: #4A5A6C">{{ t.segments }}</span>
+                <span class="pf-tag pf-tag--primary-secondary pf-tag--small" style="align-self: flex-start"><span class="pf-tag__content">{{ t.slots }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPlaylist }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1300px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Pre-Show Playlist</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">The exact sequence around a show — the difference between what should play and in what order.</p>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+            <label style="display: flex; align-items: center; gap: 8px; flex: 1 1 420px">
+              <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C; white-space: nowrap">Show</span>
+              <select value="{{ plShow }}" onChange="{{ onPlSelect }}" style="flex: 1 1 auto; height: 36px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                <sc-for list="{{ plOptions }}" as="o" hint-placeholder-count="6">
+                  <option value="{{ o.value }}">{{ o.label }}</option>
+                </sc-for>
+              </select>
+            </label>
+            <div style="display: flex; gap: 22px; margin-left: auto">
+              <div style="display: flex; flex-direction: column">
+                <span style="font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #677A90">Pre-show</span>
+                <span style="font-size: 16px; font-weight: 600; color: #084782; font-variant-numeric: tabular-nums">{{ plPreLabel }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column">
+                <span style="font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #677A90">Intermission</span>
+                <span style="font-size: 16px; font-weight: 600; color: #6B3FA0; font-variant-numeric: tabular-nums">{{ plIntLabel }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column">
+                <span style="font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #677A90">Saleable</span>
+                <span style="font-size: 16px; font-weight: 600; color: #08090A; font-variant-numeric: tabular-nums">{{ plAdSeconds }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+            <h3 style="margin: 0 0 14px; font-size: 15px; font-weight: 600; color: #08090A">Pre-show segment</h3>
+            <div style="display: flex; height: 26px; border-radius: 6px; overflow: hidden; border: 1px solid #E1E4E9; margin-bottom: 18px">
+              <sc-for list="{{ preRows }}" as="r" hint-placeholder-count="8">
+                <div title="{{ r.name }}" style="width: {{ r.width }}; background: {{ r.color }}; border-right: 1px solid rgba(255,255,255,.5)"></div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column">
+              <sc-for list="{{ preRows }}" as="r" hint-placeholder-count="8">
+                <div style="display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid #EDF0F3">
+                  <span style="width: 22px; font-size: 12px; color: #97A5B5; font-variant-numeric: tabular-nums">{{ r.idx }}</span>
+                  <span style="width: 4px; height: 22px; border-radius: 1000px; background: {{ r.color }}; flex: 0 0 auto"></span>
+                  <span style="flex: 1 1 auto; font-size: 13.5px; color: #08090A; font-weight: 500">{{ r.name }}</span>
+                  <span class="pf-tag pf-tag--{{ r.tone }} pf-tag--small"><span class="pf-tag__content">{{ r.type }}</span></span>
+                  <span style="width: 70px; text-align: center; font-size: 12.5px; color: #677A90">Pos {{ r.pos }}</span>
+                  <span style="width: 56px; text-align: right; font-size: 13px; color: #08090A; font-variant-numeric: tabular-nums">{{ r.len }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+            <h3 style="margin: 0 0 14px; font-size: 15px; font-weight: 600; color: #08090A">Intermission segment</h3>
+            <div style="display: flex; height: 26px; border-radius: 6px; overflow: hidden; border: 1px solid #E1E4E9; margin-bottom: 18px">
+              <sc-for list="{{ intRows }}" as="r" hint-placeholder-count="3">
+                <div title="{{ r.name }}" style="width: {{ r.width }}; background: {{ r.color }}; border-right: 1px solid rgba(255,255,255,.5)"></div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column">
+              <sc-for list="{{ intRows }}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid #EDF0F3">
+                  <span style="width: 22px; font-size: 12px; color: #97A5B5; font-variant-numeric: tabular-nums">{{ r.idx }}</span>
+                  <span style="width: 4px; height: 22px; border-radius: 1000px; background: {{ r.color }}; flex: 0 0 auto"></span>
+                  <span style="flex: 1 1 auto; font-size: 13.5px; color: #08090A; font-weight: 500">{{ r.name }}</span>
+                  <span class="pf-tag pf-tag--{{ r.tone }} pf-tag--small"><span class="pf-tag__content">{{ r.type }}</span></span>
+                  <span style="width: 70px; text-align: center; font-size: 12.5px; color: #677A90">Pos {{ r.pos }}</span>
+                  <span style="width: 56px; text-align: right; font-size: 13px; color: #08090A; font-variant-numeric: tabular-nums">{{ r.len }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCompositions }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">{{ crumbLeaf }}</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">{{ stubDescription }}</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <div style="display: flex; align-items: center; gap: 6px">
+              <sc-for list="{{ compChips }}" as="s" hint-placeholder-count="4">
+                <button data-value="{{ s.value }}" onClick="{{ onCompFilter }}" style="padding: 7px 12px; border: 1px solid {{ s.border }}; border-radius: 1000px; background: {{ s.bg }}; color: {{ s.color }}; font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer" style-hover="border-color: #084782">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12.5px; color: #677A90; margin-left: auto">{{ compCount }}</span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Composition</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Format</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Duration</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Size</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Campaign</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Ingested</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ compRows }}" as="c" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ c.name }}</div>
+                      <div style="font-size: 11px; color: #677A90; font-family: 'JetBrains Mono', ui-monospace, monospace">{{ c.cpl }}</div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #4A5A6C">{{ c.format }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.len }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C; text-align: right; font-variant-numeric: tabular-nums">{{ c.size }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: {{ c.campaignColor }}">{{ c.campaign }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90; white-space: nowrap">{{ c.ingested }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ c.tone }} pf-tag--small"><span class="pf-tag__content">{{ c.state }}</span></span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isProof }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1400px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Proof of Play</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Creative, screen, show and timestamp — the playback record campaigns are reconciled against.</p>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px">
+            <sc-for list="{{ popStats }}" as="s" hint-placeholder-count="5">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px; display: flex; flex-direction: column; gap: 5px">
+                <span style="font-size: 12.5px; color: #677A90; font-weight: 500">{{ s.label }}</span>
+                <span style="font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: {{ s.color }}; line-height: 1.1; font-variant-numeric: tabular-nums">{{ s.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+            <span style="font-size: 12.5px; font-weight: 500; color: #4A5A6C">Campaign</span>
+            <select value="{{ popCampaign }}" onChange="{{ onPopCampaign }}" style="flex: 0 1 320px; height: 36px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+              <sc-for list="{{ popCampaigns }}" as="o" hint-placeholder-count="4">
+                <option value="{{ o.value }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Creative</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screen</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Show</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Scheduled</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Actual</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ popRows }}" as="r" hint-placeholder-count="8">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ r.creative }}</div>
+                      <div style="font-size: 11.5px; color: #677A90">{{ r.campaign }}</div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ r.screen }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ r.show }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #08090A; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{ r.scheduled }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: {{ r.actualColor }}; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{ r.actual }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ r.tone }} pf-tag--small"><span class="pf-tag__content">{{ r.state }}</span></span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDistribution }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1300px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px">
+            <div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Distribution Status</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Whether the content behind each placement actually reached the theatre.</p>
+            </div>
+            <span class="pf-tag pf-tag--negative pf-tag--medium"><span class="pf-tag__content">{{ distSummary }}</span></span>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Theatre</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Content</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Screens</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9; min-width: 200px">Delivery</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                  <th style="padding: 10px 20px; border-bottom: 2px solid #E1E4E9"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ distributionRows }}" as="r" hint-placeholder-count="8">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">{{ r.theatre }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ r.content }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ r.screens }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="display: flex; align-items: center; gap: 10px">
+                        <div style="flex: 1 1 auto; height: 8px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                          <div style="height: 100%; width: {{ r.pct }}; background: {{ r.color }}; border-radius: 1000px"></div>
+                        </div>
+                        <span style="font-size: 12.5px; color: #4A5A6C; font-variant-numeric: tabular-nums; width: 38px; text-align: right">{{ r.pctLabel }}</span>
+                      </div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ r.tone }} pf-tag--small"><span class="pf-tag__content">{{ r.state }}</span></span></td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; text-align: right">
+                      <sc-if value="{{ r.canRetry }}">
+                        <button data-id="{{ r.id }}" onClick="{{ onRetry }}" style="border: 1px solid #D3DAE2; border-radius: 6px; background: #FFFFFF; padding: 6px 11px; font-family: inherit; font-size: 12px; font-weight: 500; color: #084782; cursor: pointer" style-hover="background: #F0F5FA">Retry delivery</button>
+                      </sc-if>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isReports }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1300px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Reports &amp; Analytics</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Inventory utilisation, delivered plays and campaign value across the network.</p>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 16px; align-items: start">
+            <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+              <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Utilisation by circuit</h3>
+              <div style="display: flex; flex-direction: column; gap: 14px">
+                <sc-for list="{{ circuitUtil }}" as="c" hint-placeholder-count="4">
+                  <div style="display: flex; flex-direction: column; gap: 6px">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+                      <span style="font-size: 13px; color: #08090A; font-weight: 500">{{ c.label }}</span>
+                      <span style="font-size: 12.5px; color: #677A90; font-variant-numeric: tabular-nums">{{ c.value }}</span>
+                    </div>
+                    <div style="height: 8px; border-radius: 1000px; background: #EDF0F3; overflow: hidden">
+                      <div style="height: 100%; width: {{ c.pct }}; background: {{ c.color }}; border-radius: 1000px"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+              <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #08090A">Delivered plays per week</h3>
+              <p style="margin: 0 0 20px; font-size: 12.5px; color: #677A90">Proof-of-play confirmed across all screens.</p>
+              <div style="display: flex; align-items: flex-end; gap: 12px; height: 160px">
+                <sc-for list="{{ weekBars }}" as="w" hint-placeholder-count="6">
+                  <div style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end">
+                    <span style="font-size: 11.5px; color: #4A5A6C; font-variant-numeric: tabular-nums">{{ w.value }}</span>
+                    <div style="width: 100%; height: {{ w.height }}; background: #084782; border-radius: 4px 4px 0 0; min-height: 4px"></div>
+                    <span style="font-size: 10.5px; color: #97A5B5; text-align: center; line-height: 1.3">{{ w.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px">
+            <h3 style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #08090A">Top campaigns by booked value</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <sc-for list="{{ topCampaigns }}" as="c" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 16px">
+                  <span style="width: 210px; flex: 0 0 auto; font-size: 13.5px; font-weight: 500; color: #08090A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.name }}</span>
+                  <span style="width: 170px; flex: 0 0 auto; font-size: 12.5px; color: #677A90; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.client }}</span>
+                  <span style="flex: 1 1 auto; height: 22px; border-radius: 4px; background: #EDF0F3; overflow: hidden">
+                    <span style="display: block; height: 100%; width: {{ c.pct }}; background: #084782; border-radius: 4px"></span>
+                  </span>
+                  <span style="width: 84px; flex: 0 0 auto; text-align: right; font-size: 13.5px; font-weight: 600; color: #08090A; font-variant-numeric: tabular-nums">{{ c.budget }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isApprovals }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1000px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px">
+            <div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">{{ crumbLeaf }}</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">{{ stubDescription }}</p>
+            </div>
+            <span class="pf-tag pf-tag--notice pf-tag--medium"><span class="pf-tag__content">{{ approvalCount }}</span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <sc-for list="{{ approvalQueue }}" as="a" hint-placeholder-count="3">
+              <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 18px 20px; display: flex; align-items: center; gap: 20px">
+                <div style="flex: 1 1 auto; min-width: 0">
+                  <div style="font-size: 15px; font-weight: 600; color: #08090A">{{ a.title }}</div>
+                  <div style="font-size: 12.5px; color: #677A90; margin-top: 3px">{{ a.meta }}</div>
+                  <div style="font-size: 12.5px; color: #E65C00; margin-top: 6px">{{ a.note }}</div>
+                </div>
+                <sc-if value="{{ a.decided }}">
+                  <span class="pf-tag pf-tag--{{ a.tone }} pf-tag--medium"><span class="pf-tag__content">{{ a.verdict }}</span></span>
+                </sc-if>
+                <sc-if value="{{ a.pending }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto">
+                    <button data-id="{{ a.id }}" data-verdict="Rejected" onClick="{{ onDecide }}" style="border: 1px solid #D3DAE2; border-radius: 6px; background: #FFFFFF; padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 500; color: #CF1322; cursor: pointer" style-hover="background: #FDF2F2; border-color: #F0C4C7">Reject</button>
+                    <button data-id="{{ a.id }}" data-verdict="Approved" onClick="{{ onDecide }}" style="border: 0; border-radius: 6px; background: #084782; padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 500; color: #FFFFFF; cursor: pointer" style-hover="background: #063A6B">Approve</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isBias }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1100px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Campaign Rate Bias</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Multipliers applied to the base rate card by geography, theatre type, daypart or segment.</p>
+          </div>
+          <div style="padding: 14px 18px; background: #F0F5FA; border: 1px solid #CFE0EE; border-radius: 8px; font-size: 13px; color: #084782">Base rate card: <strong style="font-weight: 600">{{ baseRateLabel }}</strong></div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Dimension</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Applies to</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Multiplier</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Effective rate / 1,000s</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ biasRows }}" as="r" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #677A90">{{ r.dimension }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">{{ r.value }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; text-align: right">
+                      <input type="number" step="0.05" data-id="{{ r.id }}" value="{{ r.mult }}" onInput="{{ onBias }}" style="width: 84px; height: 34px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; text-align: right; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 14px; font-weight: 600; color: {{ r.color }}; text-align: right; font-variant-numeric: tabular-nums">{{ r.effective }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCatalogueBrands }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1200px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Brand Catalogue</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Master brand list with linked creatives and metadata.</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Brand</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Category</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Client</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Creatives</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Campaigns</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ brandsCat }}" as="b" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">{{ b.name }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ b.category }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ b.client }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ b.creatives }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ b.campaigns }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCatalogueClients }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1200px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Client Directory</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Master advertiser and agency list with contact history.</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Client</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Type</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Region</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Primary contact</th>
+                  <th style="text-align: right; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Campaigns</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ clientsCat }}" as="c" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; font-weight: 500; color: #08090A">{{ c.name }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ c.type }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ c.region }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 12.5px; color: #677A90">{{ c.contact }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13.5px; color: #08090A; text-align: right; font-variant-numeric: tabular-nums">{{ c.campaigns }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isUsers }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 1200px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">User Management</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Users, roles, permissions and access levels.</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); overflow-x: auto; overflow-y: hidden">
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">User</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Role</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Scope</th>
+                  <th style="text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #677A90; border-bottom: 2px solid #E1E4E9">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ users }}" as="u" hint-placeholder-count="6">
+                  <tr style-hover="background: #F7FAFC">
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3">
+                      <div style="font-size: 13.5px; font-weight: 500; color: #08090A">{{ u.name }}</div>
+                      <div style="font-size: 12px; color: #677A90">{{ u.email }}</div>
+                    </td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ u.role }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3; font-size: 13px; color: #4A5A6C">{{ u.scope }}</td>
+                    <td style="padding: 13px 20px; border-bottom: 1px solid #EDF0F3"><span class="pf-tag pf-tag--{{ u.tone }} pf-tag--small"><span class="pf-tag__content">{{ u.state }}</span></span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; max-width: 820px">
+          <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">Platform Settings</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">Time zones, default rates, content formats and network settings.</p>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+            <label style="display: flex; align-items: center; justify-content: space-between; gap: 20px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13.5px; font-weight: 500; color: #08090A">Scheduling time zone</span>
+                <span style="font-size: 12px; color: #677A90">Playback windows and proof-of-play timestamps use this zone.</span>
+              </span>
+              <select data-field="timezone" value="{{ sTimezone }}" onChange="{{ onSetting }}" style="flex: 0 0 260px; height: 36px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                <option value="America/New_York">America/New_York</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="America/Toronto">America/Toronto</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </label>
+            <div style="height: 1px; background: #EDF0F3"></div>
+            <label style="display: flex; align-items: center; justify-content: space-between; gap: 20px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13.5px; font-weight: 500; color: #08090A">Default playlist pack</span>
+                <span style="font-size: 12px; color: #677A90">Applied to new placements unless overridden.</span>
+              </span>
+              <select data-field="defaultPack" value="{{ sDefaultPack }}" onChange="{{ onSetting }}" style="flex: 0 0 260px; height: 36px; padding: 0 10px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; background: #FFFFFF; outline: none">
+                <option value="Pre Show">Pre Show</option>
+                <option value="Intermission">Intermission</option>
+              </select>
+            </label>
+            <div style="height: 1px; background: #EDF0F3"></div>
+            <label style="display: flex; align-items: center; justify-content: space-between; gap: 20px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13.5px; font-weight: 500; color: #08090A">Inventory hold on publish</span>
+                <span style="font-size: 12px; color: #677A90">Hours a booking holds seconds before release.</span>
+              </span>
+              <input type="number" data-field="holdHours" value="{{ sHoldHours }}" onInput="{{ onSetting }}" style="flex: 0 0 120px; height: 36px; padding: 0 12px; border: 1px solid #D3DAE2; border-radius: 6px; font-family: inherit; font-size: 13px; color: #08090A; text-align: right; outline: none" style-focus="border-color: #084782; box-shadow: 0 0 0 3px rgba(8,71,130,.12)">
+            </label>
+            <div style="height: 1px; background: #EDF0F3"></div>
+            <label style="display: flex; align-items: center; justify-content: space-between; gap: 20px; cursor: pointer">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13.5px; font-weight: 500; color: #08090A">Auto-approve renewals</span>
+                <span style="font-size: 12px; color: #677A90">Repeat bookings from existing clients skip the approval queue.</span>
+              </span>
+              <input type="checkbox" data-field="autoApprove" checked="{{ sAutoApprove }}" onChange="{{ onSetting }}" style="width: 18px; height: 18px; accent-color: #084782; cursor: pointer">
+            </label>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStub }}" hint-placeholder-val="{{ true }}">
+        <div style="max-width: 720px">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: #08090A">{{ crumbLeaf }}</h1>
+          <p style="margin: 5px 0 0; font-size: 14px; color: #677A90">{{ stubDescription }}</p>
+          <div style="margin-top: 24px; background: #FFFFFF; border: 1px solid #E1E4E9; border-radius: 8px; box-shadow: 0 1px 2px rgba(4,38,82,.06); padding: 48px 32px; text-align: center">
+            <div style="font-size: 16px; font-weight: 600; color: #08090A">Not in this prototype</div>
+            <p style="margin: 8px auto 0; max-width: 380px; font-size: 13.5px; color: #677A90; line-height: 1.6">This screen exists in the platform but wasn't part of this build. The advertiser-facing flows are wired end to end.</p>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;ratePerSecond&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:0.012,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0.002,&quot;max&quot;:0.05,&quot;step&quot;:0.002,&quot;unit&quot;:&quot;/sec/screen&quot;,&quot;section&quot;:&quot;Rate card&quot;},&quot;currency&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;USD&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;USD&quot;,&quot;INR&quot;,&quot;EUR&quot;,&quot;GBP&quot;],&quot;section&quot;:&quot;Rate card&quot;},&quot;showCapacityBars&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Inventory&quot;}}">
+class Component extends DCLogic {
+  state = {
+    route: '/',
+    open: ['Campaigns', 'Inventory', 'Reports'],
+    collapsed: false,
+    campSearch: '',
+    campStatus: 'all',
+    step: 1,
+    f: {
+      name: 'Autumn Blockbuster Slate', type: 'Private', client: 'Northwind Motors Group',
+      brand: 'Northwind Motors', start: '2026-09-07', end: '2026-10-04', country: 'United States',
+      onScreen: true, lobby: true, digitalWeb: false, digitalApp: false,
+      mode: 'Fixed Commercial Terms',
+      clientContactName: 'Aisha Karim', clientContactEmail: 'aisha.karim@northwindgroup.example', clientContactPhone: '+1 212 555 0142',
+      billingContactName: 'Marcus Bell', billingContactEmail: 'ap@northwindgroup.example', billingContactPhone: '+1 212 555 0188',
+      salesContactName: 'Priya Raman', salesContactEmail: 'priya.raman@qube.example', salesContactPhone: '+1 646 555 0119',
+      billingName: 'Halcyon Media Group', billingAddress: '', billingCycle: 'Monthly',
+      orderRegion: 'Northeast', orderId: 'PO-2026-4417', thirdPartyOrderId: 'HAL-RO-88214',
+      advance: true, advanceAmount: '25% of booked value',
+      pTG: 'tg-001', pMedia: 'm-1', pPack: 'Pre Show · A', pPlays: 42,
+      invDate: '2026-09-07'
+    },
+    tgSel: ['tg-001', 'tg-002'],
+    mediaSel: ['m-1', 'm-3'],
+    placements: [
+      { id: 'p1', tg: 'tg-001', media: 'm-1', pack: 'Pre Show · A', plays: 42 },
+      { id: 'p2', tg: 'tg-002', media: 'm-3', pack: 'Intermission · B', plays: 28 }
+    ],
+    published: false,
+    invCircuit: 'all',
+    invTheatre: 'TH-101',
+    screenSel: ['TH-101-S1', 'TH-101-S2']
+  };
+
+  /* ---------- reference data ---------- */
+
+  navDef = [
+    { key: 'Dashboard', title: 'Dashboard', route: '/', icon: 'Dashboard' },
+    { key: 'Campaigns', title: 'Campaigns', icon: 'Campaign', items: [
+      { title: 'Create Campaign', route: '/campaigns/create' },
+      { title: 'Campaign Management', route: '/campaigns' },
+      { title: 'Target Groups', route: '/target-groups' },
+      { title: 'Campaign Rate Bias', route: '/campaigns/rate-bias' }
+    ] },
+    { key: 'Approvals', title: 'Approvals', icon: 'CampaignApproval', items: [
+      { title: 'Campaign Approvals', route: '/approvals/campaigns' },
+      { title: 'Brand Approvals', route: '/approvals/brands' },
+      { title: 'Client Approvals', route: '/approvals/clients' }
+    ] },
+    { key: 'Content', title: 'Content', icon: 'Content', items: [
+      { title: 'Compositions', route: '/content/compositions' },
+      { title: 'Unmapped Compositions', route: '/content/unmapped' },
+      { title: 'Archived Content', route: '/content/archived' }
+    ] },
+    { key: 'Inventory', title: 'Inventory', icon: 'Movies', items: [
+      { title: 'Inventory Availability', route: '/inventory/availability' },
+      { title: 'Network Theatres & Screens', route: '/inventory/theatres' },
+      { title: 'Playlist Templates', route: '/inventory/templates' },
+      { title: 'Pre-Show Playlist', route: '/inventory/playlist' }
+    ] },
+    { key: 'Catalogue', title: 'Catalogue', icon: 'List', items: [
+      { title: 'Brands', route: '/catalogue/brands' },
+      { title: 'Clients', route: '/catalogue/clients' }
+    ] },
+    { key: 'Reports', title: 'Reports', icon: 'Reports', items: [
+      { title: 'Reports & Analytics', route: '/reports' },
+      { title: 'Proof of Play', route: '/reports/proof-of-play' },
+      { title: 'Distribution Status', route: '/reports/distribution' }
+    ] },
+    { key: 'Users', title: 'User Management', route: '/users', icon: 'MultipleUsers' },
+    { key: 'Settings', title: 'Settings', route: '/settings', icon: 'Settings' }
+  ];
+
+  routeTitles = {
+    '/': ['Overview', 'Dashboard', ''],
+    '/campaigns': ['Campaigns', 'Campaign Management', ''],
+    '/campaigns/create': ['Campaigns', 'Create Campaign', ''],
+    '/campaigns/rate-bias': ['Campaigns', 'Campaign Rate Bias', 'Pricing adjustments by geography, theatre type, segment or daypart.'],
+    '/target-groups': ['Campaigns', 'Target Groups', 'Theatre and screen groupings used for campaign targeting.'],
+    '/approvals/campaigns': ['Approvals', 'Campaign Approvals', 'Review and approve campaigns for release to the network.'],
+    '/approvals/brands': ['Approvals', 'Brand Approvals', 'Creative approvals from brand partners.'],
+    '/approvals/clients': ['Approvals', 'Client Approvals', 'Advertiser and agency approvals before scheduling.'],
+    '/content/compositions': ['Content', 'Compositions Library', 'Approved and active content assets across the network.'],
+    '/content/unmapped': ['Content', 'Unmapped Compositions', 'Uploaded content not yet assigned to a campaign.'],
+    '/content/archived': ['Content', 'Archived Content', 'Expired and past-use content kept for records.'],
+    '/inventory/availability': ['Inventory', 'Inventory Availability', ''],
+    '/inventory/theatres': ['Inventory', 'Network Theatres & Screens', 'Searchable directory of theatres with region, format and capacity filters.'],
+    '/inventory/templates': ['Inventory', 'Playlist Templates', 'Predefined ad block layouts and playlist boundary rules.'],
+    '/inventory/playlist': ['Inventory', 'Pre-Show Playlist', 'The exact sequence of content around a show.'],
+    '/catalogue/brands': ['Catalogue', 'Brand Catalogue', 'Master brand list with linked creatives and metadata.'],
+    '/catalogue/clients': ['Catalogue', 'Client Directory', 'Master advertiser and agency list with contact history.'],
+    '/reports': ['Reports', 'Reports & Analytics', 'Campaign performance, inventory utilisation and approval turnaround.'],
+    '/reports/proof-of-play': ['Reports', 'Proof of Play', 'What actually played, per screen and per show.'],
+    '/reports/distribution': ['Reports', 'Distribution Status', 'Whether content reached each theatre.'],
+    '/users': ['Platform', 'User Management', 'Users, roles, permissions and access levels.'],
+    '/settings': ['Platform', 'Platform Settings', 'Time zones, default rates, content formats and network settings.']
+  };
+
+  builtRoutes = ['/', '/campaigns', '/campaigns/create', '/campaigns/rate-bias', '/target-groups',
+    '/approvals/campaigns', '/approvals/brands', '/approvals/clients',
+    '/content/compositions', '/content/unmapped', '/content/archived',
+    '/inventory/availability', '/inventory/theatres', '/inventory/templates', '/inventory/playlist',
+    '/catalogue/brands', '/catalogue/clients',
+    '/reports', '/reports/proof-of-play', '/reports/distribution', '/users', '/settings'];
+
+  campaigns = [
+    { id: 'CAM-001', name: 'Summer Movie Festival', client: 'Kestrel Media Holdings', status: 'Active', tone: 'positive', start: '2026-06-15', end: '2026-08-31', screens: 45, plays: 1260, budget: 25000 },
+    { id: 'CAM-002', name: 'Horror Night Promo', client: 'Kestrel Media Holdings', status: 'Pending Approval', tone: 'notice', start: '2026-10-01', end: '2026-10-31', screens: 32, plays: 896, budget: 18500 },
+    { id: 'CAM-003', name: 'Holiday Blockbusters', client: 'Vantage Group', status: 'In Review', tone: 'primary-secondary', start: '2026-11-15', end: '2026-12-31', screens: 67, plays: 2010, budget: 42000 },
+    { id: 'CAM-004', name: 'Local Theatre Showcase', client: 'Tallgrass Brands', status: 'Draft', tone: 'default', start: '2026-12-01', end: '2026-12-15', screens: 12, plays: 288, budget: 8000 },
+    { id: 'CAM-005', name: 'Autumn Auto Launch', client: 'Northwind Motors Group', status: 'Active', tone: 'positive', start: '2026-09-07', end: '2026-10-18', screens: 88, plays: 3080, budget: 61500 },
+    { id: 'CAM-006', name: 'Streaming Service Teaser', client: 'Kestrel Media Holdings', status: 'Active', tone: 'positive', start: '2026-08-21', end: '2026-09-30', screens: 54, plays: 1620, budget: 33750 },
+    { id: 'CAM-007', name: 'Regional Bank Awareness', client: 'Meridian Financial', status: 'Pending Approval', tone: 'notice', start: '2026-10-09', end: '2026-11-20', screens: 41, plays: 1148, budget: 21400 },
+    { id: 'CAM-008', name: 'Winter Retail Sprint', client: 'Vantage Group', status: 'Draft', tone: 'default', start: '2026-11-27', end: '2026-12-26', screens: 19, plays: 456, budget: 9800 }
+  ];
+
+  targetGroups = [
+    { id: 'tg-001', name: 'Premium Metro Screens', screens: 45, theatres: 12, createdOn: '2026-01-15', createdBy: 'John Smith', validFrom: '2026-02-01', validTill: '2026-12-31', status: 'active' },
+    { id: 'tg-002', name: 'Tier 2 City Multiplex', screens: 78, theatres: 25, createdOn: '2026-01-20', createdBy: 'Sarah Johnson', validFrom: '2026-02-15', validTill: '2026-11-30', status: 'active' },
+    { id: 'tg-003', name: 'Weekend Prime Time', screens: 120, theatres: 40, createdOn: '2026-01-10', createdBy: 'Mike Chen', validFrom: '2026-01-25', validTill: '2026-07-31', status: 'expired' },
+    { id: 'tg-004', name: 'Autumn Campaign Screens', screens: 95, theatres: 30, createdOn: '2026-02-01', createdBy: 'Lisa Wong', validFrom: '2026-09-01', validTill: '2026-12-31', status: 'upcoming' },
+    { id: 'tg-005', name: 'IMAX & Premium Large Format', screens: 34, theatres: 28, createdOn: '2026-03-04', createdBy: 'Riya Deshpande', validFrom: '2026-04-01', validTill: '2026-12-31', status: 'active' },
+    { id: 'tg-006', name: 'Family Matinee Network', screens: 62, theatres: 21, createdOn: '2026-03-19', createdBy: 'Diego Alvarez', validFrom: '2026-05-01', validTill: '2026-10-31', status: 'active' }
+  ];
+
+  media = [
+    { id: 'm-1', name: 'Autumn Auto — 30s Hero', cpl: 'CPL-123-ABC-456', status: 'Available', tone: 'positive', seconds: 30, format: 'DCP · 2K Flat', size: '2.4 GB' },
+    { id: 'm-2', name: 'Product Launch Teaser', cpl: 'CPL-789-DEF-012', status: 'Missing', tone: 'negative', seconds: 15, format: 'DCP · 2K Scope', size: '—' },
+    { id: 'm-3', name: 'Brand Awareness Static', cpl: 'CPL-345-GHI-678', status: 'Available', tone: 'positive', seconds: 10, format: 'Slide · PNG', size: '15 MB' },
+    { id: 'm-4', name: 'Retail Sprint — 20s Cut', cpl: 'CPL-902-JKL-334', status: 'Available', tone: 'positive', seconds: 20, format: 'DCP · 2K Flat', size: '1.6 GB' },
+    { id: 'm-5', name: 'Bank Awareness — 45s', cpl: 'CPL-556-MNO-771', status: 'In Certification', tone: 'notice', seconds: 45, format: 'DCP · 4K Flat', size: '5.1 GB' },
+    { id: 'm-6', name: 'Streaming Teaser — 30s', cpl: 'CPL-118-PQR-620', status: 'Available', tone: 'positive', seconds: 30, format: 'DCP · 2K Scope', size: '2.2 GB' }
+  ];
+
+  theatreDefs = [
+    { id: 'TH-101', name: 'AMC Empire 25', circuit: 'AMC Theatres', city: 'New York, NY', n: 8 },
+    { id: 'TH-118', name: 'AMC Century City 15', circuit: 'AMC Theatres', city: 'Los Angeles, CA', n: 6 },
+    { id: 'TH-204', name: 'Regal Union Square', circuit: 'Regal Cinemas', city: 'New York, NY', n: 7 },
+    { id: 'TH-231', name: 'Regal LA Live', circuit: 'Regal Cinemas', city: 'Los Angeles, CA', n: 5 },
+    { id: 'TH-307', name: 'Cineplex Yonge-Dundas', circuit: 'Cineplex Entertainment', city: 'Toronto, ON', n: 6 },
+    { id: 'TH-402', name: 'Rialto Independent', circuit: 'Independent Theatres', city: 'Austin, TX', n: 3 }
+  ];
+
+  /* ---------- helpers ---------- */
+
+  get theatres() {
+    if (!this._theatres) {
+      this._theatres = this.theatreDefs.map((t, i) => {
+        const screens = [];
+        for (let j = 0; j < t.n; j++) {
+          const premium = j === 0;
+          const cap = premium ? 900 : 720;
+          const showCount = 4 + ((i + j) % 2);
+          const sold = Math.min(cap, (((i * 7 + j * 13) % 9) + 3) * 60);
+          screens.push({
+            id: t.id + '-S' + (j + 1),
+            name: 'Screen ' + (j + 1),
+            format: premium ? 'IMAX' : (j % 3 === 0 ? 'Dolby Cinema' : 'Standard'),
+            seats: premium ? 486 : 120 + ((i * 11 + j * 17) % 8) * 24,
+            showCount: showCount,
+            cap: cap * showCount,
+            sold: sold * showCount
+          });
+        }
+        return Object.assign({}, t, { screens: screens });
+      });
+    }
+    return this._theatres;
+  }
+
+  money(n) {
+    const cur = this.props.currency || 'USD';
+    const sym = cur === 'INR' ? '₹' : cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
+    return sym + Math.round(n).toLocaleString('en-US');
+  }
+
+  secs(n) {
+    const m = Math.floor(n / 60), s = Math.round(n % 60);
+    return m + ':' + (s < 10 ? '0' + s : s);
+  }
+
+  date(d) {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  get rate() { return this.props.ratePerSecond != null ? this.props.ratePerSecond : 0.012; }
+
+  /* ---------- handlers ---------- */
+
+  onNav = (e) => this.setState(s => ({
+    route: e.currentTarget.dataset.route, step: 1,
+    collapsed: s.tempOpen ? true : s.collapsed, tempOpen: false
+  }));
+
+  clients = [
+    { name: 'Northwind Motors Group', brands: ['Northwind Motors', 'Northwind Electric'], billing: 'Halcyon Media Group', addresses: ['411 Lexington Ave, Suite 900, New York, NY 10017'] },
+    { name: 'Meridian Financial', brands: ['Meridian Bank', 'Meridian Wealth'], billing: 'Halcyon Media Group', addresses: ['411 Lexington Ave, Suite 900, New York, NY 10017'] },
+    { name: 'Kestrel Media Holdings', brands: ['Kestrel Streaming', 'Kestrel Sports'], billing: 'Bright Harbour Media', addresses: ['2200 Wilshire Blvd, Los Angeles, CA 90057', '88 Kearny St, Floor 12, San Francisco, CA 94108'] },
+    { name: 'Vantage Group', brands: ['Vantage Retail', 'Vantage Home'], billing: 'Vantage Group (direct)', addresses: ['15 Congress Ave, Austin, TX 78701'] },
+    { name: 'Tallgrass Brands', brands: ['Tallgrass Foods', 'Tallgrass Dairy'], billing: 'Tallgrass Brands (direct)', addresses: ['700 W Madison St, Chicago, IL 60661'] },
+    { name: 'Orbit Communications', brands: ['Orbit Telecom', 'Orbit Fibre'], billing: 'Bright Harbour Media', addresses: ['2200 Wilshire Blvd, Los Angeles, CA 90057', '88 Kearny St, Floor 12, San Francisco, CA 94108'] }
+  ];
+
+  onNavGroup = (e) => {
+    const d = e.currentTarget.dataset;
+    if (d.route) { this.setState({ route: d.route }); return; }
+    this.setState(s => {
+      const next = { open: s.open.indexOf(d.key) >= 0 && !s.collapsed ? s.open.filter(k => k !== d.key) : s.open.concat([d.key]).filter((k, i, a) => a.indexOf(k) === i) };
+      // collapsed rail: clicking a group temporarily reveals the sidebar so sub-menus are reachable
+      if (s.collapsed) { next.collapsed = false; next.tempOpen = true; }
+      return next;
+    });
+  };
+
+  onMainEnter = () => {
+    if (this.state.tempOpen) this.setState({ collapsed: true, tempOpen: false });
+  };
+
+  toggleSidebar = () => this.setState(s => ({ collapsed: !s.collapsed }));
+  goCreate = () => this.setState({ route: '/campaigns/create' });
+  onCampSearch = (e) => this.setState({ campSearch: e.target.value });
+  onCampStatus = (e) => this.setState({ campStatus: e.currentTarget.dataset.value });
+  onCircuit = (e) => this.setState({ invCircuit: e.currentTarget.dataset.value });
+  onSelectTheatre = (e) => this.setState({ invTheatre: e.currentTarget.dataset.id });
+  onStep = (e) => this.setState({ step: Number(e.currentTarget.dataset.step) });
+  prevStep = () => this.setState(s => ({ step: Math.max(1, s.step - 1) }));
+  nextStep = () => this.setState(s => (s.step === 5 ? { published: true } : { step: s.step + 1 }));
+
+  onField = (e) => {
+    const el = e.target, field = el.dataset.field;
+    const val = el.type === 'checkbox' ? el.checked : el.value;
+    this.setState(s => {
+      const f = Object.assign({}, s.f, { [field]: val });
+      if (field === 'client') {
+        const c = this.clients.filter(x => x.name === val)[0];
+        f.brand = c ? c.brands[0] : '';
+        if (c) { f.billingName = c.billing; f.billingAddress = c.addresses[0]; }
+      }
+      return { f: f };
+    });
+  };
+
+  onToggleTG = (e) => {
+    const id = e.target.dataset.id;
+    this.setState(s => ({ tgSel: s.tgSel.indexOf(id) >= 0 ? s.tgSel.filter(x => x !== id) : s.tgSel.concat([id]) }));
+  };
+
+  onToggleMedia = (e) => {
+    const id = e.currentTarget.dataset.id;
+    this.setState(s => ({ mediaSel: s.mediaSel.indexOf(id) >= 0 ? s.mediaSel.filter(x => x !== id) : s.mediaSel.concat([id]) }));
+  };
+
+  onToggleScreen = (e) => {
+    const id = e.target.dataset.id;
+    this.setState(s => ({ screenSel: s.screenSel.indexOf(id) >= 0 ? s.screenSel.filter(x => x !== id) : s.screenSel.concat([id]) }));
+  };
+
+  addPlacement = () => this.setState(s => ({
+    placements: s.placements.concat([{ id: 'p' + Date.now(), tg: s.f.pTG, media: s.f.pMedia, pack: s.f.pPack, plays: Number(s.f.pPlays) || 0 }])
+  }));
+
+  removePlacement = (e) => {
+    const id = e.currentTarget.dataset.id;
+    this.setState(s => ({ placements: s.placements.filter(p => p.id !== id) }));
+  };
+
+  /* ---------- extended reference data ---------- */
+
+  compositions = [
+    { id: 'c-1', name: 'Autumn Auto — 30s Hero', cpl: '123e4567-e89b-12d3-a456-426614174000', sec: 30, format: 'DCP · 2K Flat', size: '2.4 GB', state: 'Available', campaign: 'Autumn Auto Launch', ingested: '2026-08-19' },
+    { id: 'c-2', name: 'Product Launch Teaser', cpl: '6ba7b810-9dad-11d1-80b4-00c04fd430c8', sec: 15, format: 'DCP · 2K Scope', size: '—', state: 'Missing', campaign: 'Autumn Auto Launch', ingested: '—' },
+    { id: 'c-3', name: 'Brand Awareness Static', cpl: '9f1c2d44-31aa-4c0e-9c11-7b2f5d8e6a03', sec: 10, format: 'Slide · PNG', size: '15 MB', state: 'Available', campaign: 'Summer Movie Festival', ingested: '2026-06-02' },
+    { id: 'c-4', name: 'Retail Sprint — 20s Cut', cpl: '4e7b91c2-08d5-4b6a-9e33-1c5f7a2b8d40', sec: 20, format: 'DCP · 2K Flat', size: '1.6 GB', state: 'Available', campaign: null, ingested: '2026-08-28' },
+    { id: 'c-5', name: 'Bank Awareness — 45s', cpl: 'b2d9f371-6c4e-4a18-8f52-3d7e9c1a5b66', sec: 45, format: 'DCP · 4K Flat', size: '5.1 GB', state: 'In Certification', campaign: 'Regional Bank Awareness', ingested: '2026-09-01' },
+    { id: 'c-6', name: 'Streaming Teaser — 30s', cpl: '7a3e5c18-9b2d-4f70-a611-8e4d2c9f3b57', sec: 30, format: 'DCP · 2K Scope', size: '2.2 GB', state: 'Available', campaign: 'Streaming Service Teaser', ingested: '2026-08-12' },
+    { id: 'c-7', name: 'Horror Night — 15s Sting', cpl: 'e91d4b06-2f78-4c3a-b055-6a1e8d7f2c94', sec: 15, format: 'DCP · 2K Scope', size: '1.1 GB', state: 'Available', campaign: null, ingested: '2026-09-03' },
+    { id: 'c-8', name: 'Spring Travel — 30s', cpl: 'd47c2a95-1e83-4d61-9f28-5b3a7c6e0f12', sec: 30, format: 'DCP · 2K Flat', size: '2.3 GB', state: 'Archived', campaign: 'Spring Travel Push', ingested: '2026-03-14' },
+    { id: 'c-9', name: 'Winter Retail — 10s Slide', cpl: 'a8f31e57-4b90-42cd-8e16-9c2d5f7a3b08', sec: 10, format: 'Slide · PNG', size: '9 MB', state: 'Archived', campaign: 'Winter Retail 2025', ingested: '2025-11-08' }
+  ];
+
+  playlistItems = [
+    { seg: 'Pre-show', name: 'Auditorium policy slide', type: 'Policy', sec: 15, pos: '—' },
+    { seg: 'Pre-show', name: 'Brand Awareness Static', type: 'Ad', sec: 10, pos: 'A' },
+    { seg: 'Pre-show', name: 'Autumn Auto — 30s Hero', type: 'Ad', sec: 30, pos: 'B' },
+    { seg: 'Pre-show', name: 'Streaming Teaser — 30s', type: 'Ad', sec: 30, pos: 'C' },
+    { seg: 'Pre-show', name: 'Local advertiser pod', type: 'Ad pod', sec: 90, pos: 'D' },
+    { seg: 'Pre-show', name: 'Trailer — The Long Winter', type: 'Trailer', sec: 150, pos: '—' },
+    { seg: 'Pre-show', name: 'Trailer — Neon Harbour', type: 'Trailer', sec: 135, pos: '—' },
+    { seg: 'Pre-show', name: 'Feature presentation ident', type: 'Ident', sec: 20, pos: '—' },
+    { seg: 'Intermission', name: 'Concessions promo', type: 'Ad', sec: 45, pos: 'A' },
+    { seg: 'Intermission', name: 'Retail Sprint — 20s Cut', type: 'Ad', sec: 20, pos: 'B' },
+    { seg: 'Intermission', name: 'Next week at this cinema', type: 'Promo', sec: 60, pos: '—' }
+  ];
+
+  proofRows = [
+    { id: 'pp-1', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Empire 25 · Screen 1', show: '19:45 Dune: Part Three', scheduled: '19:31:00', actual: '19:31:02', state: 'Played' },
+    { id: 'pp-2', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Empire 25 · Screen 4', show: '19:45 The Long Winter', scheduled: '19:32:15', actual: '19:32:14', state: 'Played' },
+    { id: 'pp-3', creative: 'Brand Awareness Static', campaign: 'Summer Movie Festival', screen: 'Regal Union Square · Screen 2', show: '17:00 Neon Harbour', scheduled: '16:48:30', actual: '—', state: 'Missed' },
+    { id: 'pp-4', creative: 'Streaming Teaser — 30s', campaign: 'Streaming Service Teaser', screen: 'Regal LA Live · Screen 1', show: '22:15 Silverline', scheduled: '22:01:00', actual: '22:01:05', state: 'Played' },
+    { id: 'pp-5', creative: 'Retail Sprint — 20s Cut', campaign: 'Winter Retail Sprint', screen: 'Cineplex Yonge-Dundas · Screen 3', show: '14:15 Paper Moons', scheduled: '14:03:40', actual: '14:03:41', state: 'Played' },
+    { id: 'pp-6', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Century City 15 · Screen 2', show: '17:00 Dune: Part Three', scheduled: '16:47:10', actual: '16:52:30', state: 'Late' },
+    { id: 'pp-7', creative: 'Brand Awareness Static', campaign: 'Summer Movie Festival', screen: 'Rialto Independent · Screen 1', show: '19:45 Paper Moons', scheduled: '19:33:00', actual: '19:33:00', state: 'Played' },
+    { id: 'pp-8', creative: 'Streaming Teaser — 30s', campaign: 'Streaming Service Teaser', screen: 'Regal Union Square · Screen 5', show: '11:30 The Long Winter', scheduled: '11:18:20', actual: '—', state: 'Missed' },
+    { id: 'pp-9', creative: 'Retail Sprint — 20s Cut', campaign: 'Winter Retail Sprint', screen: 'AMC Empire 25 · Screen 7', show: '14:15 Silverline', scheduled: '14:04:00', actual: '14:04:03', state: 'Played' },
+    { id: 'pp-10', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'Cineplex Yonge-Dundas · Screen 1', show: '22:15 Neon Harbour', scheduled: '22:02:45', actual: '22:02:47', state: 'Played' }
+  ];
+
+  distRows = [
+    { id: 'd-1', theatre: 'AMC Empire 25', content: 'Autumn Auto — 30s Hero', screens: 8, state: 'Delivered', pct: 100 },
+    { id: 'd-2', theatre: 'AMC Century City 15', content: 'Autumn Auto — 30s Hero', screens: 6, state: 'Delivered', pct: 100 },
+    { id: 'd-3', theatre: 'Regal Union Square', content: 'Streaming Teaser — 30s', screens: 7, state: 'In Transit', pct: 64 },
+    { id: 'd-4', theatre: 'Regal LA Live', content: 'Streaming Teaser — 30s', screens: 5, state: 'Delivered', pct: 100 },
+    { id: 'd-5', theatre: 'Cineplex Yonge-Dundas', content: 'Retail Sprint — 20s Cut', screens: 6, state: 'Failed', pct: 18 },
+    { id: 'd-6', theatre: 'Rialto Independent', content: 'Retail Sprint — 20s Cut', screens: 3, state: 'In Transit', pct: 41 },
+    { id: 'd-7', theatre: 'AMC Empire 25', content: 'Brand Awareness Static', screens: 8, state: 'Delivered', pct: 100 },
+    { id: 'd-8', theatre: 'Regal Union Square', content: 'Bank Awareness — 45s', screens: 7, state: 'Failed', pct: 0 }
+  ];
+
+  approvalQueues = {
+    '/approvals/campaigns': [
+      { id: 'a-1', title: 'Horror Night Promo', meta: 'AMC Theatres · flight 1 Oct – 31 Oct · 32 screens', note: 'Awaiting inventory confirmation' },
+      { id: 'a-2', title: 'Regional Bank Awareness', meta: 'Cineplex Entertainment · flight 9 Oct – 20 Nov · 41 screens', note: 'Creative in certification' },
+      { id: 'a-3', title: 'Winter Retail Sprint', meta: 'Independent Theatres · flight 27 Nov – 26 Dec · 19 screens', note: 'Rate bias exception requested' }
+    ],
+    '/approvals/brands': [
+      { id: 'b-1', title: 'Northwind Motors', meta: '3 creatives submitted · automotive category', note: 'Category exclusivity check pending' },
+      { id: 'b-2', title: 'Meridian Bank', meta: '1 creative submitted · financial services', note: 'Regulatory disclaimer review' }
+    ],
+    '/approvals/clients': [
+      { id: 'c-1', title: 'Halcyon Media Group', meta: 'New agency · Northeast region', note: 'Credit terms not yet set' },
+      { id: 'c-2', title: 'Bright Harbour Media', meta: 'New agency · West region', note: 'Billing entity verification' }
+    ]
+  };
+
+  biasRules = [
+    { id: 'r-1', dimension: 'Geography', value: 'New York, NY', mult: 1.35 },
+    { id: 'r-2', dimension: 'Geography', value: 'Austin, TX', mult: 0.9 },
+    { id: 'r-3', dimension: 'Theatre type', value: 'IMAX / PLF', mult: 1.6 },
+    { id: 'r-4', dimension: 'Daypart', value: 'Prime (18:00–22:59)', mult: 1.25 },
+    { id: 'r-5', dimension: 'Daypart', value: 'Matinee (before 15:00)', mult: 0.75 },
+    { id: 'r-6', dimension: 'Segment', value: 'Intermission Premium', mult: 1.4 }
+  ];
+
+  brandsCat = [
+    { name: 'Northwind Motors', category: 'Automotive', creatives: 6, campaigns: 3, client: 'Halcyon Media Group' },
+    { name: 'Meridian Bank', category: 'Financial Services', creatives: 2, campaigns: 1, client: 'Halcyon Media Group' },
+    { name: 'Kestrel Streaming', category: 'Media & Entertainment', creatives: 9, campaigns: 4, client: 'Bright Harbour Media' },
+    { name: 'Vantage Retail', category: 'Retail', creatives: 5, campaigns: 2, client: 'Direct' },
+    { name: 'Tallgrass Foods', category: 'FMCG', creatives: 4, campaigns: 2, client: 'Direct' },
+    { name: 'Orbit Telecom', category: 'Telecom', creatives: 7, campaigns: 3, client: 'Bright Harbour Media' }
+  ];
+
+  clientsCat = [
+    { name: 'Halcyon Media Group', type: 'Media Agency', region: 'Northeast', campaigns: 6, contact: 'aisha.karim@halcyon.example' },
+    { name: 'Bright Harbour Media', type: 'Media Agency', region: 'West', campaigns: 4, contact: 'devon.pike@brightharbour.example' },
+    { name: 'AMC Theatres', type: 'Exhibitor', region: 'National', campaigns: 3, contact: 'adops@amc.example' },
+    { name: 'Regal Cinemas', type: 'Exhibitor', region: 'National', campaigns: 3, contact: 'adops@regal.example' },
+    { name: 'Cineplex Entertainment', type: 'Exhibitor', region: 'Canada', campaigns: 2, contact: 'adops@cineplex.example' },
+    { name: 'Independent Theatres', type: 'Exhibitor', region: 'South', campaigns: 2, contact: 'bookings@indie.example' }
+  ];
+
+  users = [
+    { name: 'Riya Deshpande', email: 'riya.d@qube.example', role: 'Ad Operations', scope: 'QCN — all circuits', state: 'Active' },
+    { name: 'John Smith', email: 'john.s@qube.example', role: 'Campaign Manager', scope: 'Northeast', state: 'Active' },
+    { name: 'Sarah Johnson', email: 'sarah.j@qube.example', role: 'Campaign Manager', scope: 'West', state: 'Active' },
+    { name: 'Mike Chen', email: 'mike.c@qube.example', role: 'Content Operations', scope: 'QCN — all circuits', state: 'Active' },
+    { name: 'Lisa Wong', email: 'lisa.w@halcyon.example', role: 'Agency (read only)', scope: 'Own campaigns', state: 'Active' },
+    { name: 'Diego Alvarez', email: 'diego.a@qube.example', role: 'Exhibitor Admin', scope: 'Cineplex Entertainment', state: 'Suspended' }
+  ];
+
+  /* ---------- extended handlers ---------- */
+
+  onSort = (e) => {
+    const field = e.currentTarget.dataset.field;
+    this.setState(s => ({ tgSort: field, tgDir: s.tgSort === field && s.tgDir === 'asc' ? 'desc' : 'asc' }));
+  };
+
+  onTgSearch = (e) => this.setState({ tgSearch: e.target.value });
+  onTgStatus = (e) => this.setState({ tgStatus: e.currentTarget.dataset.value });
+  onThSearch = (e) => this.setState({ thSearch: e.target.value });
+  onCompFilter = (e) => this.setState({ compFilter: e.currentTarget.dataset.value });
+  onPopCampaign = (e) => this.setState({ popCampaign: e.target.value });
+  onPlSelect = (e) => this.setState({ plShow: e.target.value });
+
+  onBoundary = (e) => {
+    const which = e.target.dataset.field, v = Number(e.target.value) || 0;
+    this.setState(s => (which === 'pre' ? { bPre: v } : { bInt: v }));
+  };
+
+  onBias = (e) => {
+    const id = e.target.dataset.id, v = parseFloat(e.target.value);
+    this.setState(s => ({ bias: Object.assign({}, s.bias, { [id]: isNaN(v) ? 0 : v }) }));
+  };
+
+  onDecide = (e) => {
+    const d = e.currentTarget.dataset;
+    this.setState(s => ({ decisions: Object.assign({}, s.decisions, { [d.id]: d.verdict }) }));
+  };
+
+  onRetry = (e) => {
+    const id = e.currentTarget.dataset.id;
+    this.setState(s => ({ retried: (s.retried || []).concat([id]) }));
+  };
+
+  onSetting = (e) => {
+    const el = e.target, field = el.dataset.field;
+    const val = el.type === 'checkbox' ? el.checked : el.value;
+    this.setState(s => ({ settings: Object.assign({}, s.settings, { [field]: val }) }));
+  };
+
+  /* ---------- extended render values ---------- */
+
+  moreVals(st, route) {
+    const bPre = st.bPre != null ? st.bPre : 720;
+    const bInt = st.bInt != null ? st.bInt : 240;
+    const bias = st.bias || {};
+    const decisions = st.decisions || {};
+    const retried = st.retried || [];
+    const settings = st.settings || { timezone: 'America/New_York', defaultPack: 'Pre Show', autoApprove: false, holdHours: '24' };
+
+    /* target groups */
+    const tgSort = st.tgSort || 'createdOn';
+    const tgDir = st.tgDir || 'desc';
+    const tgQ = (st.tgSearch || '').toLowerCase();
+    const tgFiltered = this.targetGroups.filter(t => {
+      const okQ = !tgQ || t.name.toLowerCase().indexOf(tgQ) >= 0 || t.createdBy.toLowerCase().indexOf(tgQ) >= 0;
+      return okQ && (!st.tgStatus || st.tgStatus === 'all' || t.status === st.tgStatus);
+    }).slice().sort((a, b) => {
+      const x = a[tgSort], y = b[tgSort];
+      const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y));
+      return tgDir === 'asc' ? r : -r;
+    }).map(t => ({
+      name: t.name, screens: t.screens, theatres: t.theatres,
+      createdOn: this.date(t.createdOn), createdBy: t.createdBy,
+      validFrom: this.date(t.validFrom), validTill: this.date(t.validTill),
+      statusLabel: t.status === 'active' ? 'Active' : t.status === 'expired' ? 'Expired' : 'Upcoming',
+      tone: t.status === 'active' ? 'positive' : t.status === 'expired' ? 'default' : 'notice'
+    }));
+
+    const tgHeads = [
+      { field: 'name', label: 'TG Name', align: 'left' },
+      { field: 'screens', label: 'Screens', align: 'right' },
+      { field: 'theatres', label: 'Theatres', align: 'right' },
+      { field: 'createdOn', label: 'Created On', align: 'left' },
+      { field: 'createdBy', label: 'Created By', align: 'left' },
+      { field: 'validFrom', label: 'Valid From', align: 'left' },
+      { field: 'validTill', label: 'Valid Till', align: 'left' }
+    ].map(h => ({ field: h.field, align: h.align, label: h.label + (tgSort === h.field ? (tgDir === 'asc' ? ' ↑' : ' ↓') : ''), color: tgSort === h.field ? '#084782' : '#677A90' }));
+
+    const tgStatusChips = ['all', 'active', 'upcoming', 'expired'].map(v => ({
+      value: v, label: v === 'all' ? 'All' : v.charAt(0).toUpperCase() + v.slice(1),
+      bg: (st.tgStatus || 'all') === v ? '#084782' : '#FFFFFF',
+      color: (st.tgStatus || 'all') === v ? '#FFFFFF' : '#4A5A6C',
+      border: (st.tgStatus || 'all') === v ? '#084782' : '#D3DAE2'
+    }));
+
+    /* theatres directory */
+    const thQ = (st.thSearch || '').toLowerCase();
+    const theatreDir = this.theatres.filter(t => !thQ || t.name.toLowerCase().indexOf(thQ) >= 0 || t.city.toLowerCase().indexOf(thQ) >= 0 || t.circuit.toLowerCase().indexOf(thQ) >= 0).map(t => {
+      const cap = t.screens.reduce((a, s) => a + s.cap, 0);
+      const sold = t.screens.reduce((a, s) => a + s.sold, 0);
+      const pct = Math.round((sold / cap) * 100);
+      const formats = t.screens.map(s => s.format).filter((f, i, a) => a.indexOf(f) === i).join(', ');
+      return {
+        id: t.id, name: t.name, circuit: t.circuit, city: t.city,
+        screens: t.screens.length, seats: t.screens.reduce((a, s) => a + s.seats, 0).toLocaleString('en-US'),
+        formats: formats, util: pct + '%', pct: pct + '%',
+        color: pct > 85 ? '#CF1322' : pct > 65 ? '#E65C00' : '#0F7B3F'
+      };
+    });
+
+    /* playlist templates + boundaries */
+    const preTotal = this.playlistItems.filter(i => i.seg === 'Pre-show').reduce((a, i) => a + i.sec, 0);
+    const intTotal = this.playlistItems.filter(i => i.seg === 'Intermission').reduce((a, i) => a + i.sec, 0);
+    const preOver = preTotal > bPre, intOver = intTotal > bInt;
+
+    const templates = [
+      { name: 'Metro Prime — Pre-show', segments: 'Policy · 4 ad positions · 2 trailers · ident', slots: '5 ad slots · 180s saleable', theatres: 42 },
+      { name: 'Tier 2 Standard — Pre-show', segments: 'Policy · 3 ad positions · 1 trailer', slots: '3 ad slots · 120s saleable', theatres: 78 },
+      { name: 'Premium Large Format', segments: 'Policy · 5 ad positions · 3 trailers · ident', slots: '5 ad slots · 240s saleable', theatres: 28 },
+      { name: 'Intermission Premium', segments: '2 ad positions · next-week promo', slots: '2 ad slots · 90s saleable', theatres: 61 }
+    ];
+
+    /* pre-show playlist timeline */
+    const plChoice = st.plShow || 'TH-101-S1|19:45';
+    const segTotals = { 'Pre-show': preTotal, 'Intermission': intTotal };
+    const plRows = this.playlistItems.map((i, idx) => {
+      const denom = segTotals[i.seg] || 1;
+      return {
+        idx: idx + 1, seg: i.seg, name: i.name, type: i.type, pos: i.pos,
+        len: this.secs(i.sec),
+        width: Math.max(2, Math.round((i.sec / denom) * 100)) + '%',
+        color: i.type === 'Ad' || i.type === 'Ad pod' ? '#084782' : i.type === 'Trailer' ? '#6B3FA0' : '#97A5B5',
+        tone: i.type === 'Ad' || i.type === 'Ad pod' ? 'primary-secondary' : i.type === 'Trailer' ? 'violet' : 'default'
+      };
+    });
+    const preRows = plRows.filter(r => r.seg === 'Pre-show');
+    const intRows = plRows.filter(r => r.seg === 'Intermission');
+
+    const plOptions = [];
+    this.theatres.forEach(t => t.screens.slice(0, 2).forEach(s => {
+      ['17:00', '19:45', '22:15'].forEach(sh => plOptions.push({ value: t.id + '|' + s.id + '|' + sh, label: t.name + ' · ' + s.name + ' · ' + sh }));
+    }));
+
+    /* compositions */
+    const compStates = route === '/content/unmapped' ? ['Available', 'Missing', 'In Certification'] : route === '/content/archived' ? ['Archived'] : ['Available', 'Missing', 'In Certification'];
+    let comps = this.compositions.filter(c => compStates.indexOf(c.state) >= 0);
+    if (route === '/content/unmapped') comps = comps.filter(c => !c.campaign);
+    if (route === '/content/compositions') comps = comps.filter(c => c.state !== 'Archived');
+    const compFilter = st.compFilter || 'all';
+    const compRows = comps.filter(c => compFilter === 'all' || c.state === compFilter).map(c => ({
+      name: c.name, cpl: c.cpl, len: c.sec + 's', format: c.format, size: c.size,
+      campaign: c.campaign || 'Unmapped', ingested: c.ingested === '—' ? '—' : this.date(c.ingested),
+      state: c.state,
+      tone: c.state === 'Available' ? 'positive' : c.state === 'Missing' ? 'negative' : c.state === 'Archived' ? 'default' : 'notice',
+      campaignColor: c.campaign ? '#08090A' : '#E65C00'
+    }));
+    const compChips = ['all', 'Available', 'Missing', 'In Certification'].map(v => ({
+      value: v, label: v === 'all' ? 'All' : v,
+      bg: compFilter === v ? '#084782' : '#FFFFFF',
+      color: compFilter === v ? '#FFFFFF' : '#4A5A6C',
+      border: compFilter === v ? '#084782' : '#D3DAE2'
+    }));
+
+    /* proof of play */
+    const popCampaign = st.popCampaign || 'all';
+    const popCampaigns = ['all'].concat(this.proofRows.map(r => r.campaign).filter((c, i, a) => a.indexOf(c) === i));
+    const popFiltered = this.proofRows.filter(r => popCampaign === 'all' || r.campaign === popCampaign);
+    const popRows = popFiltered.map(r => ({
+      creative: r.creative, campaign: r.campaign, screen: r.screen, show: r.show,
+      scheduled: r.scheduled, actual: r.actual, state: r.state,
+      tone: r.state === 'Played' ? 'positive' : r.state === 'Missed' ? 'negative' : 'notice',
+      actualColor: r.actual === '—' ? '#CF1322' : '#08090A'
+    }));
+    const played = popFiltered.filter(r => r.state === 'Played').length;
+    const late = popFiltered.filter(r => r.state === 'Late').length;
+    const missed = popFiltered.filter(r => r.state === 'Missed').length;
+    const popStats = [
+      { label: 'Scheduled plays', value: String(popFiltered.length), color: '#08090A' },
+      { label: 'Played as booked', value: String(played), color: '#0F7B3F' },
+      { label: 'Played late', value: String(late), color: '#E65C00' },
+      { label: 'Missed', value: String(missed), color: '#CF1322' },
+      { label: 'Delivery rate', value: popFiltered.length ? Math.round(((played + late) / popFiltered.length) * 100) + '%' : '—', color: '#084782' }
+    ];
+
+    /* distribution */
+    const distributionRows = this.distRows.map(r => {
+      const isRetried = retried.indexOf(r.id) >= 0;
+      const state = isRetried ? 'In Transit' : r.state;
+      const pct = isRetried ? 12 : r.pct;
+      return {
+        id: r.id, theatre: r.theatre, content: r.content, screens: r.screens,
+        state: state, pct: pct + '%', pctLabel: pct + '%',
+        tone: state === 'Delivered' ? 'positive' : state === 'Failed' ? 'negative' : 'notice',
+        color: state === 'Delivered' ? '#0F7B3F' : state === 'Failed' ? '#CF1322' : '#084782',
+        canRetry: state === 'Failed'
+      };
+    });
+    const distFailed = distributionRows.filter(r => r.state === 'Failed').length;
+
+    /* approvals */
+    const queue = (this.approvalQueues[route] || []).map(a => ({
+      id: a.id, title: a.title, meta: a.meta, note: a.note,
+      decided: !!decisions[a.id],
+      pending: !decisions[a.id],
+      verdict: decisions[a.id] || '',
+      tone: decisions[a.id] === 'Approved' ? 'positive' : 'negative'
+    }));
+    const pendingCount = queue.filter(q => !q.decided).length;
+
+    /* rate bias */
+    const baseRate = this.rate;
+    const biasRows = this.biasRules.map(r => {
+      const m = bias[r.id] != null ? bias[r.id] : r.mult;
+      return {
+        id: r.id, dimension: r.dimension, value: r.value, mult: m,
+        effective: this.money(baseRate * m * 1000),
+        color: m > 1 ? '#0F7B3F' : m < 1 ? '#E65C00' : '#4A5A6C'
+      };
+    });
+
+    /* reports */
+    const circuitUtil = this.theatres.reduce((acc, t) => {
+      const cap = t.screens.reduce((a, s) => a + s.cap, 0);
+      const sold = t.screens.reduce((a, s) => a + s.sold, 0);
+      const row = acc.filter(r => r.circuit === t.circuit)[0];
+      if (row) { row.cap += cap; row.sold += sold; } else acc.push({ circuit: t.circuit, cap: cap, sold: sold });
+      return acc;
+    }, []).map(r => {
+      const pct = Math.round((r.sold / r.cap) * 100);
+      return { label: r.circuit, pct: pct + '%', value: pct + '% sold', color: pct > 85 ? '#CF1322' : pct > 65 ? '#E65C00' : '#084782' };
+    });
+
+    const weeks = [
+      { label: 'Week of 3 Aug', plays: 18420 }, { label: 'Week of 10 Aug', plays: 21160 },
+      { label: 'Week of 17 Aug', plays: 24880 }, { label: 'Week of 24 Aug', plays: 23140 },
+      { label: 'Week of 31 Aug', plays: 27600 }, { label: 'Week of 7 Sep', plays: 31240 }
+    ];
+    const maxPlays = Math.max.apply(null, weeks.map(w => w.plays));
+    const weekBars = weeks.map(w => ({ label: w.label, value: w.plays.toLocaleString('en-US'), height: Math.round((w.plays / maxPlays) * 100) + '%' }));
+
+    const topCampaigns = this.campaigns.slice().sort((a, b) => b.budget - a.budget).slice(0, 5).map(c => ({
+      name: c.name, client: c.client, budget: this.money(c.budget),
+      pct: Math.round((c.budget / 61500) * 100) + '%'
+    }));
+
+    return {
+      /* route flags */
+      isTargetGroups: route === '/target-groups',
+      isTheatres: route === '/inventory/theatres',
+      isTemplates: route === '/inventory/templates',
+      isPlaylist: route === '/inventory/playlist',
+      isCompositions: route === '/content/compositions' || route === '/content/unmapped' || route === '/content/archived',
+      isProof: route === '/reports/proof-of-play',
+      isDistribution: route === '/reports/distribution',
+      isReports: route === '/reports',
+      isApprovals: route.indexOf('/approvals/') === 0,
+      isBias: route === '/campaigns/rate-bias',
+      isCatalogueBrands: route === '/catalogue/brands',
+      isCatalogueClients: route === '/catalogue/clients',
+      isUsers: route === '/users',
+      isSettings: route === '/settings',
+
+      /* target groups */
+      tgRows: tgFiltered, tgHeads: tgHeads, onSort: this.onSort,
+      tgSearch: st.tgSearch || '', onTgSearch: this.onTgSearch,
+      tgStatusChips: tgStatusChips, onTgStatus: this.onTgStatus,
+      tgKpis: [
+        { label: 'Target groups', value: String(this.targetGroups.length) },
+        { label: 'Active', value: String(this.targetGroups.filter(t => t.status === 'active').length) },
+        { label: 'Screens covered', value: this.targetGroups.reduce((a, t) => a + t.screens, 0).toLocaleString('en-US') },
+        { label: 'Theatres covered', value: this.targetGroups.reduce((a, t) => a + t.theatres, 0).toLocaleString('en-US') }
+      ],
+      tgCount: tgFiltered.length + ' of ' + this.targetGroups.length + ' groups',
+
+      /* theatres */
+      theatreDir: theatreDir, thSearch: st.thSearch || '', onThSearch: this.onThSearch,
+
+      /* templates + boundaries */
+      templates: templates,
+      bPre: bPre, bInt: bInt, onBoundary: this.onBoundary,
+      preTotalLabel: this.secs(preTotal) + ' of ' + this.secs(bPre),
+      intTotalLabel: this.secs(intTotal) + ' of ' + this.secs(bInt),
+      prePct: Math.min(100, Math.round((preTotal / bPre) * 100)) + '%',
+      intPct: Math.min(100, Math.round((intTotal / bInt) * 100)) + '%',
+      preColor: preOver ? '#CF1322' : '#084782',
+      intColor: intOver ? '#CF1322' : '#6B3FA0',
+      preWarn: preOver, intWarn: intOver,
+      preWarnLabel: 'Pre-show exceeds the theatre boundary by ' + this.secs(preTotal - bPre) + '. Lowest-priority ad positions will be dropped at the theatre.',
+      intWarnLabel: 'Intermission exceeds the boundary by ' + this.secs(intTotal - bInt) + '.',
+
+      /* playlist */
+      preRows: preRows, intRows: intRows,
+      plOptions: plOptions, plShow: plChoice, onPlSelect: this.onPlSelect,
+      plPreLabel: this.secs(preTotal), plIntLabel: this.secs(intTotal),
+      plAdSeconds: this.playlistItems.filter(i => i.type === 'Ad' || i.type === 'Ad pod').reduce((a, i) => a + i.sec, 0) + 's',
+
+      /* compositions */
+      compRows: compRows, compChips: compChips, onCompFilter: this.onCompFilter,
+      compCount: compRows.length + ' compositions',
+
+      /* proof of play */
+      popRows: popRows, popStats: popStats,
+      popCampaigns: popCampaigns.map(c => ({ value: c, label: c === 'all' ? 'All campaigns' : c })),
+      popCampaign: popCampaign, onPopCampaign: this.onPopCampaign,
+
+      /* distribution */
+      distributionRows: distributionRows, onRetry: this.onRetry,
+      distSummary: distFailed + ' of ' + distributionRows.length + ' deliveries failed',
+
+      /* approvals */
+      approvalQueue: queue, onDecide: this.onDecide,
+      approvalCount: pendingCount + ' awaiting decision',
+      approvalEmpty: queue.length === 0,
+
+      /* bias */
+      biasRows: biasRows, onBias: this.onBias,
+      baseRateLabel: this.money(baseRate * 1000) + ' per 1,000 seconds per screen',
+
+      /* reports */
+      circuitUtil: circuitUtil, weekBars: weekBars, topCampaigns: topCampaigns,
+
+      /* catalogue + platform */
+      brandsCat: this.brandsCat, clientsCat: this.clientsCat,
+      users: this.users.map(u => Object.assign({}, u, { tone: u.state === 'Active' ? 'positive' : 'negative' })),
+      settings: settings, onSetting: this.onSetting,
+      sTimezone: settings.timezone, sDefaultPack: settings.defaultPack,
+      sAutoApprove: settings.autoApprove, sHoldHours: settings.holdHours
+    };
+  }
+
+  renderVals() {
+    const st = this.state, route = st.route;
+    const collapsed = st.collapsed;
+    const crumbs = this.routeTitles[route] || ['Qube Slate', 'Screen', ''];
+
+    const nav = this.navDef.map(g => {
+      const isLeafActive = g.items && g.items.some(i => i.route === route);
+      const active = g.route === route;
+      const expanded = !collapsed && !!g.items && st.open.indexOf(g.key) >= 0;
+      return {
+        key: g.key, title: g.title, route: g.route || '',
+        mask: 'url(assets/icons/' + g.icon + '.svg) center / contain no-repeat',
+        expanded: expanded,
+        caretDisplay: g.items && !collapsed ? 'block' : 'none',
+        caretRotate: expanded ? '90deg' : '0deg',
+        bg: active ? '#E8F0F8' : (isLeafActive ? '#F5F8FA' : 'transparent'),
+        color: active || isLeafActive ? '#084782' : '#4A5A6C',
+        weight: active || isLeafActive ? '600' : '500',
+        items: (g.items || []).map(i => ({
+          title: i.title, route: i.route,
+          bg: i.route === route ? '#084782' : 'transparent',
+          color: i.route === route ? '#FFFFFF' : '#4A5A6C',
+          weight: i.route === route ? '600' : '400'
+        }))
+      };
+    });
+
+    /* campaigns */
+    const q = st.campSearch.toLowerCase();
+    const filteredCampaigns = this.campaigns.filter(c => {
+      const okQ = !q || c.name.toLowerCase().indexOf(q) >= 0 || c.client.toLowerCase().indexOf(q) >= 0 || c.id.toLowerCase().indexOf(q) >= 0;
+      const okS = st.campStatus === 'all' || c.status === st.campStatus;
+      return okQ && okS;
+    }).map(c => Object.assign({}, c, {
+      flight: this.date(c.start) + ' – ' + this.date(c.end),
+      budget: this.money(c.budget),
+      plays: c.plays.toLocaleString('en-US')
+    }));
+
+    const statuses = ['all', 'Active', 'Pending Approval', 'In Review', 'Draft'];
+    const campStatusChips = statuses.map(v => ({
+      value: v, label: v === 'all' ? 'All' : v,
+      bg: st.campStatus === v ? '#084782' : '#FFFFFF',
+      color: st.campStatus === v ? '#FFFFFF' : '#4A5A6C',
+      border: st.campStatus === v ? '#084782' : '#D3DAE2'
+    }));
+
+    /* wizard */
+    const stepDefs = ['Campaign Details', 'Target Groups', 'Media Selection', 'Placement Planning', 'Review & Publish'];
+    const steps = stepDefs.map((t, i) => {
+      const n = i + 1, done = st.step > n, cur = st.step === n;
+      return {
+        n: n, title: t, badge: done ? '✓' : String(n),
+        ring: done || cur ? '#084782' : '#D3DAE2',
+        fill: done ? '#084782' : (cur ? '#E8F0F8' : '#FFFFFF'),
+        numColor: done ? '#FFFFFF' : (cur ? '#084782' : '#97A5B5'),
+        color: done || cur ? '#08090A' : '#97A5B5',
+        weight: cur ? '600' : '500'
+      };
+    });
+
+    const activeClient = this.clients.filter(c => c.name === st.f.client)[0] || null;
+    const clientAddresses = activeClient ? activeClient.addresses : [];
+    const surfaceLabels = [
+      st.f.onScreen ? 'On-Screen' : null, st.f.lobby ? 'Lobby' : null,
+      st.f.digitalWeb ? 'Digital Web' : null, st.f.digitalApp ? 'Digital App' : null
+    ].filter(Boolean).join(', ');
+
+    const selTGs = this.targetGroups.filter(t => st.tgSel.indexOf(t.id) >= 0);
+    const selMedia = this.media.filter(m => st.mediaSel.indexOf(m.id) >= 0);
+    const totalScreens = selTGs.reduce((a, t) => a + t.screens, 0);
+    const totalTheatres = selTGs.reduce((a, t) => a + t.theatres, 0);
+
+    const tgById = {}; this.targetGroups.forEach(t => { tgById[t.id] = t; });
+    const mById = {}; this.media.forEach(m => { mById[m.id] = m; });
+
+    let weeklyPlays = 0, weeklySeconds = 0;
+    const placementRows = st.placements.map(p => {
+      const tg = tgById[p.tg] || { name: '—', screens: 0, theatres: 0 };
+      const m = mById[p.media] || { name: '—', seconds: 0, status: 'Missing', tone: 'negative' };
+      const sec = p.plays * m.seconds * tg.screens;
+      weeklyPlays += p.plays * tg.screens;
+      weeklySeconds += sec;
+      return {
+        id: p.id, targetGroup: tg.name, tgMeta: tg.theatres + ' theatres · ' + tg.screens + ' screens',
+        mediaName: m.name, mediaMeta: m.seconds + 's · ' + (m.format || ''),
+        pack: p.pack, plays: (p.plays * tg.screens).toLocaleString('en-US'),
+        seconds: sec.toLocaleString('en-US'),
+        status: m.status === 'Available' ? 'Active' : 'Pending',
+        tone: m.status === 'Available' ? 'positive' : 'notice'
+      };
+    });
+
+    const weeklySpend = weeklySeconds * this.rate;
+    const durations = selMedia.reduce((a, m) => a + m.seconds, 0);
+
+    const cartRows = [
+      { label: 'Target groups', value: String(selTGs.length) },
+      { label: 'Theatres', value: totalTheatres.toLocaleString('en-US') },
+      { label: 'Screens', value: totalScreens.toLocaleString('en-US') },
+      { label: 'Creatives', value: String(selMedia.length) },
+      { label: 'Total creative length', value: this.secs(durations) },
+      { label: 'Placements', value: String(st.placements.length) },
+      { label: 'Weekly plays', value: weeklyPlays.toLocaleString('en-US') },
+      { label: 'Weekly seconds', value: weeklySeconds.toLocaleString('en-US') }
+    ];
+
+    const reviewRows = [
+      { label: 'Campaign name', value: st.f.name || '—' },
+      { label: 'Campaign type', value: st.f.type || '—' },
+      { label: 'Client', value: st.f.client || '—' },
+      { label: 'Brand', value: st.f.brand || '—' },
+      { label: 'Flight', value: this.date(st.f.start) + ' – ' + this.date(st.f.end) },
+      { label: 'Surfaces', value: surfaceLabels || '—' },
+      { label: 'Campaign mode', value: st.f.mode },
+      { label: 'Target groups', value: selTGs.map(t => t.name).join(', ') || '—' },
+      { label: 'Creatives', value: selMedia.map(m => m.name).join(', ') || '—' },
+      { label: 'Screens reached', value: totalScreens.toLocaleString('en-US') },
+      { label: 'Weekly plays', value: weeklyPlays.toLocaleString('en-US') },
+      { label: 'Est. weekly spend', value: this.money(weeklySpend) },
+      { label: 'Billing company', value: st.f.billingName || '—' },
+      { label: 'Billing cycle', value: st.f.billingCycle },
+      { label: 'Advance payment', value: st.f.advance ? (st.f.advanceAmount || 'Required') : 'Not required' },
+      { label: 'PO / RO ID', value: st.f.orderId || '—' },
+      { label: 'Third-party order ID', value: st.f.thirdPartyOrderId || '—' }
+    ];
+
+    const missing = selMedia.filter(m => m.status !== 'Available');
+    const preflight = [
+      { label: 'Campaign details complete', detail: st.f.name && st.f.type ? 'Validated' : 'Name and type required', glyph: st.f.name && st.f.type ? '✓' : '!', color: st.f.name && st.f.type ? '#0F7B3F' : '#E65C00' },
+      { label: 'Inventory available for all target groups', detail: totalScreens + ' screens held', glyph: totalScreens > 0 ? '✓' : '!', color: totalScreens > 0 ? '#0F7B3F' : '#E65C00' },
+      { label: 'Creative content ingested', detail: missing.length ? missing.length + ' creative(s) not available' : 'All creatives ready', glyph: missing.length ? '!' : '✓', color: missing.length ? '#E65C00' : '#0F7B3F' },
+      { label: 'Placements within playlist boundaries', detail: 'Pre-show max 12:00 · using ' + this.secs(durations), glyph: durations <= 720 ? '✓' : '!', color: durations <= 720 ? '#0F7B3F' : '#CF1322' }
+    ];
+
+    /* inventory availability */
+    const circuits = ['all'].concat(this.theatreDefs.map(t => t.circuit).filter((c, i, a) => a.indexOf(c) === i));
+    const circuitChips = circuits.map(v => ({
+      value: v, label: v === 'all' ? 'All circuits' : v,
+      bg: st.invCircuit === v ? '#084782' : '#FFFFFF',
+      color: st.invCircuit === v ? '#FFFFFF' : '#4A5A6C',
+      border: st.invCircuit === v ? '#084782' : '#D3DAE2'
+    }));
+
+    const visibleTheatres = this.theatres.filter(t => st.invCircuit === 'all' || t.circuit === st.invCircuit);
+    const theatreList = visibleTheatres.map(t => {
+      const cap = t.screens.reduce((a, s) => a + s.cap, 0);
+      const sold = t.screens.reduce((a, s) => a + s.sold, 0);
+      const pct = Math.round((sold / cap) * 100);
+      const sel = t.id === st.invTheatre;
+      return {
+        id: t.id, name: t.name, meta: t.circuit + ' · ' + t.city + ' · ' + t.screens.length + ' screens',
+        util: pct + '% sold', pct: pct + '%',
+        utilColor: pct > 85 ? '#CF1322' : pct > 65 ? '#E65C00' : '#0F7B3F',
+        bg: sel ? '#F0F5FA' : '#FFFFFF', bar: sel ? '#084782' : 'transparent',
+        weight: sel ? '600' : '500'
+      };
+    });
+
+    const detail = this.theatres.filter(t => t.id === st.invTheatre)[0] || visibleTheatres[0] || this.theatres[0];
+    const dCap = detail.screens.reduce((a, s) => a + s.cap, 0);
+    const dSold = detail.screens.reduce((a, s) => a + s.sold, 0);
+    const showBars = this.props.showCapacityBars !== false;
+
+    const screenRows = detail.screens.map(s => {
+      const avail = s.cap - s.sold;
+      const pct = Math.round((s.sold / s.cap) * 100);
+      const checked = st.screenSel.indexOf(s.id) >= 0;
+      return {
+        id: s.id, name: s.name, seats: s.seats, format: s.format,
+        shows: s.showCount + ' shows',
+        pct: showBars ? pct + '%' : '0%',
+        barColor: pct > 85 ? '#CF1322' : pct > 65 ? '#E65C00' : '#084782',
+        capLabel: this.secs(s.sold) + ' of ' + this.secs(s.cap) + ' sold · ' + pct + '%',
+        sold: s.sold.toLocaleString('en-US') + 's',
+        available: avail.toLocaleString('en-US') + 's',
+        availColor: avail < 600 ? '#CF1322' : '#0F7B3F',
+        checked: checked, rowBg: checked ? '#F7FAFC' : '#FFFFFF'
+      };
+    });
+
+    let selSeconds = 0, selScreens = 0;
+    this.theatres.forEach(t => t.screens.forEach(s => {
+      if (st.screenSel.indexOf(s.id) >= 0) { selSeconds += s.cap - s.sold; selScreens++; }
+    }));
+
+    const netCap = this.theatres.reduce((a, t) => a + t.screens.reduce((b, s) => b + s.cap, 0), 0);
+    const netSold = this.theatres.reduce((a, t) => a + t.screens.reduce((b, s) => b + s.sold, 0), 0);
+
+    return {
+      /* shell */
+      nav: nav,
+      caretMask: 'url(assets/icons/ChevronRight.svg) center / contain no-repeat',
+      sidebarWidth: collapsed ? '64px' : '248px',
+      labelDisplay: collapsed ? 'none' : 'flex',
+      crumbGroup: crumbs[0], crumbLeaf: crumbs[1], stubDescription: crumbs[2],
+      onNav: this.onNav, onNavGroup: this.onNavGroup, toggleSidebar: this.toggleSidebar, goCreate: this.goCreate,
+      onMainEnter: this.onMainEnter,
+
+      /* routes */
+      isDashboard: route === '/',
+      isCampaigns: route === '/campaigns',
+      isCreate: route === '/campaigns/create',
+      isAvailability: route === '/inventory/availability',
+      isStub: this.builtRoutes.indexOf(route) < 0,
+
+      /* dashboard */
+      kpis: [
+        { label: 'Active campaigns', value: '24', delta: '+12% vs last month', deltaColor: '#0F7B3F' },
+        { label: 'Pending approvals', value: '8', delta: '3 urgent', deltaColor: '#E65C00' },
+        { label: 'Booked this month', value: this.money(284000), delta: '+18% vs last month', deltaColor: '#0F7B3F' },
+        { label: 'Bookable screens', value: '1,247', delta: '+5% network growth', deltaColor: '#0F7B3F' }
+      ],
+      recentCampaigns: this.campaigns.slice(0, 4).map(c => Object.assign({}, c, { budget: this.money(c.budget) })),
+      inventoryMeters: [
+        { label: 'Pre-show seconds sold', detail: Math.round(netSold / 60).toLocaleString('en-US') + ' of ' + Math.round(netCap / 60).toLocaleString('en-US') + ' min', pct: Math.round((netSold / netCap) * 100) + '%', color: '#084782' },
+        { label: 'Intermission seconds sold', detail: '4,180 of 7,600 min', pct: '55%', color: '#6B3FA0' },
+        { label: 'Screens with content delivered', detail: '1,193 of 1,247 screens', pct: '96%', color: '#0F7B3F' }
+      ],
+      attention: [
+        { title: '3 creatives missing content', detail: 'Placements are queued but cannot schedule', route: '/content/unmapped', color: '#CF1322' },
+        { title: '8 campaigns pending approval', detail: '3 flights start within 5 days', route: '/approvals/campaigns', color: '#E65C00' },
+        { title: '54 screens awaiting distribution', detail: 'Content in transit to theatre servers', route: '/reports/distribution', color: '#084782' }
+      ],
+
+      /* campaigns */
+      campSearch: st.campSearch,
+      onCampSearch: this.onCampSearch,
+      onCampStatus: this.onCampStatus,
+      campStatusChips: campStatusChips,
+      filteredCampaigns: filteredCampaigns,
+      campEmpty: filteredCampaigns.length === 0,
+      campCount: filteredCampaigns.length + ' of ' + this.campaigns.length + ' campaigns',
+
+      /* wizard */
+      steps: steps, onStep: this.onStep,
+      step1: st.step === 1, step2: st.step === 2, step3: st.step === 3, step4: st.step === 4, step5: st.step === 5,
+      atFirstStep: st.step === 1,
+      stepLabel: 'Step ' + st.step + ' of 5',
+      nextLabel: st.step === 5 ? 'Publish Campaign' : 'Next Step',
+      prevStep: this.prevStep, nextStep: this.nextStep, onField: this.onField,
+      published: st.published,
+      fName: st.f.name, fType: st.f.type, fClient: st.f.client, fBrand: st.f.brand, fCountry: st.f.country,
+      fStart: st.f.start, fEnd: st.f.end, fBillingName: st.f.billingName,
+      fBillingCycle: st.f.billingCycle, fOrderRegion: st.f.orderRegion, fOrderId: st.f.orderId, fAdvance: st.f.advance,
+      fMode: st.f.mode, fAdvanceAmount: st.f.advanceAmount, fThirdPartyOrderId: st.f.thirdPartyOrderId,
+      fBillingAddress: st.f.billingAddress || (activeClient ? activeClient.addresses[0] : ''),
+      clientOptions: this.clients.map(c => ({ value: c.name, label: c.name })),
+      brandOptions: (activeClient ? activeClient.brands : []).map(b => ({ value: b, label: b })),
+      brandHint: activeClient ? activeClient.brands.length + ' brand(s) registered to this client' : 'Select a client first',
+      modeHint: st.f.mode === 'Fixed Commercial Terms' ? 'Rate and play count agreed up front; inventory is held on publish.' : 'Delivery optimised against a reach target; plays vary by screen.',
+      surfaceOptions: [
+        { field: 'onScreen', label: 'On-Screen Advertising', on: st.f.onScreen },
+        { field: 'lobby', label: 'Lobby Advertising', on: st.f.lobby },
+        { field: 'digitalWeb', label: 'Digital Web Advertising', on: st.f.digitalWeb },
+        { field: 'digitalApp', label: 'Digital Application Advertising', on: st.f.digitalApp }
+      ].map(s => ({
+        field: s.field, label: s.label, checked: s.on,
+        border: s.on ? '#084782' : '#E7EBF0', bg: s.on ? '#F0F5FA' : '#FFFFFF'
+      })),
+      contactGroups: [
+        { title: 'Client Contact', nameField: 'clientContactName', emailField: 'clientContactEmail', phoneField: 'clientContactPhone', name: st.f.clientContactName, email: st.f.clientContactEmail, phone: st.f.clientContactPhone },
+        { title: 'Billing Contact', nameField: 'billingContactName', emailField: 'billingContactEmail', phoneField: 'billingContactPhone', name: st.f.billingContactName, email: st.f.billingContactEmail, phone: st.f.billingContactPhone },
+        { title: 'Sales Contact', nameField: 'salesContactName', emailField: 'salesContactEmail', phoneField: 'salesContactPhone', name: st.f.salesContactName, email: st.f.salesContactEmail, phone: st.f.salesContactPhone }
+      ],
+      billingCompanyOptions: this.clients.map(c => c.billing).concat(['Halcyon Media Group', 'Bright Harbour Media']).filter((b, i, a) => a.indexOf(b) === i).map(b => ({ value: b, label: b })),
+      billingAddressOptions: clientAddresses.map(a => ({ value: a, label: a })),
+      addressLocked: clientAddresses.length < 2,
+      addressHint: clientAddresses.length > 1 ? clientAddresses.length + ' registered addresses — select the billing entity' : 'Read-only — single registered address',
+      pTG: st.f.pTG, pMedia: st.f.pMedia, pPack: st.f.pPack, pPlays: st.f.pPlays,
+      targetGroupOptions: this.targetGroups.map(t => ({
+        id: t.id, name: t.name, screenCount: t.screens,
+        meta: t.theatres + ' theatres · valid ' + this.date(t.validFrom) + ' – ' + this.date(t.validTill) + ' · ' + t.createdBy,
+        statusLabel: t.status === 'active' ? 'Active' : t.status === 'expired' ? 'Expired' : 'Upcoming',
+        tone: t.status === 'active' ? 'positive' : t.status === 'expired' ? 'default' : 'notice',
+        checked: st.tgSel.indexOf(t.id) >= 0,
+        rowBg: st.tgSel.indexOf(t.id) >= 0 ? '#F7FAFC' : '#FFFFFF'
+      })),
+      onToggleTG: this.onToggleTG,
+      mediaOptions: this.media.map(m => {
+        const on = st.mediaSel.indexOf(m.id) >= 0;
+        return {
+          id: m.id, name: m.name, cpl: m.cpl, status: m.status, tone: m.tone,
+          duration: m.seconds + 's', format: m.format, size: m.size,
+          border: on ? '#084782' : '#E1E4E9', bg: on ? '#F7FAFC' : '#FFFFFF',
+          check: on ? '✓' : '', checkBg: on ? '#084782' : '#FFFFFF', checkBorder: on ? '#084782' : '#D3DAE2'
+        };
+      }),
+      onToggleMedia: this.onToggleMedia,
+      selectedTGNames: selTGs.map(t => ({ value: t.id, label: t.name })),
+      selectedMediaNames: selMedia.map(m => ({ value: m.id, label: m.name + ' (' + m.seconds + 's)' })),
+      placementRows: placementRows,
+      noPlacements: st.placements.length === 0,
+      addPlacement: this.addPlacement, removePlacement: this.removePlacement,
+      placementHint: st.f.pPlays + ' plays/week × ' + (tgById[st.f.pTG] ? tgById[st.f.pTG].screens : 0) + ' screens',
+      cartRows: cartRows,
+      weeklySpend: this.money(weeklySpend),
+      rateLabel: this.money(this.rate * 1000) + ' / 1,000s',
+      reviewRows: reviewRows, preflight: preflight,
+      totalScreens: totalScreens.toLocaleString('en-US'),
+
+      /* inventory */
+      invDate: st.f.invDate,
+      circuitChips: circuitChips, onCircuit: this.onCircuit,
+      theatreList: theatreList, onSelectTheatre: this.onSelectTheatre,
+      detailName: detail.name,
+      detailMeta: detail.circuit + ' · ' + detail.city + ' · ' + detail.screens.length + ' screens · week of ' + this.date(st.f.invDate),
+      detailStats: [
+        { label: 'Capacity', value: Math.round(dCap / 60).toLocaleString('en-US') + ' min', color: '#08090A' },
+        { label: 'Sold', value: Math.round(dSold / 60).toLocaleString('en-US') + ' min', color: '#084782' },
+        { label: 'Available', value: Math.round((dCap - dSold) / 60).toLocaleString('en-US') + ' min', color: '#0F7B3F' }
+      ],
+      screenRows: screenRows, onToggleScreen: this.onToggleScreen,
+      selectionLabel: selScreens + ' screens selected across the network',
+      selectionSeconds: selSeconds.toLocaleString('en-US') + 's',
+      availSummary: visibleTheatres.length + ' theatres · ' + visibleTheatres.reduce((a, t) => a + t.screens.length, 0) + ' screens bookable',
+
+      ...this.moreVals(st, route)
+    };
+  }
+}
+</script>
+</body>
+</html>
