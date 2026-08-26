@@ -32,7 +32,7 @@ export interface IconProps {
 export function Icon({ name, size = 20, color, style }: IconProps) {
   const url = ICONS[name];
   if (!url) return null;
-  const maskValue = `url(${url}) center / contain no-repeat`;
+  const maskValue = `url("${url}") center / contain no-repeat`;
   return (
     <span
       style={{
