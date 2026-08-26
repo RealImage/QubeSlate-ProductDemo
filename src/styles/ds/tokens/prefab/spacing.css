@@ -1,0 +1,67 @@
+:root {
+  --spacing-space-0: 0rem;
+  --spacing-space-025: 0.125rem;
+  --spacing-space-050: 0.25rem;
+  --spacing-space-075: 0.375rem;
+  --spacing-space-100: 0.5rem;
+  --spacing-space-150: 0.75rem;
+  --spacing-space-175: 0.875rem;
+  --spacing-space-200: 1rem;
+  --spacing-space-250: 1.25rem;
+  --spacing-space-300: 1.5rem;
+  --spacing-space-400: 2rem;
+  --spacing-space-500: 2.5rem;
+  --spacing-space-600: 3rem;
+  --spacing-space-800: 4rem;
+  --spacing-space-1000: 5rem;
+
+  --dimensions-height-300: 1.5rem;
+  --dimensions-height-350: 1.75rem;
+  --dimensions-height-400: 2rem;
+  --dimensions-height-450: 2.25rem;
+  --dimensions-height-500: 2.5rem;
+  --dimensions-height-525: 2.625rem;
+  --dimensions-height-550: 2.75rem;
+  --dimensions-height-600: 3rem;
+  --dimensions-height-650: 3.25rem;
+  --dimensions-height-700: 3.5rem;
+  --dimensions-height-750: 3.75rem;
+  --dimensions-height-800: 4rem;
+
+  --borderRadius-radius-0: 0rem;
+  --borderRadius-radius-025: 0.125rem;
+  --borderRadius-radius-050: 0.25rem;
+  --borderRadius-radius-075: 0.375rem;
+  --borderRadius-radius-100: 0.5rem;
+  --borderRadius-radius-max: 50%;
+
+  --borderStroke-border-none: 0rem;
+  --borderStroke-border-thinner: 0.0625rem;
+  --borderStroke-border-thin: 0.125rem;
+  --borderStroke-border-thick: 0.25rem;
+  --borderStroke-border-thicker: 0.375rem;
+
+  --effects-axis-0: 0rem;
+  --effects-axis-025: 0.125rem;
+  --effects-axis-050: 0.25rem;
+  --effects-axis-075: 0.375rem;
+  --effects-axis-100: 0.5rem;
+
+  --effects-blur-0: 0rem;
+  --effects-blur-025: 0.125rem;
+  --effects-blur-050: 0.25rem;
+  --effects-blur-075: 0.375rem;
+  --effects-blur-100: 0.5rem;
+
+  --effects-spread-0: 0rem;
+  --effects-spread-025: 0.125rem;
+  --effects-spread-050: 0.25rem;
+  --effects-spread-075: 0.375rem;
+  --effects-spread-100: 0.5rem;
+
+  --iconsSize-xsmall: 0.75rem;
+  --iconsSize-small: 1rem;
+  --iconsSize-medium: 1.25rem;
+  --iconsSize-base: 1.5rem;
+  --iconsSize-large: 2rem;
+}
