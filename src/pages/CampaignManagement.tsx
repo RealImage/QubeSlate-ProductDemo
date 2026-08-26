@@ -1,160 +1,73 @@
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Search, Plus, Filter, Eye, Edit, Copy } from "lucide-react"
-import { Link } from "react-router-dom"
+import { useMemo } from 'react';
+import { useAppState } from '../state/AppStateContext';
+import { campaigns } from '../data/mockData';
+import { money, fmtDate } from '../data/helpers';
+import { Button } from '../components/Button';
+import { ChipRow, chipTone, CountLabel, EmptyState, FilterBar, PageHeader, SearchInput, StatusTag, Table, TableCard, Td, Th } from '../components/ui/primitives';
 
-const CampaignManagement = () => {
-  const campaigns = [
-    {
-      id: "CAM-001",
-      name: "Summer Movie Festival",
-      client: "Cineplex Entertainment",
-      status: "Active",
-      startDate: "2024-06-15",
-      endDate: "2024-08-31",
-      screens: 45,
-      budget: "$25,000",
-      approved: true
-    },
-    {
-      id: "CAM-002", 
-      name: "Horror Night Promo",
-      client: "AMC Theatres",
-      status: "Pending Approval",
-      startDate: "2024-10-01",
-      endDate: "2024-10-31",
-      screens: 32,
-      budget: "$18,500",
-      approved: false
-    },
-    {
-      id: "CAM-003",
-      name: "Holiday Blockbusters",
-      client: "Regal Cinemas", 
-      status: "In Review",
-      startDate: "2024-11-15",
-      endDate: "2024-12-31",
-      screens: 67,
-      budget: "$42,000",
-      approved: false
-    },
-    {
-      id: "CAM-004",
-      name: "Local Theatre Showcase",
-      client: "Independent Theatres",
-      status: "Draft",
-      startDate: "2024-12-01",
-      endDate: "2024-12-15",
-      screens: 12,
-      budget: "$8,000",
-      approved: false
-    }
-  ]
+const STATUSES = ['all', 'Active', 'Pending Approval', 'In Review', 'Draft'];
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Active":
-        return <Badge className="bg-success text-success-foreground">Active</Badge>
-      case "Pending Approval":
-        return <Badge className="bg-warning text-warning-foreground">Pending</Badge>
-      case "In Review":
-        return <Badge className="bg-accent-brand text-accent-brand-foreground">Review</Badge>
-      case "Draft":
-        return <Badge variant="secondary">Draft</Badge>
-      default:
-        return <Badge variant="secondary">{status}</Badge>
-    }
-  }
+export function CampaignManagement() {
+  const { state, patch, navigateTo } = useAppState();
+  const { campSearch, campStatus } = state;
+
+  const filtered = useMemo(() => {
+    const q = campSearch.toLowerCase();
+    return campaigns.filter(c => {
+      const okQ = !q || c.name.toLowerCase().includes(q) || c.client.toLowerCase().includes(q) || c.id.toLowerCase().includes(q);
+      const okS = campStatus === 'all' || c.status === campStatus;
+      return okQ && okS;
+    }).map(c => ({
+      ...c,
+      flight: `${fmtDate(c.start)} – ${fmtDate(c.end)}`,
+      budgetLabel: money(c.budget),
+      playsLabel: c.plays.toLocaleString('en-US')
+    }));
+  }, [campSearch, campStatus]);
+
+  const chips = STATUSES.map(v => ({ value: v, label: v === 'all' ? 'All' : v, ...chipTone(campStatus === v) }));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Campaign Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage all your theatrical advertising campaigns in one place.
-          </p>
-        </div>
-        <Button asChild variant="primary" size="lg">
-          <Link to="/campaigns/create">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Campaign
-          </Link>
-        </Button>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1400 }}>
+      <PageHeader
+        title="Campaign Management"
+        description="Every theatrical advertising campaign booked on the network."
+        action={<Button variant="primary" size="medium" onClick={() => navigateTo('/campaigns/create')}>Create Campaign</Button>}
+      />
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search campaigns..."
-              className="pl-10"
-            />
-          </div>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchInput value={campSearch} onChange={v => patch({ campSearch: v })} placeholder="Search campaigns, clients or IDs…" />
+        <ChipRow chips={chips} onSelect={v => patch({ campStatus: v })} />
+        <CountLabel>{filtered.length} of {campaigns.length} campaigns</CountLabel>
+      </FilterBar>
 
-      {/* Campaigns Table */}
-      <Card className="p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Campaign</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Client</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Duration</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Screens</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Budget</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
+      <TableCard>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Campaign</Th><Th>Client</Th><Th>Status</Th><Th>Flight</Th>
+              <Th align="right">Screens</Th><Th align="right">Weekly plays</Th><Th align="right">Budget</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(c => (
+              <tr key={c.id}>
+                <Td>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{c.name}</div>
+                  <div style={{ fontSize: 11.5, color: '#677A90', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>{c.id}</div>
+                </Td>
+                <Td style={{ color: '#4A5A6C' }}>{c.client}</Td>
+                <Td><StatusTag tone={c.tone}>{c.status}</StatusTag></Td>
+                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{c.flight}</Td>
+                <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{c.screens}</Td>
+                <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{c.playsLabel}</Td>
+                <Td align="right" style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{c.budgetLabel}</Td>
               </tr>
-            </thead>
-            <tbody>
-              {campaigns.map((campaign) => (
-                <tr key={campaign.id} className="border-b border-border hover:bg-accent/50 transition-colors">
-                  <td className="py-4 px-4">
-                    <div>
-                      <div className="font-medium text-foreground">{campaign.name}</div>
-                      <div className="text-sm text-muted-foreground">{campaign.id}</div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-foreground">{campaign.client}</td>
-                  <td className="py-4 px-4">{getStatusBadge(campaign.status)}</td>
-                  <td className="py-4 px-4 text-sm text-muted-foreground">
-                    {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
-                  </td>
-                  <td className="py-4 px-4 text-foreground">{campaign.screens}</td>
-                  <td className="py-4 px-4 font-medium text-foreground">{campaign.budget}</td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+            ))}
+          </tbody>
+        </Table>
+        {filtered.length === 0 && <EmptyState title="No campaigns match that search" detail="Try a different name, client or status filter." />}
+      </TableCard>
     </div>
-  )
+  );
 }
-
-export default CampaignManagement

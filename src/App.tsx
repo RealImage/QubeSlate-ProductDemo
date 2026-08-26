@@ -1,123 +1,56 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
-import CreateCampaign from "./pages/CreateCampaign";
-import CampaignManagement from "./pages/CampaignManagement";
-import TargetGroups from "./pages/TargetGroups";
-import PlaceholderPage from "./pages/PlaceholderPage";
-import NotFound from "./pages/NotFound";
+import { Routes, Route } from 'react-router-dom';
+import { Layout } from './components/Layout';
+import { Dashboard } from './pages/Dashboard';
+import { CampaignManagement } from './pages/CampaignManagement';
+import { CreateCampaign } from './pages/CreateCampaign';
+import { InventoryAvailability } from './pages/InventoryAvailability';
+import { TargetGroups } from './pages/TargetGroups';
+import { Theatres } from './pages/Theatres';
+import { NetworkDooh } from './pages/NetworkDooh';
+import { PlaylistTemplates } from './pages/PlaylistTemplates';
+import { PreShowPlaylist } from './pages/PreShowPlaylist';
+import { Compositions } from './pages/Compositions';
+import { ProofOfPlay } from './pages/ProofOfPlay';
+import { DistributionStatus } from './pages/DistributionStatus';
+import { ReportsAnalytics } from './pages/ReportsAnalytics';
+import { Approvals } from './pages/Approvals';
+import { RateBias } from './pages/RateBias';
+import { BrandCatalogue } from './pages/BrandCatalogue';
+import { ClientDirectory } from './pages/ClientDirectory';
+import { UserManagement } from './pages/UserManagement';
+import { PlatformSettings } from './pages/PlatformSettings';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/campaigns" element={<CampaignManagement />} />
-            <Route path="/campaigns/create" element={<CreateCampaign />} />
-            <Route path="/campaigns/rate-bias" element={
-              <PlaceholderPage 
-                title="Campaign Rate Bias" 
-                description="Manage pricing adjustments by geography, theatre type, segment, or daypart."
-                backLink="/campaigns"
-                backText="Back to Campaigns"
-              />
-            } />
-            <Route path="/target-groups" element={<TargetGroups />} />
-            <Route path="/approvals/campaigns" element={
-              <PlaceholderPage 
-                title="Campaign Approvals" 
-                description="Review and approve campaigns for release to the network."
-              />
-            } />
-            <Route path="/approvals/brands" element={
-              <PlaceholderPage 
-                title="Brand Approvals" 
-                description="Manage creative approvals from brand partners."
-              />
-            } />
-            <Route path="/approvals/clients" element={
-              <PlaceholderPage 
-                title="Client Approvals" 
-                description="Handle advertiser and agency approvals before scheduling."
-              />
-            } />
-            <Route path="/content/compositions" element={
-              <PlaceholderPage 
-                title="Compositions Library" 
-                description="Browse and manage your approved and active content assets."
-              />
-            } />
-            <Route path="/content/unmapped" element={
-              <PlaceholderPage 
-                title="Unmapped Compositions" 
-                description="Review uploaded content that hasn't been assigned to campaigns."
-              />
-            } />
-            <Route path="/content/archived" element={
-              <PlaceholderPage 
-                title="Archived Content" 
-                description="Access expired and past-use content kept for records."
-              />
-            } />
-            <Route path="/inventory/theatres" element={
-              <PlaceholderPage 
-                title="Network Theatres & Screens" 
-                description="Searchable directory of theatres with filters by region, format, and capacity."
-              />
-            } />
-            <Route path="/inventory/templates" element={
-              <PlaceholderPage 
-                title="Playlist Templates" 
-                description="Manage predefined ad block layouts for various slots and theatre types."
-              />
-            } />
-            <Route path="/catalogue/brands" element={
-              <PlaceholderPage 
-                title="Brand Catalogue" 
-                description="Master brand list with linked creatives and metadata."
-              />
-            } />
-            <Route path="/catalogue/clients" element={
-              <PlaceholderPage 
-                title="Client Directory" 
-                description="Master advertiser and agency list with contact info and history."
-              />
-            } />
-            <Route path="/reports" element={
-              <PlaceholderPage 
-                title="Reports & Analytics" 
-                description="Campaign performance, inventory utilization, and approval turnaround reports."
-              />
-            } />
-            <Route path="/users" element={
-              <PlaceholderPage 
-                title="User Management" 
-                description="Manage users, roles, permissions, and access levels."
-              />
-            } />
-            <Route path="/settings" element={
-              <PlaceholderPage 
-                title="Platform Settings" 
-                description="Configure time zones, default rates, content formats, and theatre network settings."
-              />
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/campaigns" element={<CampaignManagement />} />
+        <Route path="/campaigns/create" element={<CreateCampaign />} />
+        <Route path="/campaigns/rate-bias" element={<RateBias />} />
+        <Route path="/target-groups" element={<TargetGroups />} />
+        <Route path="/approvals/campaigns" element={<Approvals />} />
+        <Route path="/approvals/brands" element={<Approvals />} />
+        <Route path="/approvals/clients" element={<Approvals />} />
+        <Route path="/content/compositions" element={<Compositions />} />
+        <Route path="/content/unmapped" element={<Compositions />} />
+        <Route path="/content/archived" element={<Compositions />} />
+        <Route path="/inventory/availability" element={<InventoryAvailability />} />
+        <Route path="/inventory/theatres" element={<Theatres />} />
+        <Route path="/inventory/dooh" element={<NetworkDooh />} />
+        <Route path="/inventory/templates" element={<PlaylistTemplates />} />
+        <Route path="/inventory/playlist" element={<PreShowPlaylist />} />
+        <Route path="/catalogue/brands" element={<BrandCatalogue />} />
+        <Route path="/catalogue/clients" element={<ClientDirectory />} />
+        <Route path="/reports" element={<ReportsAnalytics />} />
+        <Route path="/reports/proof-of-play" element={<ProofOfPlay />} />
+        <Route path="/reports/distribution" element={<DistributionStatus />} />
+        <Route path="/users" element={<UserManagement />} />
+        <Route path="/settings" element={<PlatformSettings />} />
+        <Route path="*" element={<Dashboard />} />
+      </Route>
+    </Routes>
+  );
+}
 
 export default App;
