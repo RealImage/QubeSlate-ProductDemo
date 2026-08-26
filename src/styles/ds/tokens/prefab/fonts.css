@@ -1,0 +1,41 @@
+:root {
+  --fontSize-size-100: 0.5rem;
+  --fontSize-size-125: 0.625rem;
+  --fontSize-size-150: 0.75rem;
+  --fontSize-size-175: 0.875rem;
+  --fontSize-size-200: 1rem;
+  --fontSize-size-250: 1.25rem;
+  --fontSize-size-300: 1.5rem;
+  --fontSize-size-350: 1.75rem;
+  --fontSize-size-400: 2rem;
+  --fontSize-size-450: 2.25rem;
+  --fontSize-size-500: 2.5rem;
+  --fontSize-size-550: 2.75rem;
+  --fontSize-size-600: 3rem;
+
+  --fontWeight-extra-light: 100; /* @kind font */
+  --fontWeight-thin: 200; /* @kind font */
+  --fontWeight-light: 300; /* @kind font */
+  --fontWeight-regular: 400; /* @kind font */
+  --fontWeight-medium: 500; /* @kind font */
+  --fontWeight-semi-bold: 600; /* @kind font */
+  --fontWeight-bold: 700; /* @kind font */
+  --fontWeight-extra-bold: 800; /* @kind font */
+  --fontWeight-black: 900; /* @kind font */
+
+  --lineHeight-height-100: 0.5rem;
+  --lineHeight-height-200: 1rem;
+  --lineHeight-height-250: 1.25rem;
+  --lineHeight-height-300: 1.5rem;
+  --lineHeight-height-350: 1.75rem;
+  --lineHeight-height-400: 2rem;
+  --lineHeight-height-450: 2.25rem;
+  --lineHeight-height-500: 2.5rem;
+  --lineHeight-height-525: 2.625rem;
+  --lineHeight-height-550: 2.75rem;
+  --lineHeight-height-600: 3rem;
+  --lineHeight-height-650: 3.25rem;
+  --lineHeight-height-700: 3.5rem;
+  --lineHeight-height-750: 3.75rem;
+  --lineHeight-height-800: 4rem;
+}

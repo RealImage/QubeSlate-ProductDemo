@@ -1,0 +1,26 @@
+@import './styles/ds/tokens/fonts.css';
+@import './styles/ds/tokens/prefab/fonts.css';
+@import './styles/ds/tokens/prefab/colors.css';
+@import './styles/ds/tokens/prefab/spacing.css';
+@import './styles/ds/tokens/prefab/qube-wire.css';
+@import './styles/ds/tokens/figma/fig-tokens.css';
+@import './styles/ds/components/avatar/fig-assets.css';
+@import './styles/ds/components/forms/fig-assets.css';
+@import './styles/ds/components/prefab/prefab.css';
+@import './styles/ds/styles.css';
+
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: Commissioner, system-ui, sans-serif;
+  background: #F5F8FA;
+  color: #08090A;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #084782; text-decoration: none; }
+a:hover { color: #063A6B; text-decoration: underline; }
+* { box-sizing: border-box; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #D3DAE2; border-radius: 8px; border: 3px solid #F5F8FA; }
+
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; }
