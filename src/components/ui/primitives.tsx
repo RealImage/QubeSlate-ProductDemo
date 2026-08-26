@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, TdHTMLAttributes } from 'react';
 import { Tag, type TagSize, type TagTone } from '../Tag';
 
 /**
@@ -103,8 +103,8 @@ export function Th({ children, align = 'left', style }: { children?: ReactNode; 
   return <th style={{ ...thStyle, textAlign: align, ...style }}>{children}</th>;
 }
 
-export function Td({ children, align = 'left', style }: { children?: ReactNode; align?: 'left' | 'right'; style?: CSSProperties }) {
-  return <td style={{ ...tdStyle, textAlign: align, ...style }}>{children}</td>;
+export function Td({ children, align = 'left', style, ...rest }: { children?: ReactNode; align?: 'left' | 'right'; style?: CSSProperties } & Omit<TdHTMLAttributes<HTMLTableCellElement>, 'style' | 'align'>) {
+  return <td style={{ ...tdStyle, textAlign: align, ...style }} {...rest}>{children}</td>;
 }
 
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
@@ -124,6 +124,18 @@ export function ProgressBar({ pct, color, height = 8 }: { pct: string; color: st
   return (
     <div style={{ height, borderRadius: 1000, background: '#EDF0F3', overflow: 'hidden' }}>
       <div style={{ height: '100%', width: pct, background: color, borderRadius: 1000 }} />
+    </div>
+  );
+}
+
+/** Centered overlay dialog — translated from the `position: fixed; inset: 0` modal
+ * markup repeated for the Network DOOH group editor / delete / discard-changes dialogs. */
+export function Modal({ children, maxWidth = 440 }: { children: ReactNode; maxWidth?: number }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(4,38,82,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+      <div style={{ width: '100%', maxWidth, maxHeight: '100%', overflowY: 'auto', background: '#FFFFFF', borderRadius: 8, boxShadow: '0 18px 44px rgba(4,38,82,.24)' }}>
+        {children}
+      </div>
     </div>
   );
 }

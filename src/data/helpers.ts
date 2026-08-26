@@ -1,4 +1,4 @@
-import { theatreDefs, currency, type TheatreDef } from './mockData';
+import { theatreDefs, currency, doohStates, doohCountries, type TheatreDef, type DoohTheatreConfig } from './mockData';
 
 export function money(n: number, cur: string = currency): string {
   const sym = cur === 'INR' ? '₹' : cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$';
@@ -54,4 +54,15 @@ export function getTheatres(): Theatre[] {
     return { ...t, screens };
   });
   return _theatres;
+}
+
+/** Resolves a `theatreDefs[].city` string ("New York, NY") into city/state/country. */
+export function doohPlace(t: TheatreDef): { city: string; state: string; country: string } {
+  const parts = t.city.split(',');
+  const abbr = (parts[1] || '').trim();
+  return { city: parts[0].trim(), state: doohStates[abbr] || abbr, country: doohCountries[abbr] || 'United States' };
+}
+
+export function doohGroupScreens(config: DoohTheatreConfig | undefined | null): number {
+  return config ? config.groups.reduce((a, g) => a + Number(g.screens), 0) : 0;
 }

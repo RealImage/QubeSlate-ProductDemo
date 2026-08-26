@@ -34,6 +34,7 @@ export const navDef: NavGroup[] = [
   { key: 'Inventory', title: 'Inventory', icon: 'Movies', items: [
     { title: 'Inventory Availability', route: '/inventory/availability' },
     { title: 'Network Theatres & Screens', route: '/inventory/theatres' },
+    { title: 'Network DOOH', route: '/inventory/dooh' },
     { title: 'Playlist Templates', route: '/inventory/templates' },
     { title: 'Pre-Show Playlist', route: '/inventory/playlist' }
   ] },
@@ -65,6 +66,7 @@ export const routeTitles: Record<string, [string, string, string]> = {
   '/content/archived': ['Content', 'Archived Content', 'Expired and past-use content kept for records.'],
   '/inventory/availability': ['Inventory', 'Inventory Availability', ''],
   '/inventory/theatres': ['Inventory', 'Network Theatres & Screens', 'Searchable directory of theatres with region, format and capacity filters.'],
+  '/inventory/dooh': ['Inventory', 'Network DOOH', 'Digital display inventory configured per theatre.'],
   '/inventory/templates': ['Inventory', 'Playlist Templates', 'Predefined ad block layouts and playlist boundary rules.'],
   '/inventory/playlist': ['Inventory', 'Pre-Show Playlist', 'The exact sequence of content around a show.'],
   '/catalogue/brands': ['Catalogue', 'Brand Catalogue', 'Master brand list with linked creatives and metadata.'],
@@ -79,7 +81,7 @@ export const routeTitles: Record<string, [string, string, string]> = {
 export const builtRoutes = ['/', '/campaigns', '/campaigns/create', '/campaigns/rate-bias', '/target-groups',
   '/approvals/campaigns', '/approvals/brands', '/approvals/clients',
   '/content/compositions', '/content/unmapped', '/content/archived',
-  '/inventory/availability', '/inventory/theatres', '/inventory/templates', '/inventory/playlist',
+  '/inventory/availability', '/inventory/theatres', '/inventory/dooh', '/inventory/templates', '/inventory/playlist',
   '/catalogue/brands', '/catalogue/clients',
   '/reports', '/reports/proof-of-play', '/reports/distribution', '/users', '/settings'];
 
@@ -287,3 +289,104 @@ export const users = [
 export const ratePerSecond = 0.012;
 export const currency: 'USD' | 'INR' | 'EUR' | 'GBP' = 'USD';
 export const showCapacityBars = true;
+
+/* ---------- Network DOOH ---------- */
+
+export interface DoohGroup {
+  id: string; type: string; name: string; screens: number;
+  orientation: string; mode: string; loop: string; loopSecs: number;
+}
+
+export interface DoohTheatreConfig {
+  updatedOn: string; updatedBy: string; hoursMode: string;
+  /** keyed by day, value is [start, end, on] */
+  hours: Record<string, [string, string, boolean]>;
+  groups: DoohGroup[];
+}
+
+export const doohTypes = [
+  'Lobby', 'Foyer', 'Box Office / Ticketing', 'Concessions', 'Corridor / Circulation',
+  'Auditorium Entrance', 'Auditorium', 'F&B', 'Restroom', 'Other'
+];
+
+export const doohDayDefs: { key: string; label: string }[] = [
+  { key: 'mon', label: 'Monday' }, { key: 'tue', label: 'Tuesday' }, { key: 'wed', label: 'Wednesday' },
+  { key: 'thu', label: 'Thursday' }, { key: 'fri', label: 'Friday' }, { key: 'sat', label: 'Saturday' },
+  { key: 'sun', label: 'Sunday' }
+];
+
+export const doohLoopHints: Record<string, string> = {
+  'Scheduled': 'Loop duration is configured for this display group.',
+  'Synchronized with Screen': 'Follows the playback loop of the connected signage system. No loop duration is set in Slate.',
+  'Free Duration': 'Not constrained by a fixed loop; playback length follows the scheduled content.'
+};
+
+export const doohModeHints: Record<string, string> = {
+  'Independent Screens': 'Each physical screen can play different content.',
+  'Synchronized Screens': 'All screens play the same content at the same time — commercially one advertising unit.',
+  'Single Canvas': 'Several panels form one logical display, such as a multi-panel LED wall.'
+};
+
+// state/country resolution for the city/state abbreviation baked into `theatreDefs[].city`.
+export const doohStates: Record<string, string> = { NY: 'New York', CA: 'California', ON: 'Ontario', TX: 'Texas', IL: 'Illinois' };
+export const doohCountries: Record<string, string> = { ON: 'Canada' };
+
+export const doohSeed: Record<string, DoohTheatreConfig> = {
+  'TH-101': {
+    updatedOn: '2026-08-24T16:40:00', updatedBy: 'Priya Raman',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['10:00', '23:00', true], tue: ['10:00', '23:00', true], wed: ['10:00', '23:00', true], thu: ['10:00', '23:00', true], fri: ['10:00', '00:00', true], sat: ['09:00', '00:00', true], sun: ['09:00', '23:00', true] },
+    groups: [
+      { id: 'dg-101-1', type: 'Lobby', name: 'Main Lobby LED', screens: 2, orientation: 'Horizontal', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
+      { id: 'dg-101-2', type: 'Foyer', name: 'Foyer LED Wall', screens: 1, orientation: 'Horizontal', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
+      { id: 'dg-101-3', type: 'Foyer', name: 'Foyer Digital Screens', screens: 8, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 },
+      { id: 'dg-101-4', type: 'Concessions', name: 'Concession Screens', screens: 4, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 30 },
+      { id: 'dg-101-5', type: 'Auditorium Entrance', name: 'Entrance Screens', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 }
+    ]
+  },
+  'TH-118': {
+    updatedOn: '2026-08-19T11:05:00', updatedBy: 'Dan Whitfield',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['11:00', '23:00', true], tue: ['11:00', '23:00', true], wed: ['11:00', '23:00', true], thu: ['11:00', '23:00', true], fri: ['11:00', '01:00', true], sat: ['10:00', '01:00', true], sun: ['10:00', '23:00', true] },
+    groups: [
+      { id: 'dg-118-1', type: 'Lobby', name: 'Lobby Portrait Pair', screens: 2, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Scheduled', loopSecs: 45 },
+      { id: 'dg-118-2', type: 'Foyer', name: 'Foyer Screens', screens: 6, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 },
+      { id: 'dg-118-3', type: 'Box Office / Ticketing', name: 'Ticketing Overhead', screens: 2, orientation: 'Horizontal', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 },
+      { id: 'dg-118-4', type: 'F&B', name: 'Bar Menu Boards', screens: 2, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Free Duration', loopSecs: 60 }
+    ]
+  },
+  'TH-204': {
+    updatedOn: '2026-08-25T09:22:00', updatedBy: 'Priya Raman',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['10:30', '23:30', true], tue: ['10:30', '23:30', true], wed: ['10:30', '23:30', true], thu: ['10:30', '23:30', true], fri: ['10:30', '01:00', true], sat: ['09:30', '01:00', true], sun: ['09:30', '23:00', true] },
+    groups: [
+      { id: 'dg-204-1', type: 'Foyer', name: 'Foyer Entrance Wall', screens: 3, orientation: 'Full Container', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
+      { id: 'dg-204-2', type: 'Concessions', name: 'Concession Screens', screens: 3, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 30 },
+      { id: 'dg-204-3', type: 'Corridor / Circulation', name: 'Corridor Panels', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 }
+    ]
+  },
+  'TH-231': {
+    updatedOn: '2026-07-30T14:10:00', updatedBy: 'Lena Okafor',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['12:00', '23:00', true], tue: ['12:00', '23:00', true], wed: ['12:00', '23:00', true], thu: ['12:00', '23:00', true], fri: ['12:00', '01:00', true], sat: ['11:00', '01:00', true], sun: ['11:00', '23:00', true] },
+    groups: [
+      { id: 'dg-231-1', type: 'Lobby', name: 'Atrium LED Wall', screens: 6, orientation: 'Full Container', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 90 },
+      { id: 'dg-231-2', type: 'Auditorium Entrance', name: 'Entrance Screens', screens: 5, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 }
+    ]
+  },
+  'TH-307': {
+    updatedOn: '2026-08-11T17:48:00', updatedBy: 'Marcus Bell',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['10:00', '22:30', true], tue: ['10:00', '22:30', true], wed: ['10:00', '22:30', true], thu: ['10:00', '22:30', true], fri: ['10:00', '00:30', true], sat: ['09:00', '00:30', true], sun: ['09:00', '22:30', true] },
+    groups: [
+      { id: 'dg-307-1', type: 'Foyer', name: 'Foyer Digital Screens', screens: 6, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Scheduled', loopSecs: 60 },
+      { id: 'dg-307-2', type: 'Restroom', name: 'Washroom Panels', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Free Duration', loopSecs: 60 }
+    ]
+  },
+  'TH-402': {
+    updatedOn: '2026-06-02T10:15:00', updatedBy: 'Lena Okafor',
+    hoursMode: 'Scheduled',
+    hours: { mon: ['14:00', '22:00', false], tue: ['14:00', '22:00', true], wed: ['14:00', '22:00', true], thu: ['14:00', '22:00', true], fri: ['14:00', '23:30', true], sat: ['12:00', '23:30', true], sun: ['12:00', '22:00', true] },
+    groups: []
+  }
+};

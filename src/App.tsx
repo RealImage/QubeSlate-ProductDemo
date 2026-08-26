@@ -6,6 +6,7 @@ import { CreateCampaign } from './pages/CreateCampaign';
 import { InventoryAvailability } from './pages/InventoryAvailability';
 import { TargetGroups } from './pages/TargetGroups';
 import { Theatres } from './pages/Theatres';
+import { NetworkDooh } from './pages/NetworkDooh';
 import { PlaylistTemplates } from './pages/PlaylistTemplates';
 import { PreShowPlaylist } from './pages/PreShowPlaylist';
 import { Compositions } from './pages/Compositions';
@@ -36,6 +37,7 @@ function App() {
         <Route path="/content/archived" element={<Compositions />} />
         <Route path="/inventory/availability" element={<InventoryAvailability />} />
         <Route path="/inventory/theatres" element={<Theatres />} />
+        <Route path="/inventory/dooh" element={<NetworkDooh />} />
         <Route path="/inventory/templates" element={<PlaylistTemplates />} />
         <Route path="/inventory/playlist" element={<PreShowPlaylist />} />
         <Route path="/catalogue/brands" element={<BrandCatalogue />} />

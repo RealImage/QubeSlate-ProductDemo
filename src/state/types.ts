@@ -49,6 +49,34 @@ export interface SettingsState {
   holdHours: string | number;
 }
 
+export interface DoohEditorState {
+  id: string | null;
+  type: string;
+  name: string;
+  screens: number | string;
+  orientation: string;
+  mode: string;
+  loop: string;
+  loopSecs: number | string;
+  errors: string[];
+}
+
+export interface DoohDeleteState {
+  id: string;
+  name: string;
+  screens: number;
+}
+
+export interface DoohFilterState {
+  status: string;
+  location: string;
+  minScreens: string;
+  maxScreens: string;
+  minGroups: string;
+  maxGroups: string;
+  types: string[];
+}
+
 export interface AppState {
   // sidebar
   open: string[];
@@ -105,6 +133,22 @@ export interface AppState {
 
   // platform settings
   settings: SettingsState;
+
+  // network dooh
+  doohSel: string | null;
+  doohSearch: string;
+  doohOpen: string[];
+  doohHover: string | null;
+  doohEditor: DoohEditorState | null;
+  doohDelete: DoohDeleteState | null;
+  doohDirty: boolean;
+  doohSaved: boolean;
+  doohData: Record<string, import('../data/mockData').DoohTheatreConfig> | null;
+  doohPanel: boolean;
+  doohSort: string;
+  doohDir: 'asc' | 'desc';
+  doohPage: number;
+  doohFilter: DoohFilterState;
 }
 
 export const initialFormFields: FormFields = {
@@ -169,5 +213,20 @@ export const initialAppState: AppState = {
     defaultPack: 'Pre Show',
     autoApprove: false,
     holdHours: '24'
-  }
+  },
+
+  doohSel: null,
+  doohSearch: '',
+  doohOpen: ['Foyer'],
+  doohHover: null,
+  doohEditor: null,
+  doohDelete: null,
+  doohDirty: false,
+  doohSaved: false,
+  doohData: null,
+  doohPanel: false,
+  doohSort: 'updatedOn',
+  doohDir: 'desc',
+  doohPage: 1,
+  doohFilter: { status: 'all', location: '', minScreens: '', maxScreens: '', minGroups: '', maxGroups: '', types: [] }
 };
