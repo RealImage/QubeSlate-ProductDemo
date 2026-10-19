@@ -17,11 +17,11 @@ export function UserManagement() {
             {rows.map((u, i) => (
               <tr key={i}>
                 <Td>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{u.name}</div>
-                  <div style={{ fontSize: 12, color: '#677A90' }}>{u.email}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-default)' }}>{u.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{u.email}</div>
                 </Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{u.role}</Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{u.scope}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{u.role}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{u.scope}</Td>
                 <Td><StatusTag tone={u.tone}>{u.state}</StatusTag></Td>
               </tr>
             ))}

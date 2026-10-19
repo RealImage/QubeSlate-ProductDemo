@@ -17,8 +17,8 @@ export function BrandCatalogue() {
             {brandsCat.map((b, i) => (
               <tr key={i}>
                 <Td style={{ fontWeight: 500 }}>{b.name}</Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{b.category}</Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{b.client}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{b.category}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{b.client}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{b.creatives}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{b.campaigns}</Td>
               </tr>

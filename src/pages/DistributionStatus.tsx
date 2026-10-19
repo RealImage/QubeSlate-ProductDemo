@@ -14,7 +14,7 @@ export function DistributionStatus() {
       id: r.id, theatre: r.theatre, content: r.content, screens: r.screens,
       state: rowState, pct: `${pct}%`,
       tone: rowState === 'Delivered' ? 'positive' : rowState === 'Failed' ? 'negative' : 'notice',
-      color: rowState === 'Delivered' ? '#0F7B3F' : rowState === 'Failed' ? '#CF1322' : '#084782',
+      color: rowState === 'Delivered' ? 'var(--text-positive-alt)' : rowState === 'Failed' ? 'var(--text-negative)' : 'var(--text-product)',
       canRetry: rowState === 'Failed'
     };
   });
@@ -41,12 +41,12 @@ export function DistributionStatus() {
             {rows.map(r => (
               <tr key={r.id}>
                 <Td style={{ fontWeight: 500 }}>{r.theatre}</Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{r.content}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{r.content}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.screens}</Td>
                 <Td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: '1 1 auto' }}><ProgressBar pct={r.pct} color={r.color} /></div>
-                    <span style={{ fontSize: 12.5, color: '#4A5A6C', fontVariantNumeric: 'tabular-nums', width: 38, textAlign: 'right' }}>{r.pct}</span>
+                    <span style={{ fontSize: 12.5, color: 'var(--grey-600)', fontVariantNumeric: 'tabular-nums', width: 38, textAlign: 'right' }}>{r.pct}</span>
                   </div>
                 </Td>
                 <Td><StatusTag tone={r.tone}>{r.state}</StatusTag></Td>
@@ -54,7 +54,7 @@ export function DistributionStatus() {
                   {r.canRetry && (
                     <button
                       onClick={() => onRetry(r.id)}
-                      style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '6px 11px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: '#084782', cursor: 'pointer' }}
+                      style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '6px 11px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}
                     >
                       Retry delivery
                     </button>

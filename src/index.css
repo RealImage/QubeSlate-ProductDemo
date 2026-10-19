@@ -1,26 +1,31 @@
+/* The Figma export goes first: it redefines many Qube tokens (spacing as
+   unitless numbers), so the design-system tokens below must win. */
 @import './styles/ds/tokens/fonts.css';
-@import './styles/ds/tokens/prefab/fonts.css';
-@import './styles/ds/tokens/prefab/colors.css';
-@import './styles/ds/tokens/prefab/spacing.css';
-@import './styles/ds/tokens/prefab/qube-wire.css';
 @import './styles/ds/tokens/figma/fig-tokens.css';
 @import './styles/ds/components/avatar/fig-assets.css';
 @import './styles/ds/components/forms/fig-assets.css';
+@import './styles/ds/tokens/prefab/qube-wire.css';
+@import './styles/ds/tokens/prefab/base.css';
 @import './styles/ds/components/prefab/prefab.css';
-@import './styles/ds/styles.css';
 
 html, body, #root { margin: 0; padding: 0; height: 100%; }
 body {
-  font-family: Commissioner, system-ui, sans-serif;
-  background: #F5F8FA;
-  color: #08090A;
+  font-family: var(--font-family);
+  font-size: var(--fontSize-size-175);
+  line-height: var(--lineHeight-height-250);
+  background: var(--bg-surface);
+  color: var(--text-default);
   -webkit-font-smoothing: antialiased;
 }
-a { color: #084782; text-decoration: none; }
-a:hover { color: #063A6B; text-decoration: underline; }
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
 * { box-sizing: border-box; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #D3DAE2; border-radius: 8px; border: 3px solid #F5F8FA; }
+::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: var(--borderRadius-radius-100); border: 3px solid var(--bg-surface); }
 
 button { font-family: inherit; }
 input, select, textarea { font-family: inherit; }
+
+/* Focus: 2px product outline, keyboard only */
+:focus-visible { outline: 2px solid var(--border-product); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }

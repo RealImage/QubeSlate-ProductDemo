@@ -53,12 +53,12 @@ export function CampaignManagement() {
             {filtered.map(c => (
               <tr key={c.id}>
                 <Td>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{c.name}</div>
-                  <div style={{ fontSize: 11.5, color: '#677A90', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>{c.id}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-default)' }}>{c.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontFamily: 'var(--font-family-mono)' }}>{c.id}</div>
                 </Td>
-                <Td style={{ color: '#4A5A6C' }}>{c.client}</Td>
+                <Td style={{ color: 'var(--grey-600)' }}>{c.client}</Td>
                 <Td><StatusTag tone={c.tone}>{c.status}</StatusTag></Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{c.flight}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{c.flight}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{c.screens}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{c.playsLabel}</Td>
                 <Td align="right" style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{c.budgetLabel}</Td>

@@ -9,8 +9,8 @@ import { Tag, type TagSize, type TagTone } from '../Tag';
  */
 
 export const cardStyle: CSSProperties = {
-  background: '#FFFFFF', border: '1px solid #E1E4E9', borderRadius: 8,
-  boxShadow: '0 1px 2px rgba(4,38,82,.06)'
+  background: 'var(--surface-white)', border: '1px solid var(--border-default-alt)', borderRadius: 8,
+  boxShadow: 'var(--elevation-100)'
 };
 
 export function Card({ children, style, padding = '20px 24px' }: { children: ReactNode; style?: CSSProperties; padding?: string | number }) {
@@ -21,8 +21,8 @@ export function PageHeader({ title, description, action }: { title: string; desc
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24 }}>
       <div>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: '-0.015em', color: '#08090A' }}>{title}</h1>
-        {description ? <p style={{ margin: '5px 0 0', fontSize: 14, color: '#677A90' }}>{description}</p> : null}
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-default)' }}>{title}</h1>
+        {description ? <p style={{ margin: '5px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>{description}</p> : null}
       </div>
       {action}
     </div>
@@ -34,9 +34,9 @@ export function KpiGrid({ items, minWidth = 200 }: { items: { label: string; val
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${minWidth}px, 1fr))`, gap: 16 }}>
       {items.map((k, i) => (
         <Card key={i} padding="18px 20px" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={{ fontSize: 12.5, color: '#677A90', fontWeight: 500 }}>{k.label}</span>
-          <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: k.color || '#08090A', lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{k.value}</span>
-          {k.delta ? <span style={{ fontSize: 12, color: k.deltaColor || '#677A90', fontWeight: 500 }}>{k.delta}</span> : null}
+          <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', fontWeight: 500 }}>{k.label}</span>
+          <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: k.color || 'var(--text-default)', lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{k.value}</span>
+          {k.delta ? <span style={{ fontSize: 12, color: k.deltaColor || 'var(--text-secondary)', fontWeight: 500 }}>{k.delta}</span> : null}
         </Card>
       ))}
     </div>
@@ -47,8 +47,8 @@ export interface Chip { value: string; label: string; bg: string; color: string;
 
 export function chipTone(active: boolean): { bg: string; color: string; border: string } {
   return active
-    ? { bg: '#084782', color: '#FFFFFF', border: '#084782' }
-    : { bg: '#FFFFFF', color: '#4A5A6C', border: '#D3DAE2' };
+    ? { bg: 'var(--fill-product)', color: 'var(--text-white)', border: 'var(--border-product)' }
+    : { bg: 'var(--surface-white)', color: 'var(--grey-600)', border: 'var(--border-default-subtle)' };
 }
 
 export function ChipRow({ chips, onSelect }: { chips: Chip[]; onSelect: (value: string) => void }) {
@@ -73,7 +73,7 @@ export function SearchInput({ value, onChange, placeholder, style }: { value: st
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      style={{ flex: '1 1 260px', minWidth: 220, height: 36, padding: '0 12px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: '#08090A', outline: 'none', ...style }}
+      style={{ flex: '1 1 260px', minWidth: 220, height: 36, padding: '0 12px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: 'var(--text-default)', outline: 'none', ...style }}
     />
   );
 }
@@ -83,13 +83,13 @@ export function FilterBar({ children }: { children: ReactNode }) {
 }
 
 export function CountLabel({ children }: { children: ReactNode }) {
-  return <span style={{ fontSize: 12.5, color: '#677A90', marginLeft: 'auto' }}>{children}</span>;
+  return <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginLeft: 'auto' }}>{children}</span>;
 }
 
 /* ---------- table ---------- */
 
-const thStyle: CSSProperties = { textAlign: 'left', padding: '10px 20px', fontSize: 11, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', color: '#677A90', borderBottom: '2px solid #E1E4E9' };
-const tdStyle: CSSProperties = { padding: '13px 20px', borderBottom: '1px solid #EDF0F3', fontSize: 13.5, color: '#08090A' };
+const thStyle: CSSProperties = { textAlign: 'left', padding: '10px 20px', fontSize: 11, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-secondary)', borderBottom: '2px solid var(--border-default-alt)' };
+const tdStyle: CSSProperties = { padding: '13px 20px', borderBottom: '1px solid var(--border-default-alt)', fontSize: 13.5, color: 'var(--text-default)' };
 
 export function TableCard({ children }: { children: ReactNode }) {
   return <Card padding={0} style={{ overflowX: 'auto', overflowY: 'hidden' }}>{children}</Card>;
@@ -110,8 +110,8 @@ export function Td({ children, align = 'left', style, ...rest }: { children?: Re
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
   return (
     <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-      <div style={{ fontSize: 15, fontWeight: 600, color: '#08090A' }}>{title}</div>
-      <div style={{ fontSize: 13, color: '#677A90', marginTop: 4 }}>{detail}</div>
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>{title}</div>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>{detail}</div>
     </div>
   );
 }
@@ -122,7 +122,7 @@ export function StatusTag({ tone, size = 'small', children }: { tone: TagTone | 
 
 export function ProgressBar({ pct, color, height = 8 }: { pct: string; color: string; height?: number }) {
   return (
-    <div style={{ height, borderRadius: 1000, background: '#EDF0F3', overflow: 'hidden' }}>
+    <div style={{ height, borderRadius: 1000, background: 'var(--bg-surface-subtle)', overflow: 'hidden' }}>
       <div style={{ height: '100%', width: pct, background: color, borderRadius: 1000 }} />
     </div>
   );
@@ -133,7 +133,7 @@ export function ProgressBar({ pct, color, height = 8 }: { pct: string; color: st
 export function Modal({ children, maxWidth = 440 }: { children: ReactNode; maxWidth?: number }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(4,38,82,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-      <div style={{ width: '100%', maxWidth, maxHeight: '100%', overflowY: 'auto', background: '#FFFFFF', borderRadius: 8, boxShadow: '0 18px 44px rgba(4,38,82,.24)' }}>
+      <div style={{ width: '100%', maxWidth, maxHeight: '100%', overflowY: 'auto', background: 'var(--surface-white)', borderRadius: 8, boxShadow: '0 18px 44px rgba(4,38,82,.24)' }}>
         {children}
       </div>
     </div>

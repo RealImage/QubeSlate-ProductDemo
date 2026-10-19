@@ -12,7 +12,7 @@ export function RateBias() {
     return {
       id: r.id, dimension: r.dimension, value: r.value, mult: m,
       effective: money(ratePerSecond * m * 1000),
-      color: m > 1 ? '#0F7B3F' : m < 1 ? '#E65C00' : '#4A5A6C'
+      color: m > 1 ? 'var(--text-positive-alt)' : m < 1 ? 'var(--orange-600)' : 'var(--grey-600)'
     };
   });
 
@@ -24,7 +24,7 @@ export function RateBias() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1100 }}>
       <PageHeader title="Campaign Rate Bias" description="Multipliers applied to the base rate card by geography, theatre type, daypart or segment." />
-      <Card padding="14px 18px" style={{ background: '#F0F5FA', border: '1px solid #CFE0EE', fontSize: 13, color: '#084782' }}>
+      <Card padding="14px 18px" style={{ background: 'var(--bg-surface)', border: '1px solid var(--wire-50)', fontSize: 13, color: 'var(--text-product)' }}>
         Base rate card: <strong style={{ fontWeight: 600 }}>{money(ratePerSecond * 1000)} per 1,000 seconds per screen</strong>
       </Card>
       <TableCard>
@@ -38,13 +38,13 @@ export function RateBias() {
           <tbody>
             {rows.map(r => (
               <tr key={r.id}>
-                <Td style={{ fontSize: 13, color: '#677A90', fontWeight: 400 }}>{r.dimension}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 400 }}>{r.dimension}</Td>
                 <Td style={{ fontWeight: 500 }}>{r.value}</Td>
                 <Td align="right">
                   <input
                     type="number" step={0.05} value={r.mult}
                     onChange={e => onBias(r.id, e.target.value)}
-                    style={{ width: 84, height: 34, padding: '0 10px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: '#08090A', textAlign: 'right', outline: 'none' }}
+                    style={{ width: 84, height: 34, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', textAlign: 'right', outline: 'none' }}
                   />
                 </Td>
                 <Td align="right" style={{ fontSize: 14, fontWeight: 600, color: r.color }}>{r.effective}</Td>

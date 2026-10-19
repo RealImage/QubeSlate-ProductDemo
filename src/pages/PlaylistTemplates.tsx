@@ -27,41 +27,41 @@ export function PlaylistTemplates() {
       <PageHeader title="Playlist Templates" description="Ad block layouts, and the theatre-level boundaries that cap how much content each segment can hold." />
 
       <Card padding="20px 24px">
-        <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: '#08090A' }}>Playlist boundaries</h3>
-        <p style={{ margin: '0 0 18px', fontSize: 12.5, color: '#677A90' }}>Maximum durations enforced at the theatre. Content beyond the boundary is dropped by priority.</p>
+        <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>Playlist boundaries</h3>
+        <p style={{ margin: '0 0 18px', fontSize: 12.5, color: 'var(--text-secondary)' }}>Maximum durations enforced at the theatre. Content beyond the boundary is dropped by priority.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#08090A' }}>Max pre-show duration</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>Max pre-show duration</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="number" value={bPre} onChange={e => patch({ bPre: Number(e.target.value) || 0 })} style={{ width: 92, height: 34, padding: '0 10px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: '#08090A', textAlign: 'right', outline: 'none' }} />
-                <span style={{ fontSize: 12.5, color: '#677A90' }}>seconds</span>
+                <input type="number" value={bPre} onChange={e => patch({ bPre: Number(e.target.value) || 0 })} style={{ width: 92, height: 34, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', textAlign: 'right', outline: 'none' }} />
+                <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>seconds</span>
               </span>
             </label>
-            <div style={{ height: 10, borderRadius: 1000, background: '#EDF0F3', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: prePct, background: preOver ? '#CF1322' : '#084782', borderRadius: 1000 }} />
+            <div style={{ height: 10, borderRadius: 1000, background: 'var(--bg-surface-subtle)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: prePct, background: preOver ? 'var(--fill-negative)' : 'var(--fill-product)', borderRadius: 1000 }} />
             </div>
-            <span style={{ fontSize: 12, color: '#677A90', fontVariantNumeric: 'tabular-nums' }}>{secs(preTotal)} of {secs(bPre)} allocated</span>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{secs(preTotal)} of {secs(bPre)} allocated</span>
             {preOver && (
-              <div style={{ padding: '10px 12px', border: '1px solid #F0C4C7', borderRadius: 6, background: '#FDF2F2', fontSize: 12.5, color: '#CF1322', lineHeight: 1.5 }}>
+              <div style={{ padding: '10px 12px', border: '1px solid var(--red-200)', borderRadius: 6, background: 'var(--red-10)', fontSize: 12.5, color: 'var(--text-negative)', lineHeight: 1.5 }}>
                 Pre-show exceeds the theatre boundary by {secs(preTotal - bPre)}. Lowest-priority ad positions will be dropped at the theatre.
               </div>
             )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#08090A' }}>Max intermission duration</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>Max intermission duration</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="number" value={bInt} onChange={e => patch({ bInt: Number(e.target.value) || 0 })} style={{ width: 92, height: 34, padding: '0 10px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: '#08090A', textAlign: 'right', outline: 'none' }} />
-                <span style={{ fontSize: 12.5, color: '#677A90' }}>seconds</span>
+                <input type="number" value={bInt} onChange={e => patch({ bInt: Number(e.target.value) || 0 })} style={{ width: 92, height: 34, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', textAlign: 'right', outline: 'none' }} />
+                <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>seconds</span>
               </span>
             </label>
-            <div style={{ height: 10, borderRadius: 1000, background: '#EDF0F3', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: intPct, background: intOver ? '#CF1322' : '#6B3FA0', borderRadius: 1000 }} />
+            <div style={{ height: 10, borderRadius: 1000, background: 'var(--bg-surface-subtle)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: intPct, background: intOver ? 'var(--fill-negative)' : 'var(--purple-500)', borderRadius: 1000 }} />
             </div>
-            <span style={{ fontSize: 12, color: '#677A90', fontVariantNumeric: 'tabular-nums' }}>{secs(intTotal)} of {secs(bInt)} allocated</span>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{secs(intTotal)} of {secs(bInt)} allocated</span>
             {intOver && (
-              <div style={{ padding: '10px 12px', border: '1px solid #F0C4C7', borderRadius: 6, background: '#FDF2F2', fontSize: 12.5, color: '#CF1322', lineHeight: 1.5 }}>
+              <div style={{ padding: '10px 12px', border: '1px solid var(--red-200)', borderRadius: 6, background: 'var(--red-10)', fontSize: 12.5, color: 'var(--text-negative)', lineHeight: 1.5 }}>
                 Intermission exceeds the boundary by {secs(intTotal - bInt)}.
               </div>
             )}
@@ -73,10 +73,10 @@ export function PlaylistTemplates() {
         {TEMPLATES.map(t => (
           <Card key={t.name} padding="18px 20px" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-              <span style={{ fontSize: 14.5, fontWeight: 600, color: '#08090A' }}>{t.name}</span>
-              <span style={{ fontSize: 12, color: '#677A90' }}>{t.theatres} theatres</span>
+              <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-default)' }}>{t.name}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t.theatres} theatres</span>
             </div>
-            <span style={{ fontSize: 12.5, color: '#4A5A6C' }}>{t.segments}</span>
+            <span style={{ fontSize: 12.5, color: 'var(--grey-600)' }}>{t.segments}</span>
             <span className="pf-tag pf-tag--primary-secondary pf-tag--small" style={{ alignSelf: 'flex-start' }}><span className="pf-tag__content">{t.slots}</span></span>
           </Card>
         ))}

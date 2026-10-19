@@ -23,7 +23,7 @@ export function Compositions() {
       campaign: c.campaign || 'Unmapped', ingested: c.ingested === '—' ? '—' : fmtDate(c.ingested),
       state: c.state,
       tone: c.state === 'Available' ? 'positive' : c.state === 'Missing' ? 'negative' : c.state === 'Archived' ? 'default' : 'notice',
-      campaignColor: c.campaign ? '#08090A' : '#E65C00'
+      campaignColor: c.campaign ? 'var(--text-default)' : 'var(--orange-600)'
     }));
   }, [pathname, compFilter]);
 
@@ -49,14 +49,14 @@ export function Compositions() {
             {rows.map((c, i) => (
               <tr key={i}>
                 <Td>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: '#677A90', fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}>{c.cpl}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-default)' }}>{c.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-family-mono)' }}>{c.cpl}</div>
                 </Td>
-                <Td style={{ fontSize: 12.5, color: '#4A5A6C' }}>{c.format}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--grey-600)' }}>{c.format}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{c.len}</Td>
-                <Td align="right" style={{ fontSize: 13, color: '#4A5A6C', fontVariantNumeric: 'tabular-nums' }}>{c.size}</Td>
+                <Td align="right" style={{ fontSize: 13, color: 'var(--grey-600)', fontVariantNumeric: 'tabular-nums' }}>{c.size}</Td>
                 <Td style={{ fontSize: 13, color: c.campaignColor }}>{c.campaign}</Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{c.ingested}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{c.ingested}</Td>
                 <Td><StatusTag tone={c.tone}>{c.state}</StatusTag></Td>
               </tr>
             ))}
