@@ -19,7 +19,7 @@ export function Theatres() {
         id: t.id, name: t.name, circuit: t.circuit, city: t.city,
         screens: t.screens.length, seats: t.screens.reduce((a, s) => a + s.seats, 0).toLocaleString('en-US'),
         formats, util: `${pct}%`, pct: `${pct}%`,
-        color: pct > 85 ? '#CF1322' : pct > 65 ? '#E65C00' : '#0F7B3F'
+        color: pct > 85 ? 'var(--text-negative)' : pct > 65 ? 'var(--orange-600)' : 'var(--text-positive-alt)'
       };
     });
   }, [theatres, thSearch]);
@@ -32,7 +32,7 @@ export function Theatres() {
           value={thSearch}
           onChange={e => patch({ thSearch: e.target.value })}
           placeholder="Search theatres, circuits or cities…"
-          style={{ width: '100%', height: 36, padding: '0 12px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: '#08090A', outline: 'none' }}
+          style={{ width: '100%', height: 36, padding: '0 12px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: 'var(--text-default)', outline: 'none' }}
         />
       </Card>
       <TableCard>
@@ -48,17 +48,17 @@ export function Theatres() {
             {rows.map(t => (
               <tr key={t.id}>
                 <Td>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{t.name}</div>
-                  <div style={{ fontSize: 11.5, color: '#677A90' }}>{t.city} · {t.id}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-default)' }}>{t.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>{t.city} · {t.id}</div>
                 </Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{t.circuit}</Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90' }}>{t.formats}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{t.circuit}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>{t.formats}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.screens}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.seats}</Td>
                 <Td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: '1 1 auto' }}><ProgressBar pct={t.pct} color={t.color} /></div>
-                    <span style={{ fontSize: 12.5, color: '#4A5A6C', fontVariantNumeric: 'tabular-nums', width: 38, textAlign: 'right' }}>{t.util}</span>
+                    <span style={{ fontSize: 12.5, color: 'var(--grey-600)', fontVariantNumeric: 'tabular-nums', width: 38, textAlign: 'right' }}>{t.util}</span>
                   </div>
                 </Td>
               </tr>

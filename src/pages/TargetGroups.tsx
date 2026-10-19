@@ -65,10 +65,10 @@ export function TargetGroups() {
                 const active = tgSort === h.field;
                 const label = h.label + (active ? (tgDir === 'asc' ? ' ↑' : ' ↓') : '');
                 return (
-                  <th key={h.field} style={{ textAlign: h.align, padding: 0, borderBottom: '2px solid #E1E4E9' }}>
+                  <th key={h.field} style={{ textAlign: h.align, padding: 0, borderBottom: '2px solid var(--border-default-alt)' }}>
                     <button
                       onClick={() => onSort(h.field)}
-                      style={{ width: '100%', padding: '11px 20px', border: 0, background: 'transparent', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', color: active ? '#084782' : '#677A90', textAlign: h.align, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ width: '100%', padding: '11px 20px', border: 0, background: 'transparent', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', color: active ? 'var(--text-product)' : 'var(--text-secondary)', textAlign: h.align, cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       {label}
                     </button>
@@ -84,10 +84,10 @@ export function TargetGroups() {
                 <Td style={{ fontWeight: 500 }}>{t.name}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.screens}</Td>
                 <Td align="right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.theatres}</Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{t.createdOn}</Td>
-                <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{t.createdBy}</Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{t.validFrom}</Td>
-                <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{t.validTill}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t.createdOn}</Td>
+                <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{t.createdBy}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t.validFrom}</Td>
+                <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t.validTill}</Td>
                 <Td><StatusTag tone={t.tone}>{t.statusLabel}</StatusTag></Td>
               </tr>
             ))}

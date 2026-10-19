@@ -31,7 +31,7 @@ export function PreShowPlaylist() {
         idx: idx + 1, seg: i.seg, name: i.name, type: i.type, pos: i.pos,
         len: secs(i.sec),
         width: `${Math.max(2, Math.round((i.sec / denom) * 100))}%`,
-        color: i.type === 'Ad' || i.type === 'Ad pod' ? '#084782' : i.type === 'Trailer' ? '#6B3FA0' : '#97A5B5',
+        color: i.type === 'Ad' || i.type === 'Ad pod' ? 'var(--text-product)' : i.type === 'Trailer' ? 'var(--text-purple)' : 'var(--grey-400)',
         tone: i.type === 'Ad' || i.type === 'Ad pod' ? 'primary-secondary' : i.type === 'Trailer' ? 'violet' : 'default'
       };
     });
@@ -42,21 +42,21 @@ export function PreShowPlaylist() {
 
   const Segment = ({ title, rows }: { title: string; rows: typeof plRows }) => (
     <Card padding="20px 24px">
-      <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 600, color: '#08090A' }}>{title}</h3>
-      <div style={{ display: 'flex', height: 26, borderRadius: 6, overflow: 'hidden', border: '1px solid #E1E4E9', marginBottom: 18 }}>
+      <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>{title}</h3>
+      <div style={{ display: 'flex', height: 26, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border-default-alt)', marginBottom: 18 }}>
         {rows.map((r, i) => (
           <div key={i} title={r.name} style={{ width: r.width, background: r.color, borderRight: '1px solid rgba(255,255,255,.5)' }} />
         ))}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map(r => (
-          <div key={r.idx} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 0', borderBottom: '1px solid #EDF0F3' }}>
-            <span style={{ width: 22, fontSize: 12, color: '#97A5B5', fontVariantNumeric: 'tabular-nums' }}>{r.idx}</span>
+          <div key={r.idx} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 0', borderBottom: '1px solid var(--border-default-alt)' }}>
+            <span style={{ width: 22, fontSize: 12, color: 'var(--grey-400)', fontVariantNumeric: 'tabular-nums' }}>{r.idx}</span>
             <span style={{ width: 4, height: 22, borderRadius: 1000, background: r.color, flex: '0 0 auto' }} />
-            <span style={{ flex: '1 1 auto', fontSize: 13.5, color: '#08090A', fontWeight: 500 }}>{r.name}</span>
+            <span style={{ flex: '1 1 auto', fontSize: 13.5, color: 'var(--text-default)', fontWeight: 500 }}>{r.name}</span>
             <StatusTag tone={r.tone}>{r.type}</StatusTag>
-            <span style={{ width: 70, textAlign: 'center', fontSize: 12.5, color: '#677A90' }}>Pos {r.pos}</span>
-            <span style={{ width: 56, textAlign: 'right', fontSize: 13, color: '#08090A', fontVariantNumeric: 'tabular-nums' }}>{r.len}</span>
+            <span style={{ width: 70, textAlign: 'center', fontSize: 12.5, color: 'var(--text-secondary)' }}>Pos {r.pos}</span>
+            <span style={{ width: 56, textAlign: 'right', fontSize: 13, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>{r.len}</span>
           </div>
         ))}
       </div>
@@ -69,23 +69,23 @@ export function PreShowPlaylist() {
 
       <Card padding="14px 16px" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 420px' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4A5A6C', whiteSpace: 'nowrap' }}>Show</span>
-          <select value={plShow} onChange={e => patch({ plShow: e.target.value })} style={{ flex: '1 1 auto', height: 36, padding: '0 10px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: '#08090A', background: '#FFFFFF', outline: 'none' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--grey-600)', whiteSpace: 'nowrap' }}>Show</span>
+          <select value={plShow} onChange={e => patch({ plShow: e.target.value })} style={{ flex: '1 1 auto', height: 36, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', background: 'var(--surface-white)', outline: 'none' }}>
             {plOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </label>
         <div style={{ display: 'flex', gap: 22, marginLeft: 'auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Pre-show</span>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#084782', fontVariantNumeric: 'tabular-nums' }}>{secs(preTotal)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Pre-show</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-product)', fontVariantNumeric: 'tabular-nums' }}>{secs(preTotal)}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Intermission</span>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#6B3FA0', fontVariantNumeric: 'tabular-nums' }}>{secs(intTotal)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Intermission</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-purple)', fontVariantNumeric: 'tabular-nums' }}>{secs(intTotal)}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Saleable</span>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#08090A', fontVariantNumeric: 'tabular-nums' }}>{adSeconds}s</span>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Saleable</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>{adSeconds}s</span>
           </div>
         </div>
       </Card>

@@ -7,7 +7,7 @@ export function Layout() {
   const { onMainEnter } = useAppState();
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F8FA', fontFamily: "Commissioner, system-ui, sans-serif" }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-surface)', fontFamily: 'var(--font-family)' }}>
       <AppSidebar />
       <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Header />

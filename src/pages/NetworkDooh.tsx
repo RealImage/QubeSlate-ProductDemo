@@ -12,8 +12,8 @@ import {
   Card, PageHeader, KpiGrid, Table, TableCard, Th, Td, StatusTag, Modal, chipTone
 } from '../components/ui/primitives';
 
-const inputStyle = { height: 36, padding: '0 12px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: '#08090A', outline: 'none' } as const;
-const fieldLabel = { fontSize: 12.5, fontWeight: 500, color: '#08090A' } as const;
+const inputStyle = { height: 36, padding: '0 12px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13.5, color: 'var(--text-default)', outline: 'none' } as const;
+const fieldLabel = { fontSize: 12.5, fontWeight: 500, color: 'var(--text-default)' } as const;
 const PAGE_SIZE = 100;
 
 const SORT_FIELD: Record<string, 'name' | 'circuit' | 'count' | 'statusLabel' | 'updatedRaw' | 'updatedBy'> = {
@@ -137,7 +137,7 @@ export function NetworkDooh() {
       const withType = theatreDefs.filter(t => (store[t.id] ? store[t.id].groups : []).some(g => g.type === ty));
       return {
         type: ty, on: doohFilter.types.includes(ty),
-        color: withType.length ? '#08090A' : '#97A5B5',
+        color: withType.length ? 'var(--text-default)' : 'var(--grey-400)',
         meta: withType.length ? `${withType.length} theatre${withType.length === 1 ? '' : 's'}` : 'none configured'
       };
     });
@@ -187,11 +187,11 @@ export function NetworkDooh() {
           />
           <button
             onClick={() => patch({ doohPanel: true })}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: '0 0 auto', height: 36, padding: '0 14px', border: `1px solid ${fActive.length ? '#084782' : '#D3DAE2'}`, borderRadius: 6, background: fActive.length ? '#F0F5FA' : '#FFFFFF', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#084782', cursor: 'pointer' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: '0 0 auto', height: 36, padding: '0 14px', border: `1px solid ${fActive.length ? 'var(--text-product)' : 'var(--fill-default-alt)'}`, borderRadius: 6, background: fActive.length ? 'var(--bg-surface)' : 'var(--surface-white)', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}
           >
             Filter
             {fActive.length > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 18, height: 18, padding: '0 5px', borderRadius: 1000, background: '#084782', fontSize: 11, fontWeight: 600, color: '#FFFFFF' }}>{fActive.length}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 18, height: 18, padding: '0 5px', borderRadius: 1000, background: 'var(--fill-product)', fontSize: 11, fontWeight: 600, color: 'var(--text-white)' }}>{fActive.length}</span>
             )}
           </button>
         </Card>
@@ -199,12 +199,12 @@ export function NetworkDooh() {
         {fActive.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {fActive.map(c => (
-              <span key={c.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid #CFDCEA', borderRadius: 1000, background: '#F0F5FA', padding: '4px 6px 4px 12px', fontSize: 12, color: '#084782' }}>
+              <span key={c.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid var(--border-default-subtle)', borderRadius: 1000, background: 'var(--bg-surface)', padding: '4px 6px 4px 12px', fontSize: 12, color: 'var(--text-product)' }}>
                 {c.label}
-                <button onClick={() => clearFilter(c.key)} style={{ border: 'none', background: 'none', padding: '0 4px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1, color: '#084782', cursor: 'pointer' }}>×</button>
+                <button onClick={() => clearFilter(c.key)} style={{ border: 'none', background: 'none', padding: '0 4px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1, color: 'var(--text-product)', cursor: 'pointer' }}>×</button>
               </span>
             ))}
-            <button onClick={clearAllFilters} style={{ border: 'none', background: 'none', padding: '4px 6px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: '#677A90', cursor: 'pointer' }}>Clear all</button>
+            <button onClick={clearAllFilters} style={{ border: 'none', background: 'none', padding: '4px 6px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', cursor: 'pointer' }}>Clear all</button>
           </div>
         )}
 
@@ -225,40 +225,40 @@ export function NetworkDooh() {
                 {pageRows.map(r => (
                   <tr key={r.id}>
                     <Td>
-                      <div style={{ fontSize: 13.5, fontWeight: 500, color: '#08090A' }}>{r.name}</div>
-                      <div style={{ fontSize: 11.5, color: '#677A90' }}>{r.city}</div>
-                      <div style={{ fontSize: 11.5, color: '#97A5B5', fontVariantNumeric: 'tabular-nums' }}>{r.id}</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-default)' }}>{r.name}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>{r.city}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--grey-400)', fontVariantNumeric: 'tabular-nums' }}>{r.id}</div>
                     </Td>
-                    <Td style={{ fontSize: 13, color: '#4A5A6C' }}>{r.circuit}</Td>
+                    <Td style={{ fontSize: 13, color: 'var(--grey-600)' }}>{r.circuit}</Td>
                     <Td
                       align="right"
                       style={{ position: 'relative' }}
                       onMouseEnter={() => patch({ doohHover: r.id })}
                       onMouseLeave={() => patch({ doohHover: null })}
                     >
-                      <span style={{ fontVariantNumeric: 'tabular-nums', borderBottom: '1px dotted #B9C4D0', cursor: 'default' }}>{r.count}</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums', borderBottom: '1px dotted var(--border-default-subtle)', cursor: 'default' }}>{r.count}</span>
                       {doohHover === r.id && (
-                        <div style={{ position: 'absolute', right: 16, top: 'calc(100% - 4px)', zIndex: 30, minWidth: 250, background: '#FFFFFF', border: '1px solid #E1E4E9', borderRadius: 8, boxShadow: '0 6px 20px rgba(4,38,82,.12)', padding: '12px 14px', textAlign: 'left' }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#08090A', paddingBottom: 8, borderBottom: '1px solid #EDF0F3' }}>Total Screens: {r.count}</div>
+                        <div style={{ position: 'absolute', right: 16, top: 'calc(100% - 4px)', zIndex: 30, minWidth: 250, background: 'var(--surface-white)', border: '1px solid var(--border-default-alt)', borderRadius: 8, boxShadow: '0 6px 20px rgba(4,38,82,.12)', padding: '12px 14px', textAlign: 'left' }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-default)', paddingBottom: 8, borderBottom: '1px solid var(--border-default-alt)' }}>Total Screens: {r.count}</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 8 }}>
                             {r.breakdown.map(b => (
                               <div key={b.label} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20 }}>
-                                <span style={{ fontSize: 12, color: '#677A90' }}>{b.label}</span>
-                                <span style={{ fontSize: 12, color: '#08090A', fontVariantNumeric: 'tabular-nums' }}>{b.n}</span>
+                                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{b.label}</span>
+                                <span style={{ fontSize: 12, color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>{b.n}</span>
                               </div>
                             ))}
-                            {r.noBreakdown && <span style={{ fontSize: 12, color: '#97A5B5' }}>No display groups configured yet.</span>}
+                            {r.noBreakdown && <span style={{ fontSize: 12, color: 'var(--grey-400)' }}>No display groups configured yet.</span>}
                           </div>
                         </div>
                       )}
                     </Td>
                     <Td><StatusTag tone={r.tone}>{r.statusLabel}</StatusTag></Td>
-                    <Td style={{ fontSize: 12.5, color: '#4A5A6C', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{r.updatedOn}</Td>
-                    <Td style={{ fontSize: 12.5, color: '#677A90', whiteSpace: 'nowrap' }}>{r.updatedBy}</Td>
+                    <Td style={{ fontSize: 12.5, color: 'var(--grey-600)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{r.updatedOn}</Td>
+                    <Td style={{ fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{r.updatedBy}</Td>
                     <Td align="right">
                       <button
                         onClick={() => patch({ doohSel: r.id, doohSaved: false, doohHover: null })}
-                        style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '6px 12px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}
+                        style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '6px 12px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}
                       >
                         {r.actionLabel}
                       </button>
@@ -270,35 +270,35 @@ export function NetworkDooh() {
           </div>
           {sorted.length === 0 && (
             <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#08090A' }}>No theatres match these filters</div>
-              <p style={{ margin: '6px 0 0', fontSize: 13, color: '#677A90' }}>Widen the screen-count range or clear a filter to see more theatres.</p>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-default)' }}>No theatres match these filters</div>
+              <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>Widen the screen-count range or clear a filter to see more theatres.</p>
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 20px', borderTop: '1px solid #EDF0F3' }}>
-            <span style={{ fontSize: 12.5, color: '#677A90' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 20px', borderTop: '1px solid var(--border-default-alt)' }}>
+            <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
               {sorted.length === 0 ? 'No theatres' : `Showing ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, sorted.length)} of ${sorted.length} theatres · 100 per page`}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 12.5, color: '#97A5B5' }}>Page {page} of {pageCount}</span>
-              <button disabled={page <= 1} onClick={() => patch(s => ({ doohPage: Math.max(1, s.doohPage - 1) }))} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '5px 11px', fontFamily: 'inherit', fontSize: 12.5, color: '#4A5A6C', cursor: 'pointer' }}>Previous</button>
-              <button disabled={page >= pageCount} onClick={() => patch(s => ({ doohPage: s.doohPage + 1 }))} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '5px 11px', fontFamily: 'inherit', fontSize: 12.5, color: '#4A5A6C', cursor: 'pointer' }}>Next</button>
+              <span style={{ fontSize: 12.5, color: 'var(--grey-400)' }}>Page {page} of {pageCount}</span>
+              <button disabled={page <= 1} onClick={() => patch(s => ({ doohPage: Math.max(1, s.doohPage - 1) }))} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '5px 11px', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--grey-600)', cursor: 'pointer' }}>Previous</button>
+              <button disabled={page >= pageCount} onClick={() => patch(s => ({ doohPage: s.doohPage + 1 }))} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '5px 11px', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--grey-600)', cursor: 'pointer' }}>Next</button>
             </div>
           </div>
         </TableCard>
 
         {doohPanel && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 70, display: 'flex', justifyContent: 'flex-end', background: 'rgba(4,38,82,.24)' }}>
-            <div style={{ width: 380, maxWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#FFFFFF', boxShadow: '-8px 0 32px rgba(4,38,82,.18)' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '20px 24px', borderBottom: '1px solid #EDF0F3' }}>
+            <div style={{ width: 380, maxWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-white)', boxShadow: '-8px 0 32px rgba(4,38,82,.18)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '20px 24px', borderBottom: '1px solid var(--border-default-alt)' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#08090A' }}>Filter theatres</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: 12.5, color: '#677A90' }}>{sorted.length} of {theatreDefs.length} theatres match</p>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text-default)' }}>Filter theatres</h3>
+                  <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-secondary)' }}>{sorted.length} of {theatreDefs.length} theatres match</p>
                 </div>
-                <button onClick={() => patch({ doohPanel: false })} style={{ border: 'none', background: 'none', padding: '0 2px', fontFamily: 'inherit', fontSize: 18, lineHeight: 1, color: '#677A90', cursor: 'pointer' }}>×</button>
+                <button onClick={() => patch({ doohPanel: false })} style={{ border: 'none', background: 'none', padding: '0 2px', fontFamily: 'inherit', fontSize: 18, lineHeight: 1, color: 'var(--text-secondary)', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ flex: '1 1 auto', overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Theatre status</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Theatre status</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {statusChips.map(c => (
                       <button key={c.value} onClick={() => setFilter({ status: c.value })} style={{ border: `1px solid ${c.border}`, borderRadius: 1000, background: c.bg, padding: '6px 14px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: c.color, cursor: 'pointer' }}>{c.label}</button>
@@ -306,51 +306,51 @@ export function NetworkDooh() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Location</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Location</span>
                   <input value={doohFilter.location} onChange={e => setFilter({ location: e.target.value })} placeholder="City, state or country" style={inputStyle} />
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {suggestions.map(l => (
-                      <button key={l} onClick={() => setFilter({ location: l })} style={{ border: '1px solid #E1E4E9', borderRadius: 1000, background: '#FFFFFF', padding: '4px 10px', fontFamily: 'inherit', fontSize: 11.5, color: '#4A5A6C', cursor: 'pointer' }}>{l}</button>
+                      <button key={l} onClick={() => setFilter({ location: l })} style={{ border: '1px solid var(--border-default-alt)', borderRadius: 1000, background: 'var(--surface-white)', padding: '4px 10px', fontFamily: 'inherit', fontSize: 11.5, color: 'var(--grey-600)', cursor: 'pointer' }}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Screen count</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Screen count</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <input type="number" min={0} value={doohFilter.minScreens} onChange={e => setFilter({ minScreens: e.target.value })} placeholder="Min" style={{ ...inputStyle, width: '100%' }} />
-                    <span style={{ fontSize: 12.5, color: '#97A5B5' }}>to</span>
+                    <span style={{ fontSize: 12.5, color: 'var(--grey-400)' }}>to</span>
                     <input type="number" min={0} value={doohFilter.maxScreens} onChange={e => setFilter({ maxScreens: e.target.value })} placeholder="Max" style={{ ...inputStyle, width: '100%' }} />
                   </div>
-                  <span style={{ fontSize: 11.5, color: '#97A5B5' }}>Network range: {Math.min(...allTotals)} – {Math.max(...allTotals)} screens</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--grey-400)' }}>Network range: {Math.min(...allTotals)} – {Math.max(...allTotals)} screens</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Available groups</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Available groups</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <input type="number" min={0} value={doohFilter.minGroups} onChange={e => setFilter({ minGroups: e.target.value })} placeholder="Min" style={{ ...inputStyle, width: '100%' }} />
-                    <span style={{ fontSize: 12.5, color: '#97A5B5' }}>to</span>
+                    <span style={{ fontSize: 12.5, color: 'var(--grey-400)' }}>to</span>
                     <input type="number" min={0} value={doohFilter.maxGroups} onChange={e => setFilter({ maxGroups: e.target.value })} placeholder="Max" style={{ ...inputStyle, width: '100%' }} />
                   </div>
-                  <span style={{ fontSize: 11.5, color: '#97A5B5' }}>Number of display groups configured at the theatre.</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--grey-400)' }}>Number of display groups configured at the theatre.</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: '#677A90' }}>Display types configured</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Display types configured</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {typeRows.map(t => (
-                      <label key={t.type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '7px 8px', borderRadius: 6, background: t.on ? '#F0F5FA' : 'transparent', cursor: 'pointer' }}>
+                      <label key={t.type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '7px 8px', borderRadius: 6, background: t.on ? 'var(--bg-surface)' : 'transparent', cursor: 'pointer' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <input type="checkbox" checked={t.on} onChange={() => toggleFilterType(t.type)} style={{ width: 16, height: 16, accentColor: '#084782', cursor: 'pointer' }} />
+                          <input type="checkbox" checked={t.on} onChange={() => toggleFilterType(t.type)} style={{ width: 16, height: 16, accentColor: 'var(--fill-product)', cursor: 'pointer' }} />
                           <span style={{ fontSize: 13, color: t.color }}>{t.type}</span>
                         </span>
-                        <span style={{ fontSize: 11.5, color: '#97A5B5', fontVariantNumeric: 'tabular-nums' }}>{t.meta}</span>
+                        <span style={{ fontSize: 11.5, color: 'var(--grey-400)', fontVariantNumeric: 'tabular-nums' }}>{t.meta}</span>
                       </label>
                     ))}
                   </div>
-                  <span style={{ fontSize: 11.5, color: '#97A5B5' }}>Matches theatres configured with any selected display type.</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--grey-400)' }}>Matches theatres configured with any selected display type.</span>
                 </div>
               </div>
-              <div style={{ padding: '16px 24px', borderTop: '1px solid #EDF0F3', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <button onClick={clearAllFilters} style={{ border: 'none', background: 'none', padding: 0, fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#677A90', cursor: 'pointer' }}>Clear all</button>
-                <button onClick={() => patch({ doohPanel: false })} style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '9px 18px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>Show {sorted.length} theatres</button>
+              <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-default-alt)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <button onClick={clearAllFilters} style={{ border: 'none', background: 'none', padding: 0, fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', cursor: 'pointer' }}>Clear all</button>
+                <button onClick={() => patch({ doohPanel: false })} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '9px 18px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>Show {sorted.length} theatres</button>
               </div>
             </div>
           </div>
@@ -373,7 +373,7 @@ export function NetworkDooh() {
     return {
       key: d.key, label: d.label, on, start, end,
       note: !on ? 'Closed' : crosses ? 'crosses midnight' : '',
-      textColor: on ? '#08090A' : '#97A5B5', inputBg: on ? '#FFFFFF' : '#F7FAFC'
+      textColor: on ? 'var(--text-default)' : 'var(--grey-400)', inputBg: on ? 'var(--text-white)' : 'var(--bg-surface)'
     };
   });
 
@@ -382,8 +382,8 @@ export function NetworkDooh() {
     const n = groups.reduce((a, g) => a + Number(g.screens), 0);
     const open = doohOpen.includes(ty);
     return {
-      type: ty, open, headBg: open ? '#F7FAFC' : '#FFFFFF',
-      countLabel: `${n} ${n === 1 ? 'Screen' : 'Screens'}`, countColor: n > 0 ? '#4A5A6C' : '#97A5B5',
+      type: ty, open, headBg: open ? 'var(--bg-surface)' : 'var(--text-white)',
+      countLabel: `${n} ${n === 1 ? 'Screen' : 'Screens'}`, countColor: n > 0 ? 'var(--grey-600)' : 'var(--grey-400)',
       groups: groups.map(g => ({ ...g, loopLabel: g.loop === 'Scheduled' ? `Scheduled — ${g.loopSecs}s` : g.loop }))
     };
   });
@@ -447,70 +447,70 @@ export function NetworkDooh() {
 
   const loopOptions = ['Scheduled', 'Synchronized with Screen', 'Free Duration'].map(v => ({
     value: v, hint: doohLoopHints[v], on: !!doohEditor && doohEditor.loop === v,
-    border: doohEditor && doohEditor.loop === v ? '#084782' : '#E7EBF0',
-    bg: doohEditor && doohEditor.loop === v ? '#F0F5FA' : '#FFFFFF'
+    border: doohEditor && doohEditor.loop === v ? 'var(--border-product)' : 'var(--border-default-alt)',
+    bg: doohEditor && doohEditor.loop === v ? 'var(--bg-surface)' : 'var(--surface-white)'
   }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1180 }}>
-      <button onClick={requestLeaveConfig} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: '#084782', cursor: 'pointer' }}>
+      <button onClick={requestLeaveConfig} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}>
         <Icon name="ChevronLeft" size={14} /> Network DOOH
       </button>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: '-0.015em', color: '#08090A' }}>{theatre.name}</h1>
-          <p style={{ margin: '5px 0 0', fontSize: 13.5, color: '#677A90' }}>{place.city} · {theatre.id} · {theatre.circuit}</p>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-default)' }}>{theatre.name}</h1>
+          <p style={{ margin: '5px 0 0', fontSize: 13.5, color: 'var(--text-secondary)' }}>{place.city} · {theatre.id} · {theatre.circuit}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {doohDirty && <span style={{ fontSize: 12.5, color: '#E65C00' }}>Unsaved changes</span>}
-          {doohSaved && !doohDirty && <span style={{ fontSize: 12.5, color: '#0F7B3F' }}>Changes saved</span>}
-          <button onClick={requestLeaveConfig} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#4A5A6C', cursor: 'pointer' }}>Cancel</button>
-          <button onClick={saveConfig} style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>Save Changes</button>
+          {doohDirty && <span style={{ fontSize: 12.5, color: 'var(--orange-600)' }}>Unsaved changes</span>}
+          {doohSaved && !doohDirty && <span style={{ fontSize: 12.5, color: 'var(--text-positive-alt)' }}>Changes saved</span>}
+          <button onClick={requestLeaveConfig} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--grey-600)', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={saveConfig} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>Save Changes</button>
         </div>
       </div>
 
       {rec.groups.length === 0 && (
         <Card padding="44px 32px" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#08090A' }}>No Network DOOH inventory configured for this theatre.</div>
-          <p style={{ margin: '8px auto 18px', maxWidth: 420, fontSize: 13, color: '#677A90', lineHeight: 1.6 }}>Add display groups under a display type to record the digital surfaces this theatre operates.</p>
-          <button onClick={() => addGroup('Lobby')} style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '9px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>Configure DOOH Inventory</button>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>No Network DOOH inventory configured for this theatre.</div>
+          <p style={{ margin: '8px auto 18px', maxWidth: 420, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>Add display groups under a display type to record the digital surfaces this theatre operates.</p>
+          <button onClick={() => addGroup('Lobby')} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '9px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>Configure DOOH Inventory</button>
         </Card>
       )}
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: '#08090A' }}>Daily Operating Hours</h3>
-            <p style={{ margin: 0, fontSize: 12.5, color: '#677A90' }}>Configured once per theatre. Periods crossing midnight are supported (18:00 – 01:00).</p>
+            <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>Daily Operating Hours</h3>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>Configured once per theatre. Periods crossing midnight are supported (18:00 – 01:00).</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => mutate(t => ({ ...t, hoursMode: 'Scheduled' }))} style={{ border: '1px solid #084782', borderRadius: 6, background: '#F0F5FA', padding: '7px 13px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: '#084782', cursor: 'pointer' }}>Scheduled</button>
-            <span title="Version 2 — Coming Soon" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px dashed #D3DAE2', borderRadius: 6, background: '#F7FAFC', padding: '7px 13px', fontSize: 12.5, color: '#97A5B5', cursor: 'not-allowed' }}>
+            <button onClick={() => mutate(t => ({ ...t, hoursMode: 'Scheduled' }))} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--bg-surface)', padding: '7px 13px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}>Scheduled</button>
+            <span title="Version 2 — Coming Soon" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px dashed var(--border-default-subtle)', borderRadius: 6, background: 'var(--bg-surface)', padding: '7px 13px', fontSize: 12.5, color: 'var(--grey-400)', cursor: 'not-allowed' }}>
               Synchronized with Theatre POS<StatusTag tone="default">V2</StatusTag>
             </span>
           </div>
         </div>
         <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {days.map(d => (
-            <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '7px 0', borderBottom: '1px solid #F2F5F8' }}>
+            <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '7px 0', borderBottom: '1px solid var(--bg-surface)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, width: 150, cursor: 'pointer' }}>
-                <input type="checkbox" checked={d.on} onChange={e => onHours(d.key, 'on', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#084782', cursor: 'pointer' }} />
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#08090A' }}>{d.label}</span>
+                <input type="checkbox" checked={d.on} onChange={e => onHours(d.key, 'on', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--fill-product)', cursor: 'pointer' }} />
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>{d.label}</span>
               </label>
-              <input type="time" value={d.start} disabled={!d.on} onChange={e => onHours(d.key, 'start', e.target.value)} style={{ height: 32, padding: '0 8px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 12.5, color: d.textColor, background: d.inputBg, outline: 'none' }} />
-              <span style={{ fontSize: 12.5, color: '#97A5B5' }}>to</span>
-              <input type="time" value={d.end} disabled={!d.on} onChange={e => onHours(d.key, 'end', e.target.value)} style={{ height: 32, padding: '0 8px', border: '1px solid #D3DAE2', borderRadius: 6, fontFamily: 'inherit', fontSize: 12.5, color: d.textColor, background: d.inputBg, outline: 'none' }} />
-              <span style={{ fontSize: 12, color: '#677A90' }}>{d.note}</span>
+              <input type="time" value={d.start} disabled={!d.on} onChange={e => onHours(d.key, 'start', e.target.value)} style={{ height: 32, padding: '0 8px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 12.5, color: d.textColor, background: d.inputBg, outline: 'none' }} />
+              <span style={{ fontSize: 12.5, color: 'var(--grey-400)' }}>to</span>
+              <input type="time" value={d.end} disabled={!d.on} onChange={e => onHours(d.key, 'end', e.target.value)} style={{ height: 32, padding: '0 8px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 12.5, color: d.textColor, background: d.inputBg, outline: 'none' }} />
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{d.note}</span>
             </div>
           ))}
-          {dHoursError && <div style={{ marginTop: 6, padding: '10px 12px', border: '1px solid #F0C4C7', borderRadius: 6, background: '#FDF2F2', fontSize: 12.5, color: '#CF1322' }}>At least one operating day must be configured.</div>}
+          {dHoursError && <div style={{ marginTop: 6, padding: '10px 12px', border: '1px solid var(--red-200)', borderRadius: 6, background: 'var(--red-10)', fontSize: 12.5, color: 'var(--text-negative)' }}>At least one operating day must be configured.</div>}
         </div>
       </Card>
 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#08090A' }}>Display Types</h3>
-        <span style={{ fontSize: 13, color: '#677A90' }}>Theatre Screen Count <strong style={{ color: '#08090A', fontVariantNumeric: 'tabular-nums' }}>{dTotal.toLocaleString('en-US')}</strong> · calculated from display groups</span>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>Display Types</h3>
+        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Theatre Screen Count <strong style={{ color: 'var(--text-default)', fontVariantNumeric: 'tabular-nums' }}>{dTotal.toLocaleString('en-US')}</strong> · calculated from display groups</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -518,13 +518,13 @@ export function NetworkDooh() {
           <Card key={t.type} padding={0} style={{ overflow: 'hidden' }}>
             <button onClick={() => toggleType(t.type)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, width: '100%', border: 'none', background: t.headBg, padding: '14px 20px', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 11, color: '#677A90', width: 10 }}>{t.open ? '▾' : '▸'}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#08090A' }}>{t.type}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', width: 10 }}>{t.open ? '▾' : '▸'}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-default)' }}>{t.type}</span>
               </span>
               <span style={{ fontSize: 12.5, color: t.countColor, fontVariantNumeric: 'tabular-nums' }}>{t.countLabel}</span>
             </button>
             {t.open && (
-              <div style={{ borderTop: '1px solid #EDF0F3', padding: '16px 20px' }}>
+              <div style={{ borderTop: '1px solid var(--border-default-alt)', padding: '16px 20px' }}>
                 {t.groups.length > 0 && (
                   <Table>
                     <thead>
@@ -540,15 +540,15 @@ export function NetworkDooh() {
                     <tbody>
                       {t.groups.map(g => (
                         <tr key={g.id}>
-                          <td style={{ padding: '10px 12px 10px 0', borderTop: '1px solid #F2F5F8', fontSize: 13, fontWeight: 500, color: '#08090A' }}>{g.name}</td>
-                          <td style={{ padding: '10px 12px', borderTop: '1px solid #F2F5F8', fontSize: 13, color: '#08090A', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{g.screens}</td>
-                          <td style={{ padding: '10px 12px', borderTop: '1px solid #F2F5F8', fontSize: 12.5, color: '#4A5A6C' }}>{g.orientation}</td>
-                          <td style={{ padding: '10px 12px', borderTop: '1px solid #F2F5F8', fontSize: 12.5, color: '#4A5A6C' }}>{g.mode}</td>
-                          <td style={{ padding: '10px 12px', borderTop: '1px solid #F2F5F8', fontSize: 12.5, color: '#677A90' }}>{g.loopLabel}</td>
-                          <td style={{ padding: '10px 0 10px 12px', borderTop: '1px solid #F2F5F8', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 12px 10px 0', borderTop: '1px solid var(--bg-surface)', fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>{g.name}</td>
+                          <td style={{ padding: '10px 12px', borderTop: '1px solid var(--bg-surface)', fontSize: 13, color: 'var(--text-default)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{g.screens}</td>
+                          <td style={{ padding: '10px 12px', borderTop: '1px solid var(--bg-surface)', fontSize: 12.5, color: 'var(--grey-600)' }}>{g.orientation}</td>
+                          <td style={{ padding: '10px 12px', borderTop: '1px solid var(--bg-surface)', fontSize: 12.5, color: 'var(--grey-600)' }}>{g.mode}</td>
+                          <td style={{ padding: '10px 12px', borderTop: '1px solid var(--bg-surface)', fontSize: 12.5, color: 'var(--text-secondary)' }}>{g.loopLabel}</td>
+                          <td style={{ padding: '10px 0 10px 12px', borderTop: '1px solid var(--bg-surface)', textAlign: 'right', whiteSpace: 'nowrap' }}>
                             <span style={{ display: 'inline-flex', gap: 8 }}>
-                              <button onClick={() => editGroup(g)} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '5px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: '#084782', cursor: 'pointer' }}>Edit</button>
-                              <button onClick={() => askDelete(g)} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '5px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: '#CF1322', cursor: 'pointer' }}>Delete</button>
+                              <button onClick={() => editGroup(g)} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '5px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}>Edit</button>
+                              <button onClick={() => askDelete(g)} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '5px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, color: 'var(--text-negative)', cursor: 'pointer' }}>Delete</button>
                             </span>
                           </td>
                         </tr>
@@ -556,21 +556,21 @@ export function NetworkDooh() {
                     </tbody>
                   </Table>
                 )}
-                {t.groups.length === 0 && <p style={{ margin: '0 0 14px', fontSize: 13, color: '#677A90' }}>No display groups configured.</p>}
-                <button onClick={() => addGroup(t.type)} style={{ marginTop: 14, border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '7px 12px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: '#084782', cursor: 'pointer' }}>+ Add Display Group</button>
+                {t.groups.length === 0 && <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-secondary)' }}>No display groups configured.</p>}
+                <button onClick={() => addGroup(t.type)} style={{ marginTop: 14, border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '7px 12px', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 500, color: 'var(--text-product)', cursor: 'pointer' }}>+ Add Display Group</button>
               </div>
             )}
           </Card>
         ))}
       </div>
 
-      <p style={{ margin: 0, fontSize: 12, color: '#97A5B5', lineHeight: 1.6, maxWidth: 760 }}>Screen Count is physical inventory. A synchronized group of 8 screens may be sold as a single advertising unit — available seconds, loop position and sellable capacity are resolved by campaign booking, not here.</p>
+      <p style={{ margin: 0, fontSize: 12, color: 'var(--grey-400)', lineHeight: 1.6, maxWidth: 760 }}>Screen Count is physical inventory. A synchronized group of 8 screens may be sold as a single advertising unit — available seconds, loop position and sellable capacity are resolved by campaign booking, not here.</p>
 
       {doohEditor && (
         <Modal maxWidth={520}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #EDF0F3' }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#08090A' }}>{doohEditor.id ? 'Edit Display Group' : 'New Display Group'}</h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12.5, color: '#677A90' }}>{doohEditor.type} · {theatre.name}</p>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-default-alt)' }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text-default)' }}>{doohEditor.id ? 'Edit Display Group' : 'New Display Group'}</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-secondary)' }}>{doohEditor.type} · {theatre.name}</p>
           </div>
           <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -583,7 +583,7 @@ export function NetworkDooh() {
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={fieldLabel}>Screen Orientation</span>
-              <select value={doohEditor.orientation} onChange={(e: ChangeEvent<HTMLSelectElement>) => onEditorField('orientation', e.target.value)} style={{ ...inputStyle, background: '#FFFFFF' }}>
+              <select value={doohEditor.orientation} onChange={(e: ChangeEvent<HTMLSelectElement>) => onEditorField('orientation', e.target.value)} style={{ ...inputStyle, background: 'var(--surface-white)' }}>
                 <option value="Horizontal">Horizontal</option>
                 <option value="Vertical">Vertical</option>
                 <option value="Full Container">Full Container</option>
@@ -591,40 +591,40 @@ export function NetworkDooh() {
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={fieldLabel}>Screen Mode</span>
-              <select value={doohEditor.mode} onChange={(e: ChangeEvent<HTMLSelectElement>) => onEditorField('mode', e.target.value)} style={{ ...inputStyle, background: '#FFFFFF' }}>
+              <select value={doohEditor.mode} onChange={(e: ChangeEvent<HTMLSelectElement>) => onEditorField('mode', e.target.value)} style={{ ...inputStyle, background: 'var(--surface-white)' }}>
                 <option value="Independent Screens">Independent Screens</option>
                 <option value="Synchronized Screens">Synchronized Screens</option>
                 <option value="Single Canvas">Single Canvas</option>
               </select>
-              <span style={{ fontSize: 11.5, color: '#677A90', lineHeight: 1.5 }}>{doohModeHints[doohEditor.mode]}</span>
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{doohModeHints[doohEditor.mode]}</span>
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={fieldLabel}>Loop Duration</span>
               {loopOptions.map(o => (
                 <label key={o.value} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, border: `1px solid ${o.border}`, borderRadius: 6, background: o.bg, padding: '10px 12px', cursor: 'pointer' }}>
-                  <input type="radio" name="doohLoop" checked={o.on} onChange={() => onEditorField('loop', o.value)} style={{ marginTop: 2, accentColor: '#084782', cursor: 'pointer' }} />
+                  <input type="radio" name="doohLoop" checked={o.on} onChange={() => onEditorField('loop', o.value)} style={{ marginTop: 2, accentColor: 'var(--fill-product)', cursor: 'pointer' }} />
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: '#08090A' }}>{o.value}</span>
-                    <span style={{ fontSize: 11.5, color: '#677A90', lineHeight: 1.5 }}>{o.hint}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-default)' }}>{o.value}</span>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{o.hint}</span>
                   </span>
                 </label>
               ))}
               {doohEditor.loop === 'Scheduled' && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input type="number" min={1} value={doohEditor.loopSecs} onChange={e => onEditorField('loopSecs', e.target.value)} style={{ ...inputStyle, width: 100, textAlign: 'right' }} />
-                  <span style={{ fontSize: 12.5, color: '#677A90' }}>seconds</span>
+                  <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>seconds</span>
                 </label>
               )}
             </div>
             {doohEditor.errors.length > 0 && (
-              <div style={{ padding: '10px 12px', border: '1px solid #F0C4C7', borderRadius: 6, background: '#FDF2F2' }}>
-                {doohEditor.errors.map((err, i) => <div key={i} style={{ fontSize: 12.5, color: '#CF1322', lineHeight: 1.6 }}>{err}</div>)}
+              <div style={{ padding: '10px 12px', border: '1px solid var(--red-200)', borderRadius: 6, background: 'var(--red-10)' }}>
+                {doohEditor.errors.map((err, i) => <div key={i} style={{ fontSize: 12.5, color: 'var(--text-negative)', lineHeight: 1.6 }}>{err}</div>)}
               </div>
             )}
           </div>
-          <div style={{ padding: '16px 24px', borderTop: '1px solid #EDF0F3', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button onClick={cancelGroup} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#4A5A6C', cursor: 'pointer' }}>Cancel</button>
-            <button onClick={saveGroup} style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>{doohEditor.id ? 'Save Group' : 'Add Group'}</button>
+          <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-default-alt)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <button onClick={cancelGroup} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--grey-600)', cursor: 'pointer' }}>Cancel</button>
+            <button onClick={saveGroup} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>{doohEditor.id ? 'Save Group' : 'Add Group'}</button>
           </div>
         </Modal>
       )}
@@ -632,11 +632,11 @@ export function NetworkDooh() {
       {doohDelete && (
         <Modal>
           <div style={{ padding: 24 }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#08090A' }}>Delete "{doohDelete.name}"?</h3>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: '#677A90', lineHeight: 1.6 }}>This will remove {doohDelete.screens} configured screens from this theatre's Network DOOH inventory. The theatre itself is not affected.</p>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: 'var(--text-default)' }}>Delete "{doohDelete.name}"?</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>This will remove {doohDelete.screens} configured screens from this theatre's Network DOOH inventory. The theatre itself is not affected.</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button onClick={cancelDelete} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#4A5A6C', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={confirmDelete} style={{ border: '1px solid #CF1322', borderRadius: 6, background: '#CF1322', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>Delete</button>
+              <button onClick={cancelDelete} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--grey-600)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={confirmDelete} style={{ border: '1px solid var(--border-negative)', borderRadius: 6, background: 'var(--fill-negative)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </Modal>
@@ -645,11 +645,11 @@ export function NetworkDooh() {
       {leaveOpen && (
         <Modal maxWidth={420}>
           <div style={{ padding: 24 }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#08090A' }}>You have unsaved changes.</h3>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: '#677A90', lineHeight: 1.6 }}>Discard changes?</p>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: 'var(--text-default)' }}>You have unsaved changes.</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>Discard changes?</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button onClick={keepEditing} style={{ border: '1px solid #D3DAE2', borderRadius: 6, background: '#FFFFFF', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#4A5A6C', cursor: 'pointer' }}>Keep editing</button>
-              <button onClick={discard} style={{ border: '1px solid #084782', borderRadius: 6, background: '#084782', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: '#FFFFFF', cursor: 'pointer' }}>Discard</button>
+              <button onClick={keepEditing} style={{ border: '1px solid var(--border-default-subtle)', borderRadius: 6, background: 'var(--surface-white)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--grey-600)', cursor: 'pointer' }}>Keep editing</button>
+              <button onClick={discard} style={{ border: '1px solid var(--border-product)', borderRadius: 6, background: 'var(--fill-product)', padding: '8px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--text-white)', cursor: 'pointer' }}>Discard</button>
             </div>
           </div>
         </Modal>
