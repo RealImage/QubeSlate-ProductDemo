@@ -4,7 +4,7 @@ import { Input, Select } from '@slate/ui';
 export const ALL = 'all';
 
 export function FilterBar({ children }: { children: ReactNode }) {
-  return <div className="sl-row" style={{ alignItems: 'flex-end', padding: '12px 16px', borderBottom: '1px solid var(--sl-border, #e5e9ef)' }}>{children}</div>;
+  return <div className="sl-row" style={{ alignItems: 'flex-end', padding: '12px 16px', borderBottom: '1px solid var(--sl-hairline)' }}>{children}</div>;
 }
 
 export function SelectFilter({ label, value, onChange, options, allLabel = 'All' }: {

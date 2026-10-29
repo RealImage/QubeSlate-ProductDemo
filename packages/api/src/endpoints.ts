@@ -104,6 +104,9 @@ export const adminApi = {
   createSac: (b: C.SacInput) => http.post<C.SacRow>('/admin/sacs', b),
   updateSac: (id: string, b: Partial<C.SacInput> & { status?: C.SacRow['status'] }) => http.put<C.SacRow>(`/admin/sacs/${id}`, b),
   updateGateway: (id: string, b: C.GatewayInput) => http.put<C.SacRow>(`/admin/sacs/${id}/gateway`, b),
+  sacTheatres: (id: string, query: C.SacTheatresQuery) =>
+    http.get<C.SacTheatresPage>(`/admin/sacs/${id}/theatres` + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),
+  syncSac: (id: string) => http.post<C.SacSyncResult>(`/admin/sacs/${id}/sync`),
   users: () => http.get<User[]>('/admin/users'),
   theatres: () => http.get<C.TheatreRow[]>('/admin/theatres'),
   devices: () => http.get<C.DeviceRow[]>('/admin/devices'),

@@ -7,7 +7,8 @@ import { Alert, Button, Card, ChoiceCards, ConfirmDialog, DataTable, Dialog, Emp
 import { FormError } from '../shared';
 
 type Hours = DoohConfigInput['hours'];
-type DraftGroup = Omit<DoohGroup, 'theatreId'>;
+// Theatre and SAC are assigned by the server; the editor only handles this SAC's own groups.
+type DraftGroup = Omit<DoohGroup, 'theatreId' | 'sacId'>;
 interface Draft { hours: Hours; groups: DraftGroup[] }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

@@ -1,11 +1,32 @@
-import type { Company, DoohGroup, Sac, Screen, TargetGroup, Theatre } from './types';
+import type { Company, DoohGroup, Screen, TargetGroup, Theatre } from './types';
 
-/** Theatres an advertiser can book: the SAC's exhibitors, narrowed if the SAC restricted access. */
-export function visibleTheatres(company: Pick<Company, 'inventoryAccess'>, sac: Pick<Sac, 'exhibitorIds'>, theatres: Theatre[]): Theatre[] {
-  const sold = theatres.filter(t => sac.exhibitorIds.includes(t.exhibitorId));
+/**
+ * A SAC's sellable inventory: active theatres where it has screens or DOOH groups mapped,
+ * each theatre narrowed to the screens mapped to that SAC.
+ */
+export function sacInventory(sacId: string, theatres: Theatre[], dooh: Pick<DoohGroup, 'theatreId' | 'sacId'>[]): Theatre[] {
+  const withDooh = new Set(dooh.filter(g => g.sacId === sacId).map(g => g.theatreId));
+  const out: Theatre[] = [];
+  for (const t of theatres) {
+    if (t.status !== 'active') continue;
+    const screens = t.screens.filter(s => s.sacId === sacId);
+    if (screens.length || withDooh.has(t.id)) out.push(screens.length === t.screens.length ? t : { ...t, screens });
+  }
+  return out;
+}
+
+/** Theatres an advertiser can book: its SAC's inventory, narrowed if the SAC restricted access. */
+export function visibleTheatres(company: Pick<Company, 'inventoryAccess' | 'sacId'>, theatres: Theatre[], dooh: Pick<DoohGroup, 'theatreId' | 'sacId'>[]): Theatre[] {
+  const sold = sacInventory(company.sacId, theatres, dooh);
   const access = company.inventoryAccess;
   if (access.mode === 'full') return sold;
   return sold.filter(t => access.exhibitorIds.includes(t.exhibitorId) || access.theatreIds.includes(t.id));
+}
+
+/** Exhibitors a SAC sells, derived from its screen and DOOH mapping. */
+export function exhibitorsOf(sacId: string, theatres: Theatre[], dooh: Pick<DoohGroup, 'theatreId' | 'sacId'>[]): string[] {
+  const doohTheatres = new Set(dooh.filter(g => g.sacId === sacId).map(g => g.theatreId));
+  return [...new Set(theatres.filter(t => doohTheatres.has(t.id) || t.screens.some(s => s.sacId === sacId)).map(t => t.exhibitorId))].sort();
 }
 
 const matches = <T>(selected: T[], value: T) => selected.length === 0 || selected.includes(value);
