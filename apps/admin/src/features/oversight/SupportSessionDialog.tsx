@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, portalUrl } from '@slate/api';
 import type { User } from '@slate/domain';
 import { Alert, Button, Dialog, Input, toast } from '@slate/ui';
@@ -8,15 +8,17 @@ import { errorMessage } from '../../components/errors';
 /** Asks for a reason, records the support session via the API, then opens the target portal as that user. */
 export function SupportSessionDialog({ user, onClose }: { user: User | null; onClose: () => void }) {
   const [reason, setReason] = useState('');
+  const qc = useQueryClient();
   const m = useMutation({
     mutationFn: async (target: User) => {
       // Open the tab inside the click gesture so popup blockers allow it, then point it at the portal once the audit event is written.
+      // If the browser blocks it, stop before the audit event is written.
       const tab = window.open('', '_blank');
-      if (tab) tab.opener = null;
+      if (!tab) throw new Error('Your browser blocked the new tab. Allow pop-ups for this site, then start the session again.');
+      tab.opener = null;
       try {
         const res = await adminApi.impersonate(target.id, reason.trim());
-        const url = `${portalUrl(res.portal)}/?impersonate=${encodeURIComponent(res.userId)}&by=${encodeURIComponent(res.impersonatorId)}`;
-        if (tab) tab.location.href = url; else window.open(url, '_blank');
+        tab.location.href = `${portalUrl(res.portal)}/?impersonate=${encodeURIComponent(res.userId)}&by=${encodeURIComponent(res.impersonatorId)}`;
         return res;
       } catch (e) {
         tab?.close();
@@ -24,12 +26,14 @@ export function SupportSessionDialog({ user, onClose }: { user: User | null; onC
       }
     },
     onSuccess: (_r, target) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'audit'] });
       toast.add({ variant: 'positive', message: `Support session started as ${target.name}.` });
       setReason('');
       onClose();
     }
   });
-  const close = () => { m.reset(); setReason(''); onClose(); };
+  // While the launch is in flight, dismissing would orphan the request and let its success close a later dialog.
+  const close = () => { if (m.isPending) return; m.reset(); setReason(''); onClose(); };
   const valid = reason.trim().length > 0;
 
   return (
@@ -48,7 +52,7 @@ export function SupportSessionDialog({ user, onClose }: { user: User | null; onC
         )}
       </Dialog.Body>
       <Dialog.Footer>
-        <Button variant="default" onPress={close}>Cancel</Button>
+        <Button variant="default" onPress={close} isDisabled={m.isPending}>Cancel</Button>
         <Button variant="primary" type="submit" form="support-session" isPending={m.isPending} isDisabled={!valid}>Start session</Button>
       </Dialog.Footer>
     </Dialog>

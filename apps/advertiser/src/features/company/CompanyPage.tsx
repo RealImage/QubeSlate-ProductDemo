@@ -9,6 +9,7 @@ import { EditIcon, UploadIcon } from 'prefab/icons';
 import { APPROVAL_TONE, date, type Company, type KycDoc } from '@slate/domain';
 import { errorText, notifyError, notifySuccess, qk, useCompany, useOrg } from '../../components/org';
 import { KYC_LABEL, kycAlert } from './KycBanner';
+import { GSTIN, PAN } from './SignUp';
 
 const DOC_TONE: Record<KycDoc['status'], 'secondary' | 'primary-secondary' | 'positive' | 'negative'> = {
   missing: 'secondary', uploaded: 'primary-secondary', verified: 'positive', rejected: 'negative'
@@ -76,7 +77,8 @@ function CompanyBody({ company }: { company: Company }) {
                     </span>
                   </div>
                   <StatusTag tone={DOC_TONE[d.status]}>{DOC_LABEL[d.status]}</StatusTag>
-                  {editable && d.status !== 'verified' && (
+                  {/* Verified documents stay locked while approved; during re-review any document can be replaced. */}
+                  {editable && (d.status !== 'verified' || company.kycStatus !== 'approved') && (
                     <Button size="small" variant="default" onPress={() => setUploadKind(d.kind)} aria-label={`${d.fileName ? 'Replace' : 'Upload'} ${d.kind}`}>
                       {d.fileName ? 'Replace' : 'Upload'}
                     </Button>
@@ -160,6 +162,8 @@ function EditCompanyDialog({ company, onClose }: { company: Company; onClose: ()
     }
   });
   const nameError = !f.name.trim() ? 'Registered name is required.' : undefined;
+  const gstinError = !GSTIN.test(f.gstin.trim()) ? 'Enter a valid 15-character GSTIN.' : undefined;
+  const panError = !PAN.test(f.pan.trim()) ? 'Enter a valid 10-character PAN.' : undefined;
   return (
     <Dialog isOpen onOpenChange={o => !o && onClose()} width={560}>
       <Dialog.Header>Edit company details</Dialog.Header>
@@ -167,8 +171,8 @@ function EditCompanyDialog({ company, onClose }: { company: Company; onClose: ()
         <div className="adv-form">
           <div className="adv-span"><Input label="Registered name" value={f.name} onChange={v => setF({ ...f, name: v })} errorMessage={nameError} /></div>
           <div className="adv-span"><Textarea label="Registered address" value={f.address} rows={2} onChange={v => setF({ ...f, address: v })} /></div>
-          <Input label="GST number" value={f.gstin} onChange={v => setF({ ...f, gstin: v.toUpperCase() })} />
-          <Input label="PAN" value={f.pan} onChange={v => setF({ ...f, pan: v.toUpperCase() })} />
+          <Input label="GST number" value={f.gstin} onChange={v => setF({ ...f, gstin: v.toUpperCase() })} errorMessage={gstinError} />
+          <Input label="PAN" value={f.pan} onChange={v => setF({ ...f, pan: v.toUpperCase() })} errorMessage={panError} />
           <div className="adv-span">
             <Alert variant="notice" closable={false} inline title={regChanged ? 'This change re-triggers KYC review' : undefined}>
               Changing the GST number or PAN sends your KYC back to {sac.name} for review. Checkout stays locked until it is re-approved.
@@ -179,7 +183,7 @@ function EditCompanyDialog({ company, onClose }: { company: Company; onClose: ()
       </Dialog.Body>
       <Dialog.Footer>
         <Button variant="default" onPress={onClose}>Cancel</Button>
-        <Button variant="primary" onPress={() => save.mutate()} isPending={save.isPending} isDisabled={!!nameError}>
+        <Button variant="primary" onPress={() => save.mutate()} isPending={save.isPending} isDisabled={!!(nameError || gstinError || panError)}>
           {regChanged && company.kycStatus === 'approved' ? 'Save and re-submit KYC' : 'Save'}
         </Button>
       </Dialog.Footer>
