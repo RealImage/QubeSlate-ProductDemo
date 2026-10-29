@@ -6,11 +6,18 @@ import { Alert, Button, Dialog, Input, Textarea } from '@slate/ui';
 import { errorText } from '../../components/org';
 
 /**
- * The SAC whose registration link brought the advertiser here: `?sac=<slug>` on the sign-in URL,
+ * The SAC whose registration link brought the advertiser here: `?sac=<subdomain>` on the sign-in URL,
  * else this deployment's default (in production each SAC gets its own host).
  */
-const sacSlug = () =>
-  new URLSearchParams(window.location.search).get('sac') ?? (import.meta.env.VITE_SAC_SLUG as string | undefined) ?? 'pvrinox-media';
+const sacSubdomain = () =>
+  new URLSearchParams(window.location.search).get('sac') ?? (import.meta.env.VITE_SAC_SUBDOMAIN as string | undefined) ?? 'pvrinox-media';
+
+/** The SAC behind the sign-in link, with its branding. Only an explicit `?sac=` restyles the sign-in page. */
+export function useLinkedSac() {
+  const subdomain = sacSubdomain();
+  return useQuery({ queryKey: ['sac-by-subdomain', subdomain], queryFn: () => sessionApi.sacBySubdomain(subdomain), retry: false });
+}
+export const hasSacParam = () => new URLSearchParams(window.location.search).has('sac');
 
 export const GSTIN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 export const PAN = /^[A-Z]{5}\d{4}[A-Z]$/;
@@ -49,11 +56,10 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
   const valid = Object.values(errors).every(e => !e);
   const err = (k: keyof typeof errors) => (touched ? errors[k] ?? undefined : undefined);
 
-  const [slug] = useState(sacSlug);
-  const sac = useQuery({ queryKey: ['sac-by-slug', slug], queryFn: () => sessionApi.sacBySlug(slug), retry: false });
+  const sac = useLinkedSac();
 
   const signup = useMutation({
-    mutationFn: () => sessionApi.signup({ ...f, sacSlug: slug, companyName: f.companyName.trim(), name: f.name.trim() }),
+    mutationFn: () => sessionApi.signup({ ...f, sacSubdomain: sacSubdomain(), companyName: f.companyName.trim(), name: f.name.trim() }),
     onSuccess: ({ userId }) => {
       navigate('/company');
       signIn(userId);

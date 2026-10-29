@@ -2,20 +2,23 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@slate/api';
+import { DEFAULT_SUPPORT_EMAIL, isEmail, normaliseSacHost, sacUrlError } from '@slate/domain';
 import { Alert, Button, Input, Sheet, toast } from '@slate/ui';
 import { errorMessage } from '../../components/errors';
+import { useSacs } from '../../components/queries';
 
-const EMPTY = { name: '', legalName: '', slug: '', gstin: '', supportEmail: '', adminName: '', adminEmail: '' };
+const EMPTY = { name: '', legalName: '', url: '', supportEmail: '', adminName: '', adminEmail: '' };
 
 export function OnboardSacSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const qc = useQueryClient();
   const nav = useNavigate();
   const [f, setF] = useState(EMPTY);
+  const sacs = useSacs();
   const set = <K extends keyof typeof EMPTY>(k: K) => (v: (typeof EMPTY)[K]) => setF(p => ({ ...p, [k]: v }));
 
   const m = useMutation({
     mutationFn: () => adminApi.createSac({
-      ...f, name: f.name.trim(), slug: f.slug.trim().toLowerCase(), adminName: f.adminName.trim(), adminEmail: f.adminEmail.trim()
+      ...f, name: f.name.trim(), url: normaliseSacHost(f.url), adminName: f.adminName.trim(), adminEmail: f.adminEmail.trim()
     }),
     onSuccess: sac => {
       void qc.invalidateQueries({ queryKey: ['admin'] });
@@ -25,8 +28,10 @@ export function OnboardSacSheet({ open, onClose }: { open: boolean; onClose: () 
       nav(`/tenants/sacs/${sac.id}`);
     }
   });
-  const slugOk = /^[a-z0-9-]*$/.test(f.slug.trim().toLowerCase());
-  const valid = f.name.trim() !== '' && f.slug.trim() !== '' && slugOk && f.adminName.trim() !== '' && f.adminEmail.includes('@');
+  // Uniqueness is checked against the SACs loaded so far; the API re-checks on save.
+  const urlError = f.url.trim() === '' ? null : sacUrlError(f.url, sacs.data ?? []);
+  const emailBad = f.supportEmail.trim() !== '' && !isEmail(f.supportEmail);
+  const valid = f.name.trim() !== '' && f.url.trim() !== '' && !urlError && !emailBad && f.adminName.trim() !== '' && isEmail(f.adminEmail);
   // Dismissing mid-request would let its success handler act on a reopened form.
   const close = () => { if (m.isPending) return; m.reset(); onClose(); };
 
@@ -38,12 +43,12 @@ export function OnboardSacSheet({ open, onClose }: { open: boolean; onClose: () 
           {m.error && <Alert variant="negative" inline closable={false}>{errorMessage(m.error)}</Alert>}
           <Input label="SAC name" value={f.name} onChange={set('name')} isRequired />
           <Input label="Legal name" value={f.legalName} onChange={set('legalName')} />
-          <Input label="Portal slug" description="Lowercase letters, numbers and dashes. Used for the SAC's portal address." value={f.slug} onChange={set('slug')} isRequired
-            isInvalid={!slugOk} errorMessage={!slugOk ? 'Use lowercase letters, numbers and dashes only.' : undefined} />
-          <Input label="GSTIN" value={f.gstin} onChange={set('gstin')} />
-          <Input label="Support email" type="email" value={f.supportEmail} onChange={set('supportEmail')} />
+          <Input label="SAC URL" description="Host only, e.g. qcn.slate.com. Its first label identifies the SAC." value={f.url} onChange={set('url')} isRequired placeholder="qcn.slate.com"
+            isInvalid={!!urlError} errorMessage={urlError ?? undefined} />
+          <Input label="Support email" type="email" value={f.supportEmail} onChange={set('supportEmail')} placeholder={DEFAULT_SUPPORT_EMAIL}
+            isInvalid={emailBad} errorMessage={emailBad ? 'Enter a valid email address.' : undefined} description={`Leave blank to use ${DEFAULT_SUPPORT_EMAIL}.`} />
           <Alert variant="primary" inline closable={false} title="Inventory comes from CinemaDB">
-            Map screens to this SAC in CinemaDB, then use Sync theatres on the SAC’s Linked exhibitors tab.
+            Map screens to this SAC in CinemaDB, then use Sync theatres on the SAC’s Exhibitors tab.
           </Alert>
           <strong>First SAC admin</strong>
           <Input label="Admin name" value={f.adminName} onChange={set('adminName')} isRequired />

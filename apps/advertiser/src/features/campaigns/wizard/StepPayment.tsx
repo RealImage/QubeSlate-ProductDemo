@@ -79,14 +79,16 @@ function PayPanel({ campaign, total, summary, blockers, disabled, onDone }: Pane
   const [method, setMethod] = useState<CheckoutInput['method']>('upi');
   const [gatewayOpen, setGatewayOpen] = useState(false);
   const pay = useMutation({ mutationFn: () => advertiserApi.checkout(campaign.id, { method }), onSuccess: onDone });
-  const provider = PROVIDER[sac.gateway.provider] ?? sac.gateway.provider;
+  const gateway = sac.gateway;
+  const ready = !!gateway?.enabled;
+  const provider = gateway ? PROVIDER[gateway.provider] ?? gateway.provider : '';
   return (
     <>
       {blockers}
       {summary}
       <Card title="Payment method" description={`Paid through ${sac.name}’s payment gateway. After payment the campaign goes to ${sac.name} for approval; a rejection refunds it in full.`}>
         <div className="sl-stack">
-          {!sac.gateway.enabled && <Alert variant="negative" closable={false}>{sac.name} has not enabled online payments yet. Contact {sac.supportEmail}.</Alert>}
+          {!ready && <Alert variant="negative" closable={false}>{sac.name} has not enabled online payments yet. Contact {sac.supportEmail}.</Alert>}
           <Field label="Pay with">
             <ChoiceCards label="Pay with" value={method} onChange={setMethod} options={[
               { value: 'upi', title: 'UPI', hint: 'Any UPI app' },
@@ -95,12 +97,12 @@ function PayPanel({ campaign, total, summary, blockers, disabled, onDone }: Pane
             ]} />
           </Field>
           {pay.error && <Alert variant="negative" closable={false}>{errorText(pay.error)}</Alert>}
-          <div><Button variant="primary" size="large" isDisabled={disabled || !sac.gateway.enabled} onPress={() => setGatewayOpen(true)}>Pay {inr(total)}</Button></div>
+          <div><Button variant="primary" size="large" isDisabled={disabled || !ready} onPress={() => setGatewayOpen(true)}>Pay {inr(total)}</Button></div>
         </div>
       </Card>
       {/* Mocked gateway hand-off: a real integration redirects to the SAC's gateway and confirms via webhook. */}
       <Dialog isOpen={gatewayOpen} onOpenChange={setGatewayOpen} width={420}>
-        <Dialog.Header>{provider}{sac.gateway.mode === 'test' ? ' · test mode' : ''}</Dialog.Header>
+        <Dialog.Header>{provider}{gateway?.mode === 'test' ? ' · test mode' : ''}</Dialog.Header>
         <Dialog.Body>
           <div className="sl-stack" style={{ gap: 8 }}>
             <span className="sl-muted sl-small">Paying {sac.legalName}</span>

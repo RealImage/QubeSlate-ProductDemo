@@ -13,8 +13,8 @@ export const sessionApi = {
   demoAccounts: () => http.get<C.DemoAccount[]>('/demo-accounts'),
   current: () => http.get<C.Session>('/session'),
   /** Public: the SAC behind a registration link. */
-  sacBySlug: (slug: string) => http.get<{ name: string; legalName: string; slug: string; supportEmail: string }>(`/sacs/${encodeURIComponent(slug)}`),
-  signup: (b: { sacSlug: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }) =>
+  sacBySubdomain: (subdomain: string) => http.get<C.PublicSac>(`/sacs/${encodeURIComponent(subdomain)}`),
+  signup: (b: { sacSubdomain: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }) =>
     http.post<{ userId: string }>('/signup', b),
   reset: () => http.post('/_reset')
 };
@@ -100,10 +100,24 @@ export const adminApi = {
   overview: () => http.get<C.PlatformOverview>('/admin/overview'),
   exhibitors: () => http.get<C.ExhibitorRow[]>('/admin/exhibitors'),
   createExhibitor: (b: C.ExhibitorInput) => http.post<Exhibitor>('/admin/exhibitors', b),
-  sacs: () => http.get<C.SacRow[]>('/admin/sacs'),
+  sacs: (query: C.SacsQuery = {}) =>
+    http.get<C.SacsPage>('/admin/sacs' + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),
+  /** Every SAC (for pickers, overview and filters); the list screen pages instead. */
+  allSacs: async () => (await http.get<C.SacsPage>('/admin/sacs?pageSize=1000')).rows,
   createSac: (b: C.SacInput) => http.post<C.SacRow>('/admin/sacs', b),
-  updateSac: (id: string, b: Partial<C.SacInput> & { status?: C.SacRow['status'] }) => http.put<C.SacRow>(`/admin/sacs/${id}`, b),
-  updateGateway: (id: string, b: C.GatewayInput) => http.put<C.SacRow>(`/admin/sacs/${id}/gateway`, b),
+  /** One call per section; each returns the refreshed row. */
+  updateSacDetails: (id: string, b: C.SacDetailsInput) => http.put<C.SacRow>(`/admin/sacs/${id}/details`, b),
+  updateSacSetup: (id: string, b: C.SacSetupInput) => http.put<C.SacRow>(`/admin/sacs/${id}/setup`, b),
+  updateSacContacts: (id: string, b: C.SacContactsInput) => http.put<C.SacRow>(`/admin/sacs/${id}/contacts`, b),
+  updateSacBilling: (id: string, b: C.SacBillingInput) => http.put<C.SacRow>(`/admin/sacs/${id}/billing`, b),
+  updateSacCollections: (id: string, b: C.SacCollectionsInput) => http.put<C.SacRow>(`/admin/sacs/${id}/collections`, b),
+  setSacStatus: (id: string, b: C.SacStatusInput) => http.put<C.SacRow>(`/admin/sacs/${id}/status`, b),
+  sacActiveScreens: (id: string) => http.get<C.SacActiveScreens>(`/admin/sacs/${id}/active-screens`),
+  addGateway: (id: string, b: C.GatewayInput) => http.post<C.SacRow>(`/admin/sacs/${id}/gateways`, b),
+  updateGateway: (id: string, gatewayId: string, b: C.GatewayInput) => http.put<C.SacRow>(`/admin/sacs/${id}/gateways/${gatewayId}`, b),
+  setDefaultGateway: (id: string, gatewayId: string) => http.post<C.SacRow>(`/admin/sacs/${id}/gateways/${gatewayId}/default`),
+  setGatewayEnabled: (id: string, gatewayId: string, enabled: boolean) => http.post<C.SacRow>(`/admin/sacs/${id}/gateways/${gatewayId}/enabled`, { enabled }),
+  deleteGateway: (id: string, gatewayId: string) => http.del<C.SacRow>(`/admin/sacs/${id}/gateways/${gatewayId}`),
   sacTheatres: (id: string, query: C.SacTheatresQuery) =>
     http.get<C.SacTheatresPage>(`/admin/sacs/${id}/theatres` + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),
   syncSac: (id: string) => http.post<C.SacSyncResult>(`/admin/sacs/${id}/sync`),
