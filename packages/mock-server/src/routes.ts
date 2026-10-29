@@ -695,7 +695,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (b.enabled && b.provider !== 'stub' && !b.merchantId.trim()) throw invalid('Merchant ID is required to enable the gateway.');
     const hasKey = !!b.secretKey || (!!sac.gateway.keyHint && sac.gateway.provider === b.provider);
     if (b.enabled && b.provider !== 'stub' && !hasKey) throw invalid('A secret key is required to enable this gateway.');
-    if (b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
+    if (b.provider !== 'stub' && b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
     sac.gateway = {
       provider: b.provider, mode: b.mode, merchantId: b.merchantId, enabled: b.enabled, updatedAt: now(),
       // A stored key belongs to its provider; switching provider without a new key leaves none.
