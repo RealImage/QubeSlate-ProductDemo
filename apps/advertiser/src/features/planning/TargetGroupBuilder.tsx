@@ -33,14 +33,15 @@ export function TargetGroupBuilder() {
       <PageHeader title={id ? 'Edit target group' : 'Create target group'} />
       <Query q={theatres}>
         {list => id
-          ? <Query q={existing}>{tg => <Builder key={tg.id} id={tg.id} initial={toInput(tg)} theatres={list} />}</Query>
+          ? <Query q={existing}>{tg => <Builder key={tg.id} id={tg.id} initial={toInput(tg)} theatres={list} channelLocked={tg.usedBy > 0} />}</Query>
           : <Builder initial={emptyInput()} theatres={list} />}
       </Query>
     </Page>
   );
 }
 
-function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupInput; theatres: Theatre[] }) {
+/** `channelLocked`: the group is used by campaigns, whose placements depend on its channel. */
+function Builder({ id, initial, theatres, channelLocked }: { id?: string; initial: TargetGroupInput; theatres: Theatre[]; channelLocked?: boolean }) {
   const { can } = useOrg();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -85,11 +86,13 @@ function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupI
   });
   const nameError = touched && !f.name.trim() ? 'Give the target group a name.' : undefined;
 
+  // Built from the normalised payload, so cinema-only filters vanish from the summary when the channel is DOOH.
+  const pg = payload.geo;
   const selected = [
-    ...geo.countries, ...geo.states, ...geo.cities,
-    ...geo.theatreIds.map(t => theatres.find(x => x.id === t)?.name ?? t),
-    ...(geo.screenIds.length ? [`${geo.screenIds.length} screens`] : []),
-    ...geo.theatreCategories, ...geo.screenCategories, ...geo.formats,
+    ...pg.countries, ...pg.states, ...pg.cities,
+    ...pg.theatreIds.map(t => theatres.find(x => x.id === t)?.name ?? t),
+    ...(pg.screenIds.length ? [`${pg.screenIds.length} screens`] : []),
+    ...pg.theatreCategories, ...pg.screenCategories, ...pg.formats,
     ...(f.channel === 'cinema' ? [...f.interest.genres, ...f.interest.ratings, ...f.interest.languages, ...f.advanced.movies, ...f.advanced.actors] : f.doohTypes)
   ];
   const unitLabel = f.channel === 'cinema' ? 'Screens' : 'Display groups';
@@ -100,10 +103,12 @@ function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupI
         <Card title="Basics">
           <div className="sl-stack">
             <Input label="Target group name" value={f.name} onChange={name => setF({ ...f, name })} errorMessage={nameError} isReadOnly={!editable} placeholder="e.g. Metro Premium — Festive" />
-            <Field label="Channel" hint="Cinema groups resolve to screens; DOOH groups resolve to the display groups your sales house has configured.">
+            <Field label="Channel" hint={channelLocked
+              ? 'Used by campaigns, so the channel can’t change. Create a new group for the other channel.'
+              : 'Cinema groups resolve to screens; DOOH groups resolve to the display groups your sales house has configured.'}>
               <ChoiceCards label="Channel" value={f.channel} onChange={channel => setF({ ...f, channel })} options={[
-                { value: 'cinema', title: 'Cinema', hint: 'On-screen spots before and during the film.' },
-                { value: 'dooh', title: 'DOOH', hint: 'Lobby, foyer and concourse displays.' }
+                { value: 'cinema', title: 'Cinema', hint: 'On-screen spots before and during the film.', disabled: channelLocked && f.channel !== 'cinema' },
+                { value: 'dooh', title: 'DOOH', hint: 'Lobby, foyer and concourse displays.', disabled: channelLocked && f.channel !== 'dooh' }
               ]} />
             </Field>
           </div>

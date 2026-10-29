@@ -59,6 +59,7 @@ export function PlacementSheet({ campaign, targetGroups, media, onClose }: {
     onSuccess: d => {
       qc.setQueryData(qk.campaign(campaign.id), d);
       qc.invalidateQueries({ queryKey: qk.campaigns });
+      qc.invalidateQueries({ queryKey: qk.dashboard });
       notifySuccess('Placement added.');
       onClose();
     }
