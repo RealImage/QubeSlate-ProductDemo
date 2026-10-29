@@ -208,7 +208,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   r.post('/api/users', (req: Req<UserInput>) => {
     const s = session(req);
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
-    if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
+    if (!req.body.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email ?? '')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
     if (!req.body.role) throw invalid('Choose a role for the new user.');
     assertRole(s.user.portal, req.body.role);

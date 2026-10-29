@@ -19,7 +19,8 @@ export function BrandApprovals() {
     onSettled: () => setBusyId(null),
     onSuccess: (_, { brand, decision }) => {
       void qc.invalidateQueries({ queryKey: ['sac'] });
-      setRejecting(null);
+      // Only close the reject dialog if it belongs to this decision.
+      setRejecting(r => (r?.id === brand.id ? null : r));
       toast.add({ variant: 'positive', message: `${brand.name} ${decision === 'approve' ? 'approved' : 'rejected'}.` });
     },
     onError: e => toast.add({ variant: 'negative', message: errorText(e) })
@@ -48,8 +49,8 @@ export function BrandApprovals() {
                     ...(canDecide ? [{
                       key: 'actions', header: <span className="sr-only">Actions</span>, align: 'right' as const, cell: (b: BrandRow) => (
                         <span className="sl-row" style={{ justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
-                          <Button size="small" variant="default" isDisabled={busyId === b.id} onPress={() => { decide.reset(); setRejecting(b); }}>Reject</Button>
-                          <Button size="small" variant="primary" isPending={busyId === b.id && !rejecting} onPress={() => decide.mutate({ brand: b, decision: 'approve', note: null })}>Approve</Button>
+                          <Button size="small" variant="default" isDisabled={decide.isPending} onPress={() => { decide.reset(); setRejecting(b); }}>Reject</Button>
+                          <Button size="small" variant="primary" isPending={busyId === b.id && !rejecting} isDisabled={decide.isPending && busyId !== b.id} onPress={() => decide.mutate({ brand: b, decision: 'approve', note: null })}>Approve</Button>
                         </span>
                       )
                     }] : [])
