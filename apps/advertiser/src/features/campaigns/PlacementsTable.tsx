@@ -27,6 +27,7 @@ export function PlacementsTable({ campaign }: { campaign: CampaignDetail }) {
       qc.setQueryData(qk.campaign(campaign.id), detail);
       qc.invalidateQueries({ queryKey: qk.campaigns });
       qc.invalidateQueries({ queryKey: qk.dashboard });
+      qc.invalidateQueries({ queryKey: qk.billing }); // contracted credit used depends on live placements
       notifySuccess(`${row.code} ${ACTION[action].verb}.`);
       setPending(null);
     },

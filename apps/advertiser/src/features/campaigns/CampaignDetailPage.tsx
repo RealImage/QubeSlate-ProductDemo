@@ -28,7 +28,10 @@ export function CampaignDetailPage() {
 function Detail({ c }: { c: CampaignDetail }) {
   const { sac } = useOrg();
   const [tab, setTab] = useState<Tab>('placements');
-  const totals = withGst(c.bookedValue);
+  // Once paid, show what was actually charged; booked value can change later (cancellations, rejection).
+  const totals = c.payment
+    ? { net: c.payment.amount - c.payment.gst, gst: c.payment.gst, total: c.payment.amount }
+    : withGst(c.bookedValue);
   return (
     <>
       <PageHeader title={<span className="sl-row" style={{ gap: 12 }}>{c.name}<CampaignStatusTag status={c.status} size="medium" /></span>}

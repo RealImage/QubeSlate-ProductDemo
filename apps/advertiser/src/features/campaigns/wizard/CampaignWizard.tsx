@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { advertiserApi, type CampaignDetail, type CampaignInput } from '@slate/api';
@@ -57,7 +57,8 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
   const [params, setParams] = useSearchParams();
   const brands = useQuery({ queryKey: qk.brands, queryFn: advertiserApi.brands });
   const tgs = useQuery({ queryKey: qk.targetGroups, queryFn: advertiserApi.targetGroups });
-  const media = useQuery({ queryKey: qk.media, queryFn: advertiserApi.media });
+  // Poll while uploads are processing so the picker and checkout checklist pick up newly ready media.
+  const media = useQuery({ queryKey: qk.media, queryFn: advertiserApi.media, refetchInterval: q => (q.state.data?.some(m => m.status === 'processing') ? 5000 : false) });
   const campaignId = initial?.id ?? null;
   const detail = useQuery({ queryKey: qk.campaign(campaignId ?? ''), queryFn: () => advertiserApi.campaign(campaignId!), enabled: !!campaignId }).data ?? initial;
 
@@ -104,17 +105,26 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
   const defValid = Object.values(defErrors).every(e => !e);
 
   /** Persist pending edits (creating the draft on first leave of step 1), then move. Returns the saved id. */
-  const persist = async (): Promise<string | null> => {
-    if (!defValid) { setShowErrors(true); setStep(0); return null; }
-    if (campaignId && !dirty) return campaignId;
-    try {
-      const started = revision.current;
-      const d = await save.mutateAsync(toInput());
-      if (revision.current === started) setDirty(false);
-      return d.id;
-    } catch {
-      return null;
-    }
+  // When attached media finishes processing, refresh the server-side checklist (it gates checkout).
+  const processing = (media.data ?? []).filter(m => m.status === 'processing').map(m => m.id).join(',');
+  const lastProcessing = useRef(processing);
+  useEffect(() => {
+    if (campaignId && lastProcessing.current !== processing) void qc.invalidateQueries({ queryKey: qk.campaign(campaignId) });
+    lastProcessing.current = processing;
+  }, [processing, campaignId, qc]);
+
+  // One save at a time: a second step click while the first save (or draft creation) is in flight reuses it.
+  const inflight = useRef<Promise<string | null> | null>(null);
+  const persist = (): Promise<string | null> => {
+    if (inflight.current) return inflight.current;
+    if (!defValid) { setShowErrors(true); setStep(0); return Promise.resolve(null); }
+    if (campaignId && !dirty) return Promise.resolve(campaignId);
+    const started = revision.current;
+    inflight.current = save.mutateAsync(toInput())
+      .then(d => { if (revision.current === started) setDirty(false); return d.id; })
+      .catch(() => null)
+      .finally(() => { inflight.current = null; });
+    return inflight.current;
   };
 
   const goTo = async (next: number) => {

@@ -5,6 +5,8 @@ import { ROLE_HINT, ROLE_LABEL, dateTime, type Role, type User } from '@slate/do
 import { Alert, Button, Card, ConfirmDialog, DataTable, Dialog, EmptyState, Input, Page, PageHeader, Query, Select, StatusTag, toast } from '@slate/ui';
 import { FormError, errorText } from '../shared';
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const ROLES: Role[] = ['sac_admin', 'ad_ops', 'finance', 'viewer'];
 const STATUS_TONE = { active: 'positive', invited: 'notice', disabled: 'negative' } as const;
 
@@ -22,14 +24,14 @@ function InviteForm({ onClose }: { onClose: () => void }) {
       onClose();
     }
   });
-  const valid = !!name.trim() && email.includes('@');
+  const valid = !!name.trim() && EMAIL.test(email.trim());
   return (
     <>
       <Dialog.Header>Invite user</Dialog.Header>
       <Dialog.Body>
-        <form className="sl-stack" style={{ gap: 12 }} onSubmit={e => { e.preventDefault(); if (valid && !invite.isPending) invite.mutate(); }}>
+        <form id="invite-user" className="sl-stack" style={{ gap: 12 }} onSubmit={e => { e.preventDefault(); if (valid && !invite.isPending) invite.mutate(); }}>
           <Input label="Full name" value={name} onChange={setName} isRequired autoFocus />
-          <Input label="Email" type="email" value={email} onChange={setEmail} isRequired />
+          <Input label="Email" type="email" value={email} onChange={setEmail} isRequired errorMessage={email && !EMAIL.test(email.trim()) ? 'Enter a valid email address.' : undefined} />
           <Input label="Phone" type="tel" value={phone} onChange={setPhone} optional />
           <Select label="Role" selectedKey={role} onSelectionChange={k => setRole(k as Role)} description={ROLE_HINT[role]}>
             {ROLES.map(r => <Select.Option key={r} id={r}>{ROLE_LABEL[r]}</Select.Option>)}
@@ -39,7 +41,7 @@ function InviteForm({ onClose }: { onClose: () => void }) {
       </Dialog.Body>
       <Dialog.Footer>
         <Button variant="default" onPress={onClose} isDisabled={invite.isPending}>Cancel</Button>
-        <Button variant="primary" isPending={invite.isPending} isDisabled={!valid} onPress={() => invite.mutate()}>Send invite</Button>
+        <Button variant="primary" type="submit" form="invite-user" isPending={invite.isPending} isDisabled={!valid}>Send invite</Button>
       </Dialog.Footer>
     </>
   );
