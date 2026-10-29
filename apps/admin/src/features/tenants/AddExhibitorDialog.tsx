@@ -19,7 +19,8 @@ export function AddExhibitorDialog({ open, onClose }: { open: boolean; onClose: 
     }
   });
   const valid = name.trim() !== '' && code.trim() !== '';
-  const close = () => { m.reset(); onClose(); };
+  // Dismissing mid-request would let its success handler act on a reopened form.
+  const close = () => { if (m.isPending) return; m.reset(); onClose(); };
 
   return (
     <Dialog isOpen={open} onOpenChange={o => !o && close()} width={460}>
@@ -33,7 +34,7 @@ export function AddExhibitorDialog({ open, onClose }: { open: boolean; onClose: 
         </form>
       </Dialog.Body>
       <Dialog.Footer>
-        <Button variant="default" onPress={close}>Cancel</Button>
+        <Button variant="default" onPress={close} isDisabled={m.isPending}>Cancel</Button>
         <Button variant="primary" type="submit" form="add-exhibitor" isPending={m.isPending} isDisabled={!valid}>Add exhibitor</Button>
       </Dialog.Footer>
     </Dialog>
