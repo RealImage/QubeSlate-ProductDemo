@@ -157,6 +157,8 @@ function EditCompanyDialog({ company, onClose }: { company: Company; onClose: ()
     mutationFn: () => advertiserApi.updateCompany({ name: f.name.trim(), address: f.address.trim(), gstin: f.gstin.trim(), pan: f.pan.trim() }),
     onSuccess: c => {
       qc.setQueryData(qk.company, c);
+      // The org header and user list read the company from the session; refresh it so a rename shows everywhere.
+      void qc.invalidateQueries({ queryKey: ['session'] });
       notifySuccess(regChanged && company.kycStatus === 'approved' ? `Saved. KYC re-submitted to ${sac.name} for review.` : 'Company details saved.');
       onClose();
     }

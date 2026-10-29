@@ -380,6 +380,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       const m = db().media.find(x => x.id === mId && x.companyId === company.id);
       if (!m) throw invalid('One of the media items is not available.');
       if (m.brandId !== b.brandId) throw invalid(`“${m.name}” belongs to a different brand.`);
+      // CPL plays in cinemas; video and image play on DOOH displays.
+      const usable = m.fileType === 'CPL' ? b.channels.includes('cinema') : b.channels.includes('dooh');
+      if (!usable) throw invalid(`“${m.name}” (${m.fileType}) can't play on the selected channels.`);
     }
   };
   r.post('/api/campaigns', (req: Req<CampaignInput>) => {
