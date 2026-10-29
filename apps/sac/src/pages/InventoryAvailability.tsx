@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
+import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { theatreDefs } from '../data/mockData';
 import { getTheatres, secs, fmtDate } from '../data/helpers';
-import { Button } from '../components/Button';
 import { Card, ChipRow, chipTone, PageHeader } from '../components/ui/primitives';
 
 export function InventoryAvailability() {
-  const { state, patch, navigateTo } = useAppState();
-  const { invCircuit, invTheatre, screenSel, f } = state;
+  const { state, patch } = useAppState();
+  const { invCircuit, invTheatre, screenSel } = state;
   const theatres = useMemo(() => getTheatres(), []);
 
   const circuits = useMemo(() => ['all', ...Array.from(new Set(theatreDefs.map(t => t.circuit)))], []);
@@ -63,11 +63,12 @@ export function InventoryAvailability() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1500 }}>
       <PageHeader title="Inventory Availability" description="Pre-show seconds sold and available, per screen and per show. Select screens to build a booking." />
+      <PrototypeNote />
 
       <Card padding="14px 16px" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--grey-600)' }}>Week of</span>
-          <input type="date" value={f.invDate} onChange={e => patch(s => ({ f: { ...s.f, invDate: e.target.value } }))} style={{ height: 34, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', outline: 'none' }} />
+          <input type="date" value={state.invDate} onChange={e => patch({ invDate: e.target.value })} style={{ height: 34, padding: '0 10px', border: '1px solid var(--border-default-subtle)', borderRadius: 6, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-default)', outline: 'none' }} />
         </label>
         <span style={{ width: 1, height: 24, background: 'var(--fill-default)' }} />
         <ChipRow chips={circuitChips} onSelect={v => patch({ invCircuit: v })} />
@@ -101,7 +102,7 @@ export function InventoryAvailability() {
           <Card padding="20px 24px" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
             <div>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: 'var(--text-default)' }}>{detail.name}</h2>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{detail.circuit} · {detail.city} · {detail.screens.length} screens · week of {fmtDate(f.invDate)}</p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{detail.circuit} · {detail.city} · {detail.screens.length} screens · week of {fmtDate(state.invDate)}</p>
             </div>
             <div style={{ display: 'flex', gap: 28 }}>
               {[
@@ -164,7 +165,6 @@ export function InventoryAvailability() {
               <span style={{ fontSize: 11.5, color: 'var(--grey-600)' }}>Available seconds in selection</span>
               <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-product)', fontVariantNumeric: 'tabular-nums' }}>{selSeconds.toLocaleString('en-US')}s</span>
             </div>
-            <Button variant="primary" size="medium" onClick={() => navigateTo('/campaigns/create')}>Book selection</Button>
           </div>
         </div>
       </div>

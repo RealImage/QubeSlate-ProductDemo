@@ -1,3 +1,4 @@
+import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { Card, PageHeader } from '../components/ui/primitives';
 
@@ -11,6 +12,7 @@ export function PlatformSettings() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 820 }}>
       <PageHeader title="Platform Settings" description="Time zones, default rates, content formats and network settings." />
+      <PrototypeNote />
       <Card padding="20px 24px" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

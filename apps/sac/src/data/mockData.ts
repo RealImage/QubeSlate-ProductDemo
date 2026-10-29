@@ -1,56 +1,5 @@
 // Mock reference data ported verbatim from `project/Qube Slate.dc.html`.
 
-export interface NavItem {
-  title: string;
-  route: string;
-}
-
-export interface NavGroup {
-  key: string;
-  title: string;
-  icon: string;
-  route?: string;
-  items?: NavItem[];
-}
-
-export const navDef: NavGroup[] = [
-  { key: 'Dashboard', title: 'Dashboard', route: '/', icon: 'Dashboard' },
-  { key: 'Campaigns', title: 'Campaigns', icon: 'Campaign', items: [
-    { title: 'Create Campaign', route: '/campaigns/create' },
-    { title: 'Campaign Management', route: '/campaigns' },
-    { title: 'Target Groups', route: '/target-groups' },
-    { title: 'Campaign Rate Bias', route: '/campaigns/rate-bias' }
-  ] },
-  { key: 'Approvals', title: 'Approvals', icon: 'CampaignApproval', items: [
-    { title: 'Campaign Approvals', route: '/approvals/campaigns' },
-    { title: 'Brand Approvals', route: '/approvals/brands' },
-    { title: 'Client Approvals', route: '/approvals/clients' }
-  ] },
-  { key: 'Content', title: 'Content', icon: 'Content', items: [
-    { title: 'Compositions', route: '/content/compositions' },
-    { title: 'Unmapped Compositions', route: '/content/unmapped' },
-    { title: 'Archived Content', route: '/content/archived' }
-  ] },
-  { key: 'Inventory', title: 'Inventory', icon: 'Movies', items: [
-    { title: 'Inventory Availability', route: '/inventory/availability' },
-    { title: 'Network Theatres & Screens', route: '/inventory/theatres' },
-    { title: 'Network DOOH', route: '/inventory/dooh' },
-    { title: 'Playlist Templates', route: '/inventory/templates' },
-    { title: 'Pre-Show Playlist', route: '/inventory/playlist' }
-  ] },
-  { key: 'Catalogue', title: 'Catalogue', icon: 'List', items: [
-    { title: 'Brands', route: '/catalogue/brands' },
-    { title: 'Clients', route: '/catalogue/clients' }
-  ] },
-  { key: 'Reports', title: 'Reports', icon: 'Reports', items: [
-    { title: 'Reports & Analytics', route: '/reports' },
-    { title: 'Proof of Play', route: '/reports/proof-of-play' },
-    { title: 'Distribution Status', route: '/reports/distribution' }
-  ] },
-  { key: 'Users', title: 'User Management', route: '/users', icon: 'MultipleUsers' },
-  { key: 'Settings', title: 'Settings', route: '/settings', icon: 'Settings' }
-];
-
 // route -> [group, leaf, description]
 export const routeTitles: Record<string, [string, string, string]> = {
   '/': ['Overview', 'Dashboard', ''],
@@ -78,13 +27,6 @@ export const routeTitles: Record<string, [string, string, string]> = {
   '/settings': ['Platform', 'Platform Settings', 'Time zones, default rates, content formats and network settings.']
 };
 
-export const builtRoutes = ['/', '/campaigns', '/campaigns/create', '/campaigns/rate-bias', '/target-groups',
-  '/approvals/campaigns', '/approvals/brands', '/approvals/clients',
-  '/content/compositions', '/content/unmapped', '/content/archived',
-  '/inventory/availability', '/inventory/theatres', '/inventory/dooh', '/inventory/templates', '/inventory/playlist',
-  '/catalogue/brands', '/catalogue/clients',
-  '/reports', '/reports/proof-of-play', '/reports/distribution', '/users', '/settings'];
-
 export interface Campaign {
   id: string; name: string; client: string; status: string; tone: string;
   start: string; end: string; screens: number; plays: number; budget: number;
@@ -99,21 +41,6 @@ export const campaigns: Campaign[] = [
   { id: 'CAM-006', name: 'Streaming Service Teaser', client: 'Kestrel Media Holdings', status: 'Active', tone: 'positive', start: '2026-08-21', end: '2026-09-30', screens: 54, plays: 1620, budget: 33750 },
   { id: 'CAM-007', name: 'Regional Bank Awareness', client: 'Meridian Financial', status: 'Pending Approval', tone: 'notice', start: '2026-10-09', end: '2026-11-20', screens: 41, plays: 1148, budget: 21400 },
   { id: 'CAM-008', name: 'Winter Retail Sprint', client: 'Vantage Group', status: 'Draft', tone: 'default', start: '2026-11-27', end: '2026-12-26', screens: 19, plays: 456, budget: 9800 }
-];
-
-export interface TargetGroup {
-  id: string; name: string; screens: number; theatres: number;
-  createdOn: string; createdBy: string; validFrom: string; validTill: string;
-  status: 'active' | 'expired' | 'upcoming';
-}
-
-export const targetGroups: TargetGroup[] = [
-  { id: 'tg-001', name: 'Premium Metro Screens', screens: 45, theatres: 12, createdOn: '2026-01-15', createdBy: 'John Smith', validFrom: '2026-02-01', validTill: '2026-12-31', status: 'active' },
-  { id: 'tg-002', name: 'Tier 2 City Multiplex', screens: 78, theatres: 25, createdOn: '2026-01-20', createdBy: 'Sarah Johnson', validFrom: '2026-02-15', validTill: '2026-11-30', status: 'active' },
-  { id: 'tg-003', name: 'Weekend Prime Time', screens: 120, theatres: 40, createdOn: '2026-01-10', createdBy: 'Mike Chen', validFrom: '2026-01-25', validTill: '2026-07-31', status: 'expired' },
-  { id: 'tg-004', name: 'Autumn Campaign Screens', screens: 95, theatres: 30, createdOn: '2026-02-01', createdBy: 'Lisa Wong', validFrom: '2026-09-01', validTill: '2026-12-31', status: 'upcoming' },
-  { id: 'tg-005', name: 'IMAX & Premium Large Format', screens: 34, theatres: 28, createdOn: '2026-03-04', createdBy: 'Riya Deshpande', validFrom: '2026-04-01', validTill: '2026-12-31', status: 'active' },
-  { id: 'tg-006', name: 'Family Matinee Network', screens: 62, theatres: 21, createdOn: '2026-03-19', createdBy: 'Diego Alvarez', validFrom: '2026-05-01', validTill: '2026-10-31', status: 'active' }
 ];
 
 export interface Media {
@@ -191,24 +118,6 @@ export const playlistItems: PlaylistItem[] = [
   { seg: 'Intermission', name: 'Next week at this cinema', type: 'Promo', sec: 60, pos: '—' }
 ];
 
-export interface ProofRow {
-  id: string; creative: string; campaign: string; screen: string; show: string;
-  scheduled: string; actual: string; state: string;
-}
-
-export const proofRows: ProofRow[] = [
-  { id: 'pp-1', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Empire 25 · Screen 1', show: '19:45 Dune: Part Three', scheduled: '19:31:00', actual: '19:31:02', state: 'Played' },
-  { id: 'pp-2', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Empire 25 · Screen 4', show: '19:45 The Long Winter', scheduled: '19:32:15', actual: '19:32:14', state: 'Played' },
-  { id: 'pp-3', creative: 'Brand Awareness Static', campaign: 'Summer Movie Festival', screen: 'Regal Union Square · Screen 2', show: '17:00 Neon Harbour', scheduled: '16:48:30', actual: '—', state: 'Missed' },
-  { id: 'pp-4', creative: 'Streaming Teaser — 30s', campaign: 'Streaming Service Teaser', screen: 'Regal LA Live · Screen 1', show: '22:15 Silverline', scheduled: '22:01:00', actual: '22:01:05', state: 'Played' },
-  { id: 'pp-5', creative: 'Retail Sprint — 20s Cut', campaign: 'Winter Retail Sprint', screen: 'Cineplex Yonge-Dundas · Screen 3', show: '14:15 Paper Moons', scheduled: '14:03:40', actual: '14:03:41', state: 'Played' },
-  { id: 'pp-6', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'AMC Century City 15 · Screen 2', show: '17:00 Dune: Part Three', scheduled: '16:47:10', actual: '16:52:30', state: 'Late' },
-  { id: 'pp-7', creative: 'Brand Awareness Static', campaign: 'Summer Movie Festival', screen: 'Rialto Independent · Screen 1', show: '19:45 Paper Moons', scheduled: '19:33:00', actual: '19:33:00', state: 'Played' },
-  { id: 'pp-8', creative: 'Streaming Teaser — 30s', campaign: 'Streaming Service Teaser', screen: 'Regal Union Square · Screen 5', show: '11:30 The Long Winter', scheduled: '11:18:20', actual: '—', state: 'Missed' },
-  { id: 'pp-9', creative: 'Retail Sprint — 20s Cut', campaign: 'Winter Retail Sprint', screen: 'AMC Empire 25 · Screen 7', show: '14:15 Silverline', scheduled: '14:04:00', actual: '14:04:03', state: 'Played' },
-  { id: 'pp-10', creative: 'Autumn Auto — 30s Hero', campaign: 'Autumn Auto Launch', screen: 'Cineplex Yonge-Dundas · Screen 1', show: '22:15 Neon Harbour', scheduled: '22:02:45', actual: '22:02:47', state: 'Played' }
-];
-
 export interface DistRow {
   id: string; theatre: string; content: string; screens: number; state: string; pct: number;
 }
@@ -224,26 +133,6 @@ export const distRows: DistRow[] = [
   { id: 'd-8', theatre: 'Regal Union Square', content: 'Bank Awareness — 45s', screens: 7, state: 'Failed', pct: 0 }
 ];
 
-export interface ApprovalItem {
-  id: string; title: string; meta: string; note: string;
-}
-
-export const approvalQueues: Record<string, ApprovalItem[]> = {
-  '/approvals/campaigns': [
-    { id: 'a-1', title: 'Horror Night Promo', meta: 'AMC Theatres · flight 1 Oct – 31 Oct · 32 screens', note: 'Awaiting inventory confirmation' },
-    { id: 'a-2', title: 'Regional Bank Awareness', meta: 'Cineplex Entertainment · flight 9 Oct – 20 Nov · 41 screens', note: 'Creative in certification' },
-    { id: 'a-3', title: 'Winter Retail Sprint', meta: 'Independent Theatres · flight 27 Nov – 26 Dec · 19 screens', note: 'Rate bias exception requested' }
-  ],
-  '/approvals/brands': [
-    { id: 'b-1', title: 'Northwind Motors', meta: '3 creatives submitted · automotive category', note: 'Category exclusivity check pending' },
-    { id: 'b-2', title: 'Meridian Bank', meta: '1 creative submitted · financial services', note: 'Regulatory disclaimer review' }
-  ],
-  '/approvals/clients': [
-    { id: 'c-1', title: 'Halcyon Media Group', meta: 'New agency · Northeast region', note: 'Credit terms not yet set' },
-    { id: 'c-2', title: 'Bright Harbour Media', meta: 'New agency · West region', note: 'Billing entity verification' }
-  ]
-};
-
 export interface BiasRule {
   id: string; dimension: string; value: string; mult: number;
 }
@@ -257,136 +146,8 @@ export const biasRules: BiasRule[] = [
   { id: 'r-6', dimension: 'Segment', value: 'Intermission Premium', mult: 1.4 }
 ];
 
-export const brandsCat = [
-  { name: 'Northwind Motors', category: 'Automotive', creatives: 6, campaigns: 3, client: 'Halcyon Media Group' },
-  { name: 'Meridian Bank', category: 'Financial Services', creatives: 2, campaigns: 1, client: 'Halcyon Media Group' },
-  { name: 'Kestrel Streaming', category: 'Media & Entertainment', creatives: 9, campaigns: 4, client: 'Bright Harbour Media' },
-  { name: 'Vantage Retail', category: 'Retail', creatives: 5, campaigns: 2, client: 'Direct' },
-  { name: 'Tallgrass Foods', category: 'FMCG', creatives: 4, campaigns: 2, client: 'Direct' },
-  { name: 'Orbit Telecom', category: 'Telecom', creatives: 7, campaigns: 3, client: 'Bright Harbour Media' }
-];
-
-export const clientsCat = [
-  { name: 'Halcyon Media Group', type: 'Media Agency', region: 'Northeast', campaigns: 6, contact: 'aisha.karim@halcyon.example' },
-  { name: 'Bright Harbour Media', type: 'Media Agency', region: 'West', campaigns: 4, contact: 'devon.pike@brightharbour.example' },
-  { name: 'AMC Theatres', type: 'Exhibitor', region: 'National', campaigns: 3, contact: 'adops@amc.example' },
-  { name: 'Regal Cinemas', type: 'Exhibitor', region: 'National', campaigns: 3, contact: 'adops@regal.example' },
-  { name: 'Cineplex Entertainment', type: 'Exhibitor', region: 'Canada', campaigns: 2, contact: 'adops@cineplex.example' },
-  { name: 'Independent Theatres', type: 'Exhibitor', region: 'South', campaigns: 2, contact: 'bookings@indie.example' }
-];
-
-export const users = [
-  { name: 'Riya Deshpande', email: 'riya.d@qube.example', role: 'Ad Operations', scope: 'QCN — all circuits', state: 'Active' },
-  { name: 'John Smith', email: 'john.s@qube.example', role: 'Campaign Manager', scope: 'Northeast', state: 'Active' },
-  { name: 'Sarah Johnson', email: 'sarah.j@qube.example', role: 'Campaign Manager', scope: 'West', state: 'Active' },
-  { name: 'Mike Chen', email: 'mike.c@qube.example', role: 'Content Operations', scope: 'QCN — all circuits', state: 'Active' },
-  { name: 'Lisa Wong', email: 'lisa.w@halcyon.example', role: 'Agency (read only)', scope: 'Own campaigns', state: 'Active' },
-  { name: 'Diego Alvarez', email: 'diego.a@qube.example', role: 'Exhibitor Admin', scope: 'Cineplex Entertainment', state: 'Suspended' }
-];
-
 // Rate-card / currency "props" — configurable via the design tool in the original;
 // hardcoded here as sensible defaults for the port.
 export const ratePerSecond = 0.012;
 export const currency: 'USD' | 'INR' | 'EUR' | 'GBP' = 'USD';
 export const showCapacityBars = true;
-
-/* ---------- Network DOOH ---------- */
-
-export interface DoohGroup {
-  id: string; type: string; name: string; screens: number;
-  orientation: string; mode: string; loop: string; loopSecs: number;
-}
-
-export interface DoohTheatreConfig {
-  updatedOn: string; updatedBy: string; hoursMode: string;
-  /** keyed by day, value is [start, end, on] */
-  hours: Record<string, [string, string, boolean]>;
-  groups: DoohGroup[];
-}
-
-export const doohTypes = [
-  'Lobby', 'Foyer', 'Box Office / Ticketing', 'Concessions', 'Corridor / Circulation',
-  'Auditorium Entrance', 'Auditorium', 'F&B', 'Restroom', 'Other'
-];
-
-export const doohDayDefs: { key: string; label: string }[] = [
-  { key: 'mon', label: 'Monday' }, { key: 'tue', label: 'Tuesday' }, { key: 'wed', label: 'Wednesday' },
-  { key: 'thu', label: 'Thursday' }, { key: 'fri', label: 'Friday' }, { key: 'sat', label: 'Saturday' },
-  { key: 'sun', label: 'Sunday' }
-];
-
-export const doohLoopHints: Record<string, string> = {
-  'Scheduled': 'Loop duration is configured for this display group.',
-  'Synchronized with Screen': 'Follows the playback loop of the connected signage system. No loop duration is set in Slate.',
-  'Free Duration': 'Not constrained by a fixed loop; playback length follows the scheduled content.'
-};
-
-export const doohModeHints: Record<string, string> = {
-  'Independent Screens': 'Each physical screen can play different content.',
-  'Synchronized Screens': 'All screens play the same content at the same time — commercially one advertising unit.',
-  'Single Canvas': 'Several panels form one logical display, such as a multi-panel LED wall.'
-};
-
-// state/country resolution for the city/state abbreviation baked into `theatreDefs[].city`.
-export const doohStates: Record<string, string> = { NY: 'New York', CA: 'California', ON: 'Ontario', TX: 'Texas', IL: 'Illinois' };
-export const doohCountries: Record<string, string> = { ON: 'Canada' };
-
-export const doohSeed: Record<string, DoohTheatreConfig> = {
-  'TH-101': {
-    updatedOn: '2026-08-24T16:40:00', updatedBy: 'Priya Raman',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['10:00', '23:00', true], tue: ['10:00', '23:00', true], wed: ['10:00', '23:00', true], thu: ['10:00', '23:00', true], fri: ['10:00', '00:00', true], sat: ['09:00', '00:00', true], sun: ['09:00', '23:00', true] },
-    groups: [
-      { id: 'dg-101-1', type: 'Lobby', name: 'Main Lobby LED', screens: 2, orientation: 'Horizontal', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
-      { id: 'dg-101-2', type: 'Foyer', name: 'Foyer LED Wall', screens: 1, orientation: 'Horizontal', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
-      { id: 'dg-101-3', type: 'Foyer', name: 'Foyer Digital Screens', screens: 8, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 },
-      { id: 'dg-101-4', type: 'Concessions', name: 'Concession Screens', screens: 4, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 30 },
-      { id: 'dg-101-5', type: 'Auditorium Entrance', name: 'Entrance Screens', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 }
-    ]
-  },
-  'TH-118': {
-    updatedOn: '2026-08-19T11:05:00', updatedBy: 'Dan Whitfield',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['11:00', '23:00', true], tue: ['11:00', '23:00', true], wed: ['11:00', '23:00', true], thu: ['11:00', '23:00', true], fri: ['11:00', '01:00', true], sat: ['10:00', '01:00', true], sun: ['10:00', '23:00', true] },
-    groups: [
-      { id: 'dg-118-1', type: 'Lobby', name: 'Lobby Portrait Pair', screens: 2, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Scheduled', loopSecs: 45 },
-      { id: 'dg-118-2', type: 'Foyer', name: 'Foyer Screens', screens: 6, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 },
-      { id: 'dg-118-3', type: 'Box Office / Ticketing', name: 'Ticketing Overhead', screens: 2, orientation: 'Horizontal', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 },
-      { id: 'dg-118-4', type: 'F&B', name: 'Bar Menu Boards', screens: 2, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Free Duration', loopSecs: 60 }
-    ]
-  },
-  'TH-204': {
-    updatedOn: '2026-08-25T09:22:00', updatedBy: 'Priya Raman',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['10:30', '23:30', true], tue: ['10:30', '23:30', true], wed: ['10:30', '23:30', true], thu: ['10:30', '23:30', true], fri: ['10:30', '01:00', true], sat: ['09:30', '01:00', true], sun: ['09:30', '23:00', true] },
-    groups: [
-      { id: 'dg-204-1', type: 'Foyer', name: 'Foyer Entrance Wall', screens: 3, orientation: 'Full Container', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 60 },
-      { id: 'dg-204-2', type: 'Concessions', name: 'Concession Screens', screens: 3, orientation: 'Horizontal', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 30 },
-      { id: 'dg-204-3', type: 'Corridor / Circulation', name: 'Corridor Panels', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Scheduled', loopSecs: 60 }
-    ]
-  },
-  'TH-231': {
-    updatedOn: '2026-07-30T14:10:00', updatedBy: 'Lena Okafor',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['12:00', '23:00', true], tue: ['12:00', '23:00', true], wed: ['12:00', '23:00', true], thu: ['12:00', '23:00', true], fri: ['12:00', '01:00', true], sat: ['11:00', '01:00', true], sun: ['11:00', '23:00', true] },
-    groups: [
-      { id: 'dg-231-1', type: 'Lobby', name: 'Atrium LED Wall', screens: 6, orientation: 'Full Container', mode: 'Single Canvas', loop: 'Scheduled', loopSecs: 90 },
-      { id: 'dg-231-2', type: 'Auditorium Entrance', name: 'Entrance Screens', screens: 5, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Synchronized with Screen', loopSecs: 60 }
-    ]
-  },
-  'TH-307': {
-    updatedOn: '2026-08-11T17:48:00', updatedBy: 'Marcus Bell',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['10:00', '22:30', true], tue: ['10:00', '22:30', true], wed: ['10:00', '22:30', true], thu: ['10:00', '22:30', true], fri: ['10:00', '00:30', true], sat: ['09:00', '00:30', true], sun: ['09:00', '22:30', true] },
-    groups: [
-      { id: 'dg-307-1', type: 'Foyer', name: 'Foyer Digital Screens', screens: 6, orientation: 'Vertical', mode: 'Synchronized Screens', loop: 'Scheduled', loopSecs: 60 },
-      { id: 'dg-307-2', type: 'Restroom', name: 'Washroom Panels', screens: 4, orientation: 'Vertical', mode: 'Independent Screens', loop: 'Free Duration', loopSecs: 60 }
-    ]
-  },
-  'TH-402': {
-    updatedOn: '2026-06-02T10:15:00', updatedBy: 'Lena Okafor',
-    hoursMode: 'Scheduled',
-    hours: { mon: ['14:00', '22:00', false], tue: ['14:00', '22:00', true], wed: ['14:00', '22:00', true], thu: ['14:00', '22:00', true], fri: ['14:00', '23:30', true], sat: ['12:00', '23:30', true], sun: ['12:00', '22:00', true] },
-    groups: []
-  }
-};

@@ -1,3 +1,4 @@
+import { PrototypeNote } from '../components/PrototypeNote';
 import { useMemo } from 'react';
 import { campaigns } from '../data/mockData';
 import { getTheatres, money } from '../data/helpers';
@@ -36,6 +37,7 @@ export function ReportsAnalytics() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1300 }}>
       <PageHeader title="Reports & Analytics" description="Inventory utilisation, delivered plays and campaign value across the network." />
+      <PrototypeNote />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 16, alignItems: 'start' }}>
         <Card padding="20px 24px">
