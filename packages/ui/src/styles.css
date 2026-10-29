@@ -39,7 +39,7 @@ a:hover { text-decoration: underline; }
   background: var(--sl-topbar-bg, var(--sl-surface)); color: var(--sl-topbar-fg, inherit); border-bottom: 1px solid var(--sl-hairline);
 }
 .sl-topbar--branded { border-bottom: 3px solid var(--sl-secondary); }
-.sl-topbar--branded .sl-topbar__org span { color: inherit; opacity: 0.8; }
+.sl-topbar--branded .sl-topbar__org span { color: inherit; }
 .sl-logo { max-width: 160px; object-fit: contain; }
 .sl-topbar__org { display: flex; flex-direction: column; min-width: 0; }
 .sl-topbar__org strong { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

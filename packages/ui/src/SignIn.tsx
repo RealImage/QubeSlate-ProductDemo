@@ -27,7 +27,7 @@ export function SignInPage({ headline, footnote, children, sac }: {
           ? <img src={sac.branding.logo} alt={`${sac.name} logo`} height={32} className="sl-logo" style={{ alignSelf: 'flex-start', background: '#fff', padding: 8, borderRadius: 8, boxSizing: 'content-box' }} />
           : <img src={slateLogo} alt="Qube Slate" height={28} style={{ filter: !sac || contrastText(sac.branding.primaryColor) === '#ffffff' ? 'brightness(0) invert(1)' : 'brightness(0)', alignSelf: 'flex-start' }} />}
         <h1>{headline}</h1>
-        <p style={{ margin: 0, opacity: 0.75, fontSize: 13 }}>{sac ? `${sac.name} · powered by Qube Slate` : 'Qube Slate · cinema and DOOH advertising'}</p>
+        <p style={{ margin: 0, opacity: sac ? 1 : 0.75, fontSize: 13 }}>{sac ? `${sac.name} · powered by Qube Slate` : 'Qube Slate · cinema and DOOH advertising'}</p>
       </div>
       <div className="sl-signin__panel">
         <div>
