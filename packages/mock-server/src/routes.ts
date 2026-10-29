@@ -843,7 +843,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     };
     const rows = all.filter(r =>
       (!q || `${r.name} ${r.city} ${r.state} ${r.country}`.toLowerCase().includes(q)) &&
-      (!chain || r.chain === chain) && (!location || r.city === location || r.state === location) && (!status || r.status === status));
+      (!chain || r.chain === chain) && (!location || r.city === location) && (!status || r.status === status));
     rows.sort((a, b) => a.name.localeCompare(b.name));
     return {
       rows: rows.slice((page - 1) * pageSize, page * pageSize), total: rows.length, page, pageSize,
