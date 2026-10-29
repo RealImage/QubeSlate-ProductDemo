@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
-import { AdGroupIcon, CompaniesIcon, FolderIcon, ReportsIcon } from 'prefab/icons';
+import { AdGroupIcon, CampaignIcon, CompaniesIcon, DashboardIcon, FolderIcon, ReportsIcon } from 'prefab/icons';
 import { useSession } from '@slate/api';
 import { KycBanner } from './features/company/KycBanner';
 import { SignUpEntry } from './features/company/SignUp';
@@ -13,10 +13,16 @@ import { TargetGroupsPage } from './features/planning/TargetGroupsPage';
 import { TargetGroupBuilder } from './features/planning/TargetGroupBuilder';
 import { MediaLibraryPage } from './features/planning/MediaLibraryPage';
 import { CreateMediaPage } from './features/planning/CreateMediaPage';
+import { DashboardPage } from './features/campaigns/DashboardPage';
+import { CampaignsPage } from './features/campaigns/CampaignsPage';
+import { CampaignDetailPage } from './features/campaigns/CampaignDetailPage';
+import { CampaignWizard } from './features/campaigns/wizard/CampaignWizard';
 
 function useNav(): NavEntry[] {
   const { can } = useSession();
   return [
+    { label: 'Dashboard', to: '/', icon: <DashboardIcon /> },
+    { label: 'Campaign Management', to: '/campaigns', icon: <CampaignIcon /> },
     { label: 'Media Management', icon: <FolderIcon />, items: [{ label: 'Media Library', to: '/media' }, { label: 'Create Media', to: '/media/new' }] },
     { label: 'Target Groups', to: '/target-groups', icon: <AdGroupIcon /> },
     {
@@ -48,7 +54,11 @@ export function App() {
         <Routes>
           <Route element={<AppShell nav={nav} portalLabel="Advertiser" orgName={org?.company.name} orgMeta={org && `${org.company.code} · via ${org.sac.name}`} />}>
             <Route element={<KycFrame />}>
-              <Route index element={<Navigate to="/company" replace />} />
+              <Route index element={<DashboardPage />} />
+              <Route path="campaigns" element={<CampaignsPage />} />
+              <Route path="campaigns/new" element={<CampaignWizard />} />
+              <Route path="campaigns/:id" element={<CampaignDetailPage />} />
+              <Route path="campaigns/:id/edit" element={<CampaignWizard />} />
               <Route path="target-groups" element={<TargetGroupsPage />} />
               <Route path="target-groups/new" element={<TargetGroupBuilder />} />
               <Route path="target-groups/:id" element={<TargetGroupBuilder />} />

@@ -2,7 +2,7 @@ import { withGst } from './pricing';
 import type { Campaign, CampaignStatus, Company, Media, Placement } from './types';
 
 export interface ChecklistItem {
-  key: 'named' | 'targets' | 'media' | 'placements' | 'kyc' | 'credit';
+  key: 'named' | 'targets' | 'media' | 'placements' | 'fit' | 'kyc' | 'credit';
   label: string;
   done: boolean;
 }
