@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { playlistItems } from '../data/mockData';
 import { secs } from '../data/helpers';
@@ -25,6 +26,7 @@ export function PlaylistTemplates() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1300 }}>
       <PageHeader title="Playlist Templates" description="Ad block layouts, and the theatre-level boundaries that cap how much content each segment can hold." />
+      <PrototypeNote />
 
       <Card padding="20px 24px">
         <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--text-default)' }}>Playlist boundaries</h3>
