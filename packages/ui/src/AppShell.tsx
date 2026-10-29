@@ -8,6 +8,7 @@ import { DevAccountSwitcher } from './SignIn';
 import slateLogo from '../assets/QubeSlate.svg';
 import slateMark from '../assets/QubeLogoOnlyBlueIcon.svg';
 
+/** `icon` shows on top-level items only; items inside a group are text, like the rest of the Qube products. */
 export interface NavLeaf { label: string; to: string; icon?: ReactNode; /** Extra path prefixes that keep this item active. */ match?: string[] }
 export interface NavGroupDef { label: string; icon: ReactNode; items: NavLeaf[] }
 export type NavEntry = NavLeaf | NavGroupDef;
@@ -71,9 +72,9 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
   const best = Math.max(-1, ...leaves.map(l => matchLength(l, pathname)));
   const isActive = (l: NavLeaf) => best >= 0 && matchLength(l, pathname) === best;
 
-  const leaf = (l: NavLeaf) => (
+  const leaf = (l: NavLeaf, nested = false) => (
     <Sidebar.NavItem key={l.to} isActive={isActive(l)}>
-      <Link to={l.to}>{l.icon}<Sidebar.Label>{l.label}</Sidebar.Label></Link>
+      <Link to={l.to}>{!nested && l.icon}<Sidebar.Label>{l.label}</Sidebar.Label></Link>
     </Sidebar.NavItem>
   );
 
@@ -88,7 +89,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
         </Sidebar.Header>
         <Sidebar.Nav>
           {nav.map(e => isGroup(e)
-            ? <Sidebar.NavGroup key={e.label} label={e.label} icon={e.icon} isActive={e.items.some(isActive)}>{e.items.map(leaf)}</Sidebar.NavGroup>
+            ? <Sidebar.NavGroup key={e.label} label={e.label} icon={e.icon} isActive={e.items.some(isActive)}>{e.items.map(i => leaf(i, true))}</Sidebar.NavGroup>
             : leaf(e))}
         </Sidebar.Nav>
         <Sidebar.Footer>
