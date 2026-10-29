@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "tsBuildInfoFile": "../../node_modules/.tmp/mock-server.tsbuildinfo", "outDir": "../../node_modules/.tmp/mock-server", "types": ["node"] },
+  "include": ["src"]
+}

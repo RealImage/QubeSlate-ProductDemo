@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "tsBuildInfoFile": "../../node_modules/.tmp/domain.tsbuildinfo", "outDir": "../../node_modules/.tmp/domain" },
+  "include": ["src"]
+}
