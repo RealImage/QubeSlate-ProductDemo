@@ -1,11 +1,9 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {
-      "name": "slate",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5173"],
-      "port": 5173
-    }
+    { "name": "api", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:api"], "port": 4100 },
+    { "name": "advertiser", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:advertiser"], "port": 5173 },
+    { "name": "sac", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:sac"], "port": 5174 },
+    { "name": "admin", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:admin"], "port": 5175 }
   ]
 }
