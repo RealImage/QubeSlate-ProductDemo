@@ -72,6 +72,9 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
   const setStep = (s: number) => setParams(s ? { step: String(s) } : {}, { replace: true });
 
   const update = (patch: Partial<WizardForm>) => {
+    // While the first save is creating the draft, the wizard is about to remount from its response;
+    // edits made in that window would be lost, so they're ignored until it lands.
+    if (!campaignId && creating.current) return;
     revision.current += 1;
     setDirty(true);
     setForm(f => {
@@ -115,15 +118,17 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
 
   // One save at a time: a second step click while the first save (or draft creation) is in flight reuses it.
   const inflight = useRef<Promise<string | null> | null>(null);
+  const creating = useRef(false);
   const persist = (): Promise<string | null> => {
     if (inflight.current) return inflight.current;
     if (!defValid) { setShowErrors(true); setStep(0); return Promise.resolve(null); }
     if (campaignId && !dirty) return Promise.resolve(campaignId);
     const started = revision.current;
+    creating.current = !campaignId;
     inflight.current = save.mutateAsync(toInput())
       .then(d => { if (revision.current === started) setDirty(false); return d.id; })
       .catch(() => null)
-      .finally(() => { inflight.current = null; });
+      .finally(() => { inflight.current = null; creating.current = false; });
     return inflight.current;
   };
 
