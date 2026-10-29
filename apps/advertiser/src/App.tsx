@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
-import { CompaniesIcon, ReportsIcon } from 'prefab/icons';
+import { AdGroupIcon, CompaniesIcon, FolderIcon, ReportsIcon } from 'prefab/icons';
 import { useSession } from '@slate/api';
 import { KycBanner } from './features/company/KycBanner';
 import { SignUpEntry } from './features/company/SignUp';
@@ -9,10 +9,16 @@ import { BrandsPage } from './features/company/BrandsPage';
 import { UsersPage } from './features/company/UsersPage';
 import { BillingPage } from './features/company/BillingPage';
 import { BillingReportPage } from './features/company/BillingReportPage';
+import { TargetGroupsPage } from './features/planning/TargetGroupsPage';
+import { TargetGroupBuilder } from './features/planning/TargetGroupBuilder';
+import { MediaLibraryPage } from './features/planning/MediaLibraryPage';
+import { CreateMediaPage } from './features/planning/CreateMediaPage';
 
 function useNav(): NavEntry[] {
   const { can } = useSession();
   return [
+    { label: 'Media Management', icon: <FolderIcon />, items: [{ label: 'Media Library', to: '/media' }, { label: 'Create Media', to: '/media/new' }] },
+    { label: 'Target Groups', to: '/target-groups', icon: <AdGroupIcon /> },
     {
       label: 'Company Management', icon: <CompaniesIcon />, items: [
         { label: 'Company Information', to: '/company' },
@@ -43,6 +49,11 @@ export function App() {
           <Route element={<AppShell nav={nav} portalLabel="Advertiser" orgName={org?.company.name} orgMeta={org && `${org.company.code} · via ${org.sac.name}`} />}>
             <Route element={<KycFrame />}>
               <Route index element={<Navigate to="/company" replace />} />
+              <Route path="target-groups" element={<TargetGroupsPage />} />
+              <Route path="target-groups/new" element={<TargetGroupBuilder />} />
+              <Route path="target-groups/:id" element={<TargetGroupBuilder />} />
+              <Route path="media" element={<MediaLibraryPage />} />
+              <Route path="media/new" element={<CreateMediaPage />} />
               <Route path="company" element={<CompanyPage />} />
               <Route path="company/brands" element={<BrandsPage />} />
               <Route path="company/users" element={<UsersPage />} />
