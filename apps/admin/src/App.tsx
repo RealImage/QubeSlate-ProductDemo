@@ -1,8 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
-import {
-  CampaignIcon, CompaniesIcon, DashboardIcon, DeviceIcon, HeartbeatBoxIcon, LogsIcon, MultipleUsersIcon, OrganisationIcon, SecurityIcon, TheatreIcon
-} from 'prefab/icons';
+import { DashboardIcon, HeartbeatBoxIcon, OrganisationIcon, SecurityIcon } from 'prefab/icons';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { ExhibitorsPage } from './features/tenants/ExhibitorsPage';
 import { SacDetailPage } from './features/tenants/SacDetailPage';
@@ -18,19 +16,19 @@ import { UsersPage } from './features/oversight/UsersPage';
 const nav: NavEntry[] = [
   { label: 'Overview', to: '/', icon: <DashboardIcon /> },
   { label: 'Tenants', icon: <OrganisationIcon />, items: [
-    { label: 'Exhibitors', to: '/tenants/exhibitors', icon: <CompaniesIcon /> },
-    { label: 'SACs', to: '/tenants/sacs', icon: <OrganisationIcon /> }
+    { label: 'Exhibitors', to: '/tenants/exhibitors' },
+    { label: 'SACs', to: '/tenants/sacs' }
   ] },
   { label: 'Network', icon: <HeartbeatBoxIcon />, items: [
-    { label: 'Theatres', to: '/network/theatres', icon: <TheatreIcon /> },
-    { label: 'Devices', to: '/network/devices', icon: <DeviceIcon /> },
-    { label: 'Play-log ingestion', to: '/network/ingestion', icon: <HeartbeatBoxIcon /> }
+    { label: 'Theatres', to: '/network/theatres' },
+    { label: 'Devices', to: '/network/devices' },
+    { label: 'Play-log ingestion', to: '/network/ingestion' }
   ] },
   { label: 'Oversight', icon: <SecurityIcon />, items: [
-    { label: 'Advertisers', to: '/oversight/advertisers', icon: <CompaniesIcon /> },
-    { label: 'Campaigns', to: '/oversight/campaigns', icon: <CampaignIcon /> },
-    { label: 'Users', to: '/oversight/users', icon: <MultipleUsersIcon /> },
-    { label: 'Audit log', to: '/oversight/audit', icon: <LogsIcon /> }
+    { label: 'Advertisers', to: '/oversight/advertisers' },
+    { label: 'Campaigns', to: '/oversight/campaigns' },
+    { label: 'Users', to: '/oversight/users' },
+    { label: 'Audit log', to: '/oversight/audit' }
   ] }
 ];
 
