@@ -37,10 +37,17 @@ const at = (offset: number, hour = 11) => new Date(Date.parse(d(offset)) + hour 
 
 const HOURS = Array.from({ length: 7 }, (_, i) => (i >= 4 ? { open: '08:30', close: '01:30' } : { open: '09:00', close: '23:45' }));
 
+const IN = (state: string) => ({ state, country: 'India' });
 const CITY = {
-  Mumbai: 'Maharashtra', Pune: 'Maharashtra', 'Delhi NCR': 'Delhi', Bengaluru: 'Karnataka', Hyderabad: 'Telangana',
-  Chennai: 'Tamil Nadu', Kolkata: 'West Bengal', Ahmedabad: 'Gujarat', Indore: 'Madhya Pradesh', Lucknow: 'Uttar Pradesh',
-  Kochi: 'Kerala', Vijayawada: 'Andhra Pradesh', Jaipur: 'Rajasthan', Chandigarh: 'Chandigarh'
+  Mumbai: IN('Maharashtra'), Pune: IN('Maharashtra'), 'Delhi NCR': IN('Delhi'), Bengaluru: IN('Karnataka'), Hyderabad: IN('Telangana'),
+  Chennai: IN('Tamil Nadu'), Kolkata: IN('West Bengal'), Ahmedabad: IN('Gujarat'), Indore: IN('Madhya Pradesh'), Lucknow: IN('Uttar Pradesh'),
+  Kochi: IN('Kerala'), Vijayawada: IN('Andhra Pradesh'), Jaipur: IN('Rajasthan'), Chandigarh: IN('Chandigarh'), Nagpur: IN('Maharashtra'),
+  Amsterdam: { state: 'North Holland', country: 'Netherlands' }, Rotterdam: { state: 'South Holland', country: 'Netherlands' },
+  Brussels: { state: 'Brussels-Capital', country: 'Belgium' }, Antwerp: { state: 'Antwerp', country: 'Belgium' },
+  Tokyo: { state: 'Tokyo', country: 'Japan' }, Osaka: { state: 'Osaka', country: 'Japan' },
+  Jakarta: { state: 'DKI Jakarta', country: 'Indonesia' }, Surabaya: { state: 'East Java', country: 'Indonesia' },
+  'New York': { state: 'New York', country: 'USA' }, 'Los Angeles': { state: 'California', country: 'USA' },
+  Dallas: { state: 'Texas', country: 'USA' }, Phoenix: { state: 'Arizona', country: 'USA' }, Milwaukee: { state: 'Wisconsin', country: 'USA' }
 } as const;
 type City = keyof typeof CITY;
 
@@ -49,7 +56,16 @@ function buildNetwork() {
   const exhibitors: Exhibitor[] = [
     { id: 'EX-PVR', name: 'PVR INOX Ltd', code: 'PVRINOX', hq: 'Gurugram', createdAt: at(-400) },
     { id: 'EX-STR', name: 'Starlite Cinemas', code: 'STARLITE', hq: 'Ahmedabad', createdAt: at(-300) },
-    { id: 'EX-AUR', name: 'Aurora Multiplex', code: 'AURORA', hq: 'Kochi', createdAt: at(-120) }
+    { id: 'EX-AUR', name: 'Aurora Multiplex', code: 'AURORA', hq: 'Kochi', createdAt: at(-120) },
+    { id: 'EX-CPI', name: 'Cinépolis India', code: 'CINEPOLIS-IN', hq: 'Mumbai', createdAt: at(-260) },
+    { id: 'EX-PTH', name: 'Pathé Nederland', code: 'PATHE-NL', hq: 'Amsterdam', createdAt: at(-150) },
+    { id: 'EX-KIN', name: 'Kinepolis Belgium', code: 'KINEPOLIS-BE', hq: 'Brussels', createdAt: at(-140) },
+    { id: 'EX-TOH', name: 'Toho Cinemas', code: 'TOHO-JP', hq: 'Tokyo', createdAt: at(-60) },
+    { id: 'EX-CPID', name: 'Cinépolis Indonesia', code: 'CINEPOLIS-ID', hq: 'Jakarta', createdAt: at(-45) },
+    { id: 'EX-AMC', name: 'AMC Theatres', code: 'AMC-US', hq: 'Leawood', createdAt: at(-220) },
+    { id: 'EX-CMK', name: 'Cinemark USA', code: 'CINEMARK-US', hq: 'Plano', createdAt: at(-210) },
+    { id: 'EX-HRK', name: 'Harkins Theatres', code: 'HARKINS-US', hq: 'Scottsdale', createdAt: at(-180) },
+    { id: 'EX-MRC', name: 'Marcus Theatres', code: 'MARCUS-US', hq: 'Milwaukee', createdAt: at(-170) }
   ];
   const plan: [string, string, City, Theatre['category']][] = [
     ['EX-PVR', 'PVR ICON Phoenix Palladium', 'Mumbai', 'Premium'], ['EX-PVR', 'INOX Megaplex Inorbit', 'Mumbai', 'Premium'],
@@ -63,7 +79,15 @@ function buildNetwork() {
     ['EX-PVR', 'INOX Trendset', 'Vijayawada', 'Value'], ['EX-PVR', 'PVR Elante', 'Chandigarh', 'Mainstream'],
     ['EX-STR', 'Starlite Alpha One', 'Ahmedabad', 'Mainstream'], ['EX-STR', 'Starlite Iscon', 'Ahmedabad', 'Value'],
     ['EX-STR', 'Starlite World Trade Park', 'Jaipur', 'Mainstream'], ['EX-STR', 'Starlite Treasure Island', 'Indore', 'Value'],
-    ['EX-AUR', 'Aurora Centre Square', 'Kochi', 'Mainstream'], ['EX-AUR', 'Aurora Forum', 'Chennai', 'Value']
+    ['EX-AUR', 'Aurora Centre Square', 'Kochi', 'Mainstream'], ['EX-AUR', 'Aurora Forum', 'Chennai', 'Value'],
+    ['EX-CPI', 'Cinépolis Seasons Mall', 'Pune', 'Premium'], ['EX-CPI', 'Cinépolis VR Nagpur', 'Nagpur', 'Mainstream'],
+    ['EX-PTH', 'Pathé Tuschinski', 'Amsterdam', 'Premium'], ['EX-PTH', 'Pathé Schouwburgplein', 'Rotterdam', 'Mainstream'],
+    ['EX-KIN', 'Kinepolis Brussel', 'Brussels', 'Premium'], ['EX-KIN', 'Kinepolis Antwerpen', 'Antwerp', 'Mainstream'],
+    ['EX-TOH', 'Toho Cinemas Shinjuku', 'Tokyo', 'Premium'], ['EX-TOH', 'Toho Cinemas Umeda', 'Osaka', 'Mainstream'],
+    ['EX-CPID', 'Cinépolis Plaza Senayan', 'Jakarta', 'Premium'], ['EX-CPID', 'Cinépolis Pakuwon Mall', 'Surabaya', 'Mainstream'],
+    ['EX-AMC', 'AMC Lincoln Square 13', 'New York', 'Premium'], ['EX-AMC', 'AMC Century City 15', 'Los Angeles', 'Premium'],
+    ['EX-CMK', 'Cinemark West Plano XD', 'Dallas', 'Mainstream'], ['EX-HRK', 'Harkins Arizona Center 24', 'Phoenix', 'Mainstream'],
+    ['EX-MRC', 'Marcus Majestic Cinema', 'Milwaukee', 'Value']
   ];
   const brandOf = (n: string) => n.split(' ').slice(0, n.startsWith('PVR ICON') || n.startsWith('PVR Director') ? 2 : 1).join(' ').replace('’s', '’s Cut');
   const theatres: Theatre[] = plan.map(([exhibitorId, name, city, category], i) => {
@@ -80,7 +104,7 @@ function buildNetwork() {
     });
     return {
       id, exhibitorId, name, brand: exhibitorId === 'EX-PVR' ? brandOf(name) : exhibitors.find(e => e.id === exhibitorId)!.name,
-      city, state: CITY[city], country: 'India', category, screens, hours: HOURS,
+      city, state: CITY[city].state, country: CITY[city].country, category, screens, hours: HOURS,
       updatedAt: at(-Math.floor(r() * 60), 9 + (i % 8)), updatedBy: i % 3 ? 'Rohan Mehta' : 'Sana Qureshi'
     };
   });
@@ -139,6 +163,12 @@ const docs = (status: 'verified' | 'uploaded' | 'missing'): Company['kycDocs'] =
 export function createSeed(): Db {
   const { exhibitors, theatres, doohGroups, devices } = buildNetwork();
 
+  // Payment gateways here are India-only (Razorpay / PayU / CCAvenue); other markets stay on the stub until a local gateway is added.
+  const sac = (id: string, name: string, legalName: string, slug: string, taxId: string, exhibitorIds: string[], status: Sac['status'], ago: number,
+    gw?: Omit<Sac['gateway'], 'updatedAt'>): Sac => ({
+    id, name, legalName, slug, gstin: taxId, supportEmail: `adsales@${slug}.example`, exhibitorIds, status, createdAt: at(ago),
+    gateway: { ...(gw ?? { provider: 'stub' as const, mode: 'test' as const, merchantId: '', keyHint: '', enabled: false }), updatedAt: at(ago + 5) }
+  });
   const sacs: Sac[] = [
     {
       id: 'SAC-PVRM', name: 'PVR INOX Media Sales', legalName: 'PVR INOX Ltd (Media Sales)', slug: 'pvrinox-media',
@@ -146,10 +176,19 @@ export function createSeed(): Db {
       gateway: { provider: 'razorpay', mode: 'test', merchantId: 'rzp_test_PVRM01', keyHint: '••••Q8x1', enabled: true, updatedAt: at(-20) }
     },
     {
-      id: 'SAC-LUM', name: 'Lumen Screen Advertising', legalName: 'Lumen Screen Advertising Pvt Ltd', slug: 'lumen',
-      gstin: '24AAFCL7781K1Z5', supportEmail: 'ops@lumenscreens.example', exhibitorIds: ['EX-STR', 'EX-AUR'], status: 'active', createdAt: at(-200),
-      gateway: { provider: 'payu', mode: 'test', merchantId: 'payu_test_LUM', keyHint: '••••a91c', enabled: false, updatedAt: at(-90) }
-    }
+      id: 'SAC-QCN', name: 'Qube Cinema Network', legalName: 'Qube Cinema Technologies Pvt Ltd (Cinema Network)', slug: 'qube-cinema-network',
+      gstin: '33AABCQ1234M1Z5', supportEmail: 'adsales@qubecinemanetwork.example', exhibitorIds: ['EX-STR', 'EX-AUR'], status: 'active', createdAt: at(-200),
+      gateway: { provider: 'payu', mode: 'test', merchantId: 'payu_test_QCN', keyHint: '••••a91c', enabled: false, updatedAt: at(-90) }
+    },
+    sac('SAC-CPAI', 'Cinépolis Advertising India', 'Cinépolis India Pvt Ltd (Advertising)', 'cinepolis-advertising-in', '27AAECC4410R1ZQ', ['EX-CPI'], 'active', -240,
+      { provider: 'ccavenue', mode: 'test', merchantId: 'ccav_test_CPAI', keyHint: '••••7d20', enabled: true }),
+    sac('SAC-CMC', 'CMC Media', 'CMC Media B.V.', 'cmc-media', 'NL859214378B01', ['EX-PTH'], 'active', -130),
+    sac('SAC-BRF', 'Brightfish Media', 'Brightfish NV', 'brightfish', 'BE0456812937', ['EX-KIN'], 'active', -125),
+    sac('SAC-BRD', 'Broad Media', 'Broad Media Co., Ltd.', 'broad-media', 'T4011001049183', ['EX-TOH'], 'onboarding', -20),
+    sac('SAC-CPAD', 'Cinépolis Advertising Indonesia', 'PT Cinemaxx Global Pasifik (Advertising)', 'cinepolis-advertising-id', '01.234.567.8-091.000', ['EX-CPID'], 'onboarding', -15),
+    sac('SAC-SVM', 'Screenvision Media', 'Screenvision Media LLC', 'screenvision', '13-4129755', ['EX-HRK', 'EX-CMK'], 'active', -200),
+    sac('SAC-SDL', 'Screen Dollars', 'Screen Dollars Inc.', 'screen-dollars', '47-2913385', ['EX-MRC'], 'active', -110),
+    sac('SAC-NCM', 'National CineMedia', 'National CineMedia LLC', 'ncm', '20-5665602', ['EX-AMC', 'EX-CMK'], 'active', -210)
   ];
 
   const companies: Company[] = [
@@ -180,7 +219,7 @@ export function createSeed(): Db {
       createdAt: at(-3)
     },
     {
-      id: 'CO-KAI', sacId: 'SAC-LUM', code: 'ADV-20017', name: 'Kairos Retail Pvt Ltd', gstin: '24AAICK9031M1Z7', pan: 'AAICK9031M',
+      id: 'CO-KAI', sacId: 'SAC-QCN', code: 'ADV-20017', name: 'Kairos Retail Pvt Ltd', gstin: '24AAICK9031M1Z7', pan: 'AAICK9031M',
       address: 'SG Highway, Ahmedabad 380054', kycStatus: 'approved', kycDocs: docs('verified'),
       kycSubmittedAt: at(-80), kycReviewedAt: at(-79), kycNote: null, billingType: 'card', contract: null,
       inventoryAccess: { mode: 'restricted', exhibitorIds: ['EX-STR'], theatreIds: [] },
@@ -211,7 +250,11 @@ export function createSeed(): Db {
     u('U-VIKRAM', 'Vikram Desai', 'advertiser', 'CO-NWD', 'admin'), u('U-LAKSHMI', 'Lakshmi Narayanan', 'advertiser', 'CO-SUN', 'admin'),
     u('U-DHRUV', 'Dhruv Patel', 'advertiser', 'CO-KAI', 'admin'),
     u('U-ROHAN', 'Rohan Mehta', 'sac', 'SAC-PVRM', 'ad_ops'), u('U-SANA', 'Sana Qureshi', 'sac', 'SAC-PVRM', 'sac_admin'),
-    u('U-PRIYA', 'Priya Raman', 'sac', 'SAC-PVRM', 'finance'), u('U-ISHA', 'Isha Kapoor', 'sac', 'SAC-LUM', 'sac_admin'),
+    u('U-PRIYA', 'Priya Raman', 'sac', 'SAC-PVRM', 'finance'), u('U-ISHA', 'Isha Kapoor', 'sac', 'SAC-QCN', 'sac_admin'),
+    u('U-RAHUL', 'Rahul Shetty', 'sac', 'SAC-CPAI', 'sac_admin'), u('U-SANNE', 'Sanne de Vries', 'sac', 'SAC-CMC', 'sac_admin'),
+    u('U-LIES', 'Lies Peeters', 'sac', 'SAC-BRF', 'sac_admin'), u('U-KENJI', 'Kenji Watanabe', 'sac', 'SAC-BRD', 'sac_admin', 'invited'),
+    u('U-PUTRI', 'Putri Wulandari', 'sac', 'SAC-CPAD', 'sac_admin', 'invited'), u('U-MEGAN', 'Megan Brooks', 'sac', 'SAC-SVM', 'sac_admin'),
+    u('U-CARLOS', 'Carlos Rivera', 'sac', 'SAC-SDL', 'sac_admin'), u('U-JORDAN', 'Jordan Hayes', 'sac', 'SAC-NCM', 'sac_admin'),
     u('U-HARSHIT', 'Harshit Thakkar', 'admin', 'qube', 'qube_admin'), u('U-MEERA', 'Meera Iyer', 'admin', 'qube', 'qube_support')
   ];
 
