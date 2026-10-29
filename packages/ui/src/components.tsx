@@ -1,5 +1,5 @@
 import { Fragment, useRef, type KeyboardEvent, type ReactNode } from 'react';
-import { Tag, Button } from 'prefab';
+import { Alert, Tag, Button } from 'prefab';
 import { ApiError } from '@slate/api';
 
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
@@ -53,8 +53,10 @@ export function StatusTag({ tone, children, size = 'small' }: { tone: Tone; chil
 /** `label` names what is progressing for screen readers, e.g. "Plays delivered". */
 export function Progress({ value, tone, label }: { value: number; tone?: 'positive' | 'notice' | 'negative'; label: string }) {
   const color = tone ? `var(--fill-${tone})` : undefined;
-  return <div className="sl-progress" role="progressbar" aria-label={label} aria-valuenow={Math.round(value * 100)} aria-valuemin={0} aria-valuemax={100}>
-    <span style={{ width: `${Math.min(100, Math.max(0, value * 100))}%`, background: color }} />
+  // Over-delivery (value > 1) shows a full bar; announce the same clamped figure.
+  const percent = Math.min(100, Math.max(0, Math.round(value * 100)));
+  return <div className="sl-progress" role="progressbar" aria-label={label} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+    <span style={{ width: `${percent}%`, background: color }} />
   </div>;
 }
 
@@ -77,11 +79,19 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
   return <EmptyState title="Couldn’t load this" action={onRetry && <Button variant="default" size="small" onPress={onRetry}>Try again</Button>}>{message}</EmptyState>;
 }
 
-/** Renders loading / error / content for a React Query result. */
+/**
+ * Renders loading / error / content for a React Query result. When cached data exists, a failed
+ * background refresh shows a notice and keeps the content mounted, so open forms don't lose edits.
+ */
 export function Query<T>({ q, children, rows }: { q: { data: T | undefined; isLoading: boolean; error: unknown; refetch: () => unknown }; children: (data: T) => ReactNode; rows?: number }) {
+  if (q.data !== undefined) {
+    return <>
+      {q.error ? <Alert variant="notice" inline closable={false}>Couldn’t refresh; showing the last loaded data.</Alert> : null}
+      {children(q.data)}
+    </>;
+  }
   if (q.isLoading) return <Loading rows={rows} />;
-  if (q.error || q.data === undefined) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
-  return <>{children(q.data)}</>;
+  return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
 }
 
 export function Checklist({ items }: { items: { label: string; done: boolean }[] }) {

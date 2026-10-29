@@ -62,7 +62,8 @@ export const advertiserApi = {
 export const usersApi = {
   list: () => http.get<User[]>('/users'),
   invite: (b: C.UserInput) => http.post<User>('/users', b),
-  update: (id: string, b: Partial<C.UserInput & { status: User['status'] }>) => http.put<User>(`/users/${id}`, b),
+  /** Email is immutable; invite the new address instead. */
+  update: (id: string, b: Partial<Omit<C.UserInput, 'email'> & { status: User['status'] }>) => http.put<User>(`/users/${id}`, b),
   remove: (id: string) => http.del(`/users/${id}`)
 };
 
