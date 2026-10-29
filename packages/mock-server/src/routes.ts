@@ -238,6 +238,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (u.orgId !== s.user.orgId) throw notFound('User not found.');
     if (u.id === s.user.id && req.body.role && req.body.role !== u.role) throw invalid('You cannot change your own role.');
     assertRole(u.portal, req.body.role);
+    // Email is the login identity: it can't be edited; invite the new address instead.
+    if (req.body.email !== undefined && req.body.email !== u.email) throw invalid('Email can’t be changed. Invite the new address and remove this user.');
     const { name, phone, role, status } = req.body;
     if (status !== undefined && !['active', 'invited', 'disabled'].includes(status as string)) throw invalid('Status must be active, invited or disabled.');
     if (((role !== undefined && role !== u.role) || (status !== undefined && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
@@ -757,7 +759,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (b.enabled && b.provider !== 'stub' && !b.merchantId.trim()) throw invalid('Merchant ID is required to enable the gateway.');
     const hasKey = !!b.secretKey || (!!sac.gateway.keyHint && sac.gateway.provider === b.provider);
     if (b.enabled && b.provider !== 'stub' && !hasKey) throw invalid('A secret key is required to enable this gateway.');
-    if (b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
+    if (b.provider !== 'stub' && b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
     sac.gateway = {
       provider: b.provider, mode: b.mode, merchantId: b.merchantId, enabled: b.enabled, updatedAt: now(),
       // A stored key belongs to its provider; switching provider without a new key leaves none.
