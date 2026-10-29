@@ -5,7 +5,11 @@ import {
   type TargetGroup, type Theatre, type User
 } from '@slate/domain';
 
+/** Bump when the persisted shape changes; the server reseeds data written by an older version. */
+export const DB_SCHEMA = 2; // 2: screen / DOOH level SAC mapping, theatre status
+
 export interface Db {
+  schema: number;
   exhibitors: Exhibitor[];
   sacs: Sac[];
   theatres: Theatre[];
@@ -404,7 +408,7 @@ export function createSeed(): Db {
 
   const db: Db = {
     exhibitors, sacs, theatres, doohGroups, devices, companies, brands, users, targetGroups, media,
-    campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000
+    campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000, schema: DB_SCHEMA
   };
 
   // ---- campaigns, built through the same rules the API uses so the numbers agree.

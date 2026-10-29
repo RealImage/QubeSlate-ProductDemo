@@ -687,8 +687,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     // Only this SAC's groups are replaced; another SAC's displays in the same theatre are untouched.
     db().doohGroups = db().doohGroups.filter(g => !(g.theatreId === t.id && g.sacId === s.sac.id))
       .concat(req.body.groups.map(g => ({ ...g, id: g.id || id('DG'), theatreId: t.id, sacId: s.sac.id })));
+    // DOOH groups are part of the mapping the SAC's exhibitor list is derived from.
+    s.sac.exhibitorIds = exhibitorsOf(s.sac.id, db().theatres, db().doohGroups);
     audit(s, 'dooh.configure', 'theatre', t.id, `${req.body.groups.length} display groups`);
-    return { ...t, doohGroups: db().doohGroups.filter(g => g.theatreId === t.id && g.sacId === s.sac.id) };
+    // Return only this SAC's screens and groups, as /api/sac/theatres does, so split theatres stay isolated.
+    return { ...t, screens: t.screens.filter(x => x.sacId === s.sac.id), doohGroups: db().doohGroups.filter(g => g.theatreId === t.id && g.sacId === s.sac.id) };
   });
   r.get('/api/sac/proof-of-play', (req): ProofOfPlayRow[] => {
     const { sac } = sacOf(req);
@@ -711,14 +714,21 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
 
   // ================= admin =================
   const adminOf = (req: Req, permission?: Permission) => need(req, 'admin', permission);
-  /** Screens and theatres mapped to each SAC (all statuses), for list counts. */
+  /** Theatres (cinema or DOOH mapped) and cinema screens per SAC, all statuses, for list counts. */
   const mappedCounts = () => {
     const out = new Map<string, { theatres: Set<string>; screens: number }>();
+    const entry = (sacId: string) => {
+      let m = out.get(sacId);
+      if (!m) { m = { theatres: new Set<string>(), screens: 0 }; out.set(sacId, m); }
+      return m;
+    };
     for (const t of db().theatres) for (const sc of t.screens) {
       if (!sc.sacId) continue;
-      const m = out.get(sc.sacId) ?? { theatres: new Set<string>(), screens: 0 };
-      m.theatres.add(t.id); m.screens += 1; out.set(sc.sacId, m);
+      const m = entry(sc.sacId);
+      m.theatres.add(t.id); m.screens += 1;
     }
+    // A theatre where the SAC only has DOOH still counts as one of its theatres (screens stay cinema-only).
+    for (const g of db().doohGroups) if (g.sacId) entry(g.sacId).theatres.add(g.theatreId);
     return out;
   };
   const sacRow = (s: Db['sacs'][number], counts = mappedCounts()): SacRow => ({

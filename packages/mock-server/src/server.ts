@@ -6,13 +6,21 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildRoutes, createSeed } from './routes';
-import type { Db } from './seed';
+import { DB_SCHEMA, type Db } from './seed';
 
 const PORT = Number(process.env.SLATE_API_PORT ?? 4100);
 const FILE = resolve(dirname(fileURLToPath(import.meta.url)), '../.data', PORT === 4100 ? 'db.json' : `db-${PORT}.json`);
 const fresh = process.argv.includes('--fresh');
 
-const state: { db: Db } = { db: !fresh && existsSync(FILE) ? JSON.parse(readFileSync(FILE, 'utf8')) : createSeed() };
+const load = (): Db => {
+  if (fresh || !existsSync(FILE)) return createSeed();
+  const saved = JSON.parse(readFileSync(FILE, 'utf8')) as Partial<Db>;
+  if (saved.schema === DB_SCHEMA) return saved as Db;
+  // Data from an older version lacks fields the rules depend on (e.g. screen-to-SAC mapping); start over.
+  console.warn(`Mock data in ${FILE} is schema ${saved.schema ?? 1}, expected ${DB_SCHEMA}: reseeding.`);
+  return createSeed();
+};
+const state: { db: Db } = { db: load() };
 const persist = () => {
   mkdirSync(dirname(FILE), { recursive: true });
   writeFileSync(FILE, JSON.stringify(state.db));
