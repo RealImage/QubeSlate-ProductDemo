@@ -1,73 +1,76 @@
-# Welcome to your Lovable project
+# Qube Slate
 
-## Project info
+Cinema and DOOH advertising planning: advertisers compose campaigns, deliver them to theatres, and see proof of play from theatre play logs.
 
-**URL**: https://lovable.dev/projects/0217244b-5a6c-4775-9816-e55715f833ba
+This repo holds the three Slate portals and the code they share.
 
-## How can I edit this code?
+| Portal | Who | Dev URL |
+| --- | --- | --- |
+| `apps/advertiser` | Advertisers, agencies, brands. Company + KYC, target groups, media, campaign wizard, checkout, delivery. | http://localhost:5173 |
+| `apps/sac` | Screen Advertising Consolidators (sales houses that sell exhibitor inventory). Approvals (KYC, brands, campaigns), advertiser billing terms, inventory and DOOH configuration, proof of play. | http://localhost:5174 |
+| `apps/admin` | Qube. Tenant onboarding (exhibitors, SACs), payment gateways, network and play-log ingestion health, read-only oversight, audited support sessions. | http://localhost:5175 |
 
-There are several ways of editing your application.
+## Model
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/0217244b-5a6c-4775-9816-e55715f833ba) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Exhibitor ──owns──▶ Theatres · Screens · DOOH display groups · Devices (play logs)
+    ▲
+    │ sells inventory of (1..n)
+   SAC ──classifies──▶ Advertiser: Card / Prepaid  → pays at checkout via the SAC's gateway, then SAC approval (reject = refund)
+    │                              Contracted      → submits for SAC approval, checked against a contract credit limit
+    └──approves──▶ KYC · Brands · Campaigns
+Advertiser (belongs to one SAC) ──▶ Target groups · Media · Campaigns ─▶ Placements ─▶ Delivery
 ```
 
-**Edit a file directly in GitHub**
+Qube supplies the software and payment-gateway integration; the SAC invoices its advertisers.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Layout
 
-**Use GitHub Codespaces**
+```
+apps/advertiser   apps/sac   apps/admin        React 19 + Vite + React Router + React Query
+packages/domain   entities and business rules (pure TS, unit tested)
+packages/api      API contracts, typed client per portal, session provider
+packages/ui       prefab-ui entry point, app shell, Slate layout kit
+packages/mock-server   Node mock of the Slate API shared by all portals
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Run it
 
-## What technologies are used for this project?
+```bash
+npm install
+npm run dev          # mock API on :4100 + all three portals
+```
 
-This project is built with:
+Or one at a time: `npm run dev:api`, `npm run dev:advertiser`, `npm run dev:sac`, `npm run dev:admin`.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Sign-in is mocked: pick a seeded account. The **Prototype · Account** switcher in the top bar changes user without signing out. Mock data persists in `packages/mock-server/.data/db.json`; delete it (or run `npm run fresh -w @slate/mock-server`) to reseed. Seed dates are relative to today, so there are always live, scheduled and completed campaigns.
 
-## How can I deploy this project?
+To point a portal at a real backend, set `VITE_API_URL` (or `SLATE_API_ORIGIN` for the dev proxy).
 
-Simply open [Lovable](https://lovable.dev/projects/0217244b-5a6c-4775-9816-e55715f833ba) and click on Share -> Publish.
+## Checks
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run typecheck    # tsc -b across every package
+npm run lint         # oxlint
+npm test             # vitest: domain rules
+npm run test:e2e     # Playwright smoke test per portal
+```
 
-Yes, you can!
+Before the first e2e run, install Playwright's browser (on Linux, add `--with-deps` for the system libraries):
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```bash
+npx playwright install chromium
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Design system
+
+`@slate/ui` re-exports [prefab-ui](https://github.com/RealImage/prefab-ui) `v1.0.0-beta.18`, vendored as `packages/ui/vendor/prefab-1.0.0-beta.18.tgz`. The tag's git install pins Node to exactly 24.13.1 and needs GitHub credentials; the tarball avoids both. To upgrade, pack a newer tag the same way and update `packages/ui/package.json`.
+
+The SAC app still carries the earlier vendored Qube design-system CSS (`packages/ui/legacy-ds`) for pages not yet moved to prefab components.
+
+## Not yet real
+
+- Auth: header-based mock session. Replace `packages/api/src/session.tsx` + `client.ts` with SSO; impersonation must use a signed short-lived token.
+- Payment gateway: checkout is a stub that records a payment and raises an invoice.
+- Rate cards: fixed constants in `packages/domain/src/pricing.ts`.
+- Orientation-based placement eligibility for DOOH media: open product question, not enforced.
