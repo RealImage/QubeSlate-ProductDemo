@@ -42,7 +42,7 @@ type Row = { month: number; values: (number | null)[] };
 function ActiveScreensCard({ sac }: { sac: SacRow }) {
   const q = useQuery({ queryKey: ['admin', 'sac-active-screens', sac.id], queryFn: () => adminApi.sacActiveScreens(sac.id) });
   return (
-    <Card flush title="Active screens — last 36 months" description="Active screens mapped to this SAC at each month’s close. Read-only.">
+    <Card flush title="Active screens — last 3 calendar years" description="Active screens mapped to this SAC at each month’s close, January to December by year. Read-only.">
       <Query q={q} rows={6}>
         {grid => {
           const columns: Column<Row>[] = [

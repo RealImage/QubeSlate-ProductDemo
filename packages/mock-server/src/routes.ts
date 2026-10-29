@@ -3,14 +3,14 @@ import {
   resolveReach, rollupStatus, statusOnApproval, submissionPath, summarizeDelivery, summarizeTargetGroup, validateDoohGroup,
   visibleTheatres, withGst, CampaignRuleError, TransitionError, placementActions, sacInventory, exhibitorsOf,
   BILLING_CURRENCIES, BILLING_FREQUENCIES, BILLING_METHODS, CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, addGateway, checkoutGateway, cleanContacts,
-  cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, normaliseSacHost, removeGateway,
+  cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, primaryColourError, normaliseSacHost, removeGateway,
   sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError,
   type Campaign, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
   AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
   Dashboard, DecisionInput, DeliveryBreakdown, DemoAccount, DeviceRow, DoohConfigInput, ExhibitorInput, ExhibitorRow,
-  GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacsPage, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
+  GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacSortKey, SacsPage, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
   PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, SacSyncResult, SacTheatreRow, SacTheatresPage, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
 } from '@slate/api/contracts';
 import { forbidden, HttpError, invalid, notFound, Router, type Req } from './http';
@@ -792,17 +792,29 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     audit(s, 'exhibitor.create', 'exhibitor', e.id, e.name);
     return e;
   });
+  const SAC_SORTS: Record<SacSortKey, true> = {
+    name: true, theatres: true, screens: true, advertisers: true, users: true, connectedTheatres: true, status: true, createdAt: true, updatedAt: true, updatedBy: true
+  };
   r.get('/api/admin/sacs', (req): SacsPage => {
     adminOf(req);
     const q = (req.query.get('q') ?? '').trim().toLowerCase();
     const location = (req.query.get('location') ?? '').trim().toLowerCase();
     const pageSize = Math.min(1000, Math.max(1, Number(req.query.get('pageSize')) || 100));
+    const asked = req.query.get('sort') ?? '';
+    const sort: SacSortKey = Object.hasOwn(SAC_SORTS, asked) ? asked as SacSortKey : 'name';
+    const dir = req.query.get('dir') === 'desc' ? -1 : 1;
+    const counts = mappedCounts();
+    // Sort the whole result before paging, so a column sort orders every SAC, not just the current page.
     const matching = db().sacs
       .filter(x => (!q || x.name.toLowerCase().includes(q)) && (!location || `${x.location.city} ${x.location.country}`.toLowerCase().includes(location)))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .map(x => sacRow(x, counts))
+      .sort((a, b) => {
+        const x = a[sort] ?? '', y = b[sort] ?? '';
+        const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
+        return (r || a.name.localeCompare(b.name)) * dir;
+      });
     const page = Math.min(Math.max(1, Number(req.query.get('page')) || 1), Math.max(1, Math.ceil(matching.length / pageSize)));
-    const counts = mappedCounts();
-    return { rows: matching.slice((page - 1) * pageSize, page * pageSize).map(x => sacRow(x, counts)), total: matching.length, page, pageSize };
+    return { rows: matching.slice((page - 1) * pageSize, page * pageSize), total: matching.length, page, pageSize };
   });
 
   type Actor = ReturnType<typeof adminOf>;
@@ -856,6 +868,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     for (const [label, v] of [['Header', b.headerColor], ['Primary', b.primaryColor], ['Secondary', b.secondaryColor]] as const) {
       if (!isHexColour(v ?? '')) throw invalid(`${label} colour must be a #RRGGBB hex value.`);
     }
+    const primaryError = primaryColourError(b.primaryColor);
+    if (primaryError) throw invalid(`Primary colour: ${primaryError}`);
     if (b.logo !== null && b.logo !== undefined) {
       if (!/^data:image\/(png|jpeg|svg\+xml)[;,]/.test(b.logo)) throw invalid('The logo must be a PNG, SVG or JPEG image.');
       if (b.logo.length > Math.ceil((LOGO_MAX_BYTES * 4) / 3) + 64) throw invalid('The logo must be 200 KB or smaller.');

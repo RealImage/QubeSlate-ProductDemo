@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addGateway, checkoutGateway, cleanTaxIds, contrastText, gatewayError, isHexColour, isValidSacHost, rampScreenHistory, removeGateway,
+  addGateway, checkoutGateway, cleanTaxIds, contrastText, defaultBranding, gatewayError, isHexColour, primaryColourError, isValidSacHost, rampScreenHistory, removeGateway,
   sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError
 } from './index';
 import type { PaymentGateway } from './types';
@@ -95,6 +95,17 @@ describe('SAC setup validation', () => {
     expect(cleanTaxIds([{ name: ' ', value: '' }, { name: 'GSTIN', value: ' 06X ' }])).toEqual([{ name: 'GSTIN', value: '06X' }]);
     expect(taxIdsError([{ name: 'GSTIN', value: '' }])).toMatch(/both/);
     expect(taxIdsError([{ name: '', value: '' }])).toBeNull();
+  });
+});
+
+describe('primary colour contrast', () => {
+  it('rejects primaries too light for white text and links on white', () => {
+    expect(primaryColourError('#ffffff')).toMatch(/Too light/);
+    expect(primaryColourError('#f2a900')).toMatch(/Too light/);
+    expect(primaryColourError('#fff')).toMatch(/hex/);
+  });
+  it('accepts the Slate default and the seeded SAC primaries', () => {
+    for (const c of [defaultBranding().primaryColor, '#d4202f', '#0a2540']) expect(primaryColourError(c)).toBeNull();
   });
 });
 

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { adminApi, type SacRow } from '@slate/api';
 import {
-  CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, LOGO_TYPES, cleanContacts, contactError, contrastText, defaultBranding, isEmail, isHexColour,
+  CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, LOGO_TYPES, cleanContacts, contactError, contrastText, defaultBranding, isEmail, isHexColour, primaryColourError,
   normaliseSacHost, orDash, sacUrlError, type SacContact, type SacContactRole
 } from '@slate/domain';
 import { Button, Card, FileDropzone, Input, KeyValue, slateLogoUrl } from '@slate/ui';
@@ -89,13 +89,14 @@ function DetailsDialog({ sac, onClose }: { sac: SacRow; onClose: () => void }) {
 
 // ---------- SAC setup ----------
 
-function ColourField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function ColourField({ label, value, onChange, check }: { label: string; value: string; onChange: (v: string) => void; check?: (v: string) => string | null }) {
   const ok = isHexColour(value);
+  const error = !ok ? 'Use a #RRGGBB hex value.' : check?.(value) ?? null;
   return (
     <div className="sl-row" style={{ alignItems: 'flex-end', flexWrap: 'nowrap' }}>
       <div style={{ flex: 1 }}>
-        <Input label={label} value={value} onChange={v => onChange(v.trim())} placeholder="#084782" isInvalid={!ok}
-          errorMessage={!ok ? 'Use a #RRGGBB hex value.' : undefined} />
+        <Input label={label} value={value} onChange={v => onChange(v.trim())} placeholder="#084782" isInvalid={!!error}
+          errorMessage={error ?? undefined} />
       </div>
       <input type="color" aria-label={`${label} picker`} value={ok ? value.toLowerCase() : '#000000'} onChange={e => onChange(e.target.value)}
         style={{ width: 40, height: 36, padding: 2, border: '1px solid var(--sl-control)', borderRadius: 6, background: '#fff', cursor: 'pointer' }} />
@@ -142,7 +143,7 @@ function SetupDialog({ sac, others, onClose }: { sac: SacRow; others: SacRow[]; 
 
   const urlError = sacUrlError(f.url, others);
   const emailBad = f.supportEmail.trim() !== '' && !isEmail(f.supportEmail);
-  const colours = [f.headerColor, f.primaryColor, f.secondaryColor].every(isHexColour);
+  const colours = [f.headerColor, f.primaryColor, f.secondaryColor].every(isHexColour) && !primaryColourError(f.primaryColor);
   const valid = !urlError && !emailBad && colours;
   const defaults = defaultBranding();
 
@@ -169,7 +170,7 @@ function SetupDialog({ sac, others, onClose }: { sac: SacRow; others: SacRow[]; 
         isInvalid={emailBad} errorMessage={emailBad ? 'Enter a valid email address.' : undefined} description={`Leave blank to use ${DEFAULT_SUPPORT_EMAIL}.`} />
       <div className="sl-grid sl-grid--3">
         <ColourField label="Header colour" value={f.headerColor} onChange={set('headerColor')} />
-        <ColourField label="Primary colour" value={f.primaryColor} onChange={set('primaryColor')} />
+        <ColourField label="Primary colour" value={f.primaryColor} onChange={set('primaryColor')} check={primaryColourError} />
         <ColourField label="Secondary colour" value={f.secondaryColor} onChange={set('secondaryColor')} />
       </div>
       <div><Button variant="link" size="small" onPress={() => setF(p => ({ ...p, headerColor: defaults.headerColor, primaryColor: defaults.primaryColor, secondaryColor: defaults.secondaryColor }))}>Reset colours to Slate</Button></div>
