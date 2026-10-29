@@ -11,3 +11,4 @@ export * from './Tabs';
 export * from './AppShell';
 export * from './SignIn';
 export * from './ConfirmDialog';
+export { default as slateLogoUrl } from '../assets/QubeSlate.svg';

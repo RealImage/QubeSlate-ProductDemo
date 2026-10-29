@@ -2,14 +2,35 @@
 import type {
   AuditEvent, BillingType, Brand, Campaign, CampaignDecision, CampaignType, Channel, ChecklistItem, Company, Contract,
   DeliveryRecord, DeliverySummary, Device, DoohGroup, Exhibitor, IngestionStatus, InventoryAccess, Invoice, Media,
-  PaymentGatewayConfig, Placement, PlacementAction, PlacementPosition, Sac, ScreenFormat, TargetGroup, Theatre, TheatreStatus, TimeBand, User
+  PaymentGateway, Placement, PlacementAction, PlacementPosition, Sac, SacBillingProfile, SacBranding, SacCollectionsProfile, SacContact, SacContactRole,
+  ScreenFormat, ScreenHistoryGrid, TargetGroup, TaxId, Theatre, TheatreStatus, TimeBand, User
 } from '@slate/domain';
+
+/** The SAC as an advertiser or SAC user sees it: identity, branding and whether online payment works. No billing or key material. */
+export interface SessionSac {
+  id: string;
+  name: string;
+  legalName: string;
+  url: string;
+  supportEmail: string;
+  branding: SacBranding;
+  gateway: { provider: PaymentGateway['provider']; mode: PaymentGateway['mode']; enabled: boolean } | null;
+}
+
+/** Public lookup behind a registration link (`?sac=<subdomain>`). */
+export interface PublicSac {
+  name: string;
+  legalName: string;
+  subdomain: string;
+  supportEmail: string;
+  branding: SacBranding;
+}
 
 export interface Session {
   user: User;
   /** Set when a Qube admin is acting as this user. */
   impersonator: User | null;
-  org: { kind: 'company'; company: Company; sac: Sac } | { kind: 'sac'; sac: Sac } | { kind: 'qube' };
+  org: { kind: 'company'; company: Company; sac: SessionSac } | { kind: 'sac'; sac: SessionSac } | { kind: 'qube' };
 }
 
 export interface DemoAccount {
@@ -133,8 +154,9 @@ export interface BillingOverview {
   billingType: BillingType | null;
   contract: Contract | null;
   outstanding: number;
-  sac: Pick<Sac, 'name' | 'legalName' | 'gstin' | 'supportEmail'>;
-  gateway: { provider: PaymentGatewayConfig['provider']; enabled: boolean; mode: PaymentGatewayConfig['mode'] } | null;
+  sac: Pick<Sac, 'name' | 'legalName' | 'supportEmail'> & { taxIds: TaxId[] };
+  /** The SAC's default gateway; null when the company is not a card advertiser or the SAC has none. */
+  gateway: { provider: PaymentGateway['provider']; enabled: boolean; mode: PaymentGateway['mode'] } | null;
 }
 
 export interface InvoiceRow extends Invoice {
@@ -223,17 +245,56 @@ export interface SacRow extends Sac {
   advertisers: number;
   users: number;
   bookedValue: number;
+  /** Active theatres of this SAC with at least one Qube device online right now. */
+  connectedTheatres: number;
 }
 
+export interface SacsQuery {
+  /** Matches SAC name. */
+  q?: string;
+  /** Matches city or country. */
+  location?: string;
+  sort?: SacSortKey;
+  dir?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+/** Columns the SACs list can sort by on the server (applied before paging). */
+export type SacSortKey = 'name' | 'theatres' | 'screens' | 'advertisers' | 'users' | 'connectedTheatres' | 'status' | 'createdAt' | 'updatedAt' | 'updatedBy';
+
+export interface SacsPage {
+  rows: SacRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** Onboarding: the minimum to create the SAC and invite its first admin. Everything else is filled in from the SAC page. */
 export interface SacInput {
   name: string;
   legalName: string;
-  slug: string;
-  gstin: string;
+  url: string;
   supportEmail: string;
   adminName: string;
   adminEmail: string;
 }
+
+export interface SacDetailsInput { name: string; legalName: string; city: string; country: string }
+
+export interface SacSetupInput extends SacBranding {
+  url: string;
+  supportEmail: string;
+}
+
+export type SacContactsInput = Record<SacContactRole, SacContact[]>;
+export type SacBillingInput = SacBillingProfile;
+export type SacCollectionsInput = SacCollectionsProfile;
+
+export interface SacStatusInput { status: Sac['status'] }
+
+/** Active mapped screens by month for the last 3 calendar years. */
+export type SacActiveScreens = ScreenHistoryGrid;
 
 export interface SacTheatreRow {
   theatreId: string;
@@ -289,10 +350,10 @@ export interface ExhibitorInput {
 }
 
 export interface GatewayInput {
-  provider: PaymentGatewayConfig['provider'];
-  mode: PaymentGatewayConfig['mode'];
+  provider: PaymentGateway['provider'];
+  mode: PaymentGateway['mode'];
   merchantId: string;
-  /** Only sent when rotating. Never returned. */
+  /** Only sent when entering or rotating a key. Never returned. */
   secretKey: string | null;
   enabled: boolean;
 }

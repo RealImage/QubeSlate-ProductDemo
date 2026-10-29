@@ -1,17 +1,20 @@
 import {
+  DEFAULT_SUPPORT_EMAIL, defaultBranding, emptyContacts, rampScreenHistory,
   DOOH_TYPES, exhibitorsOf, sacInventory, quotePlacement, resolveReach, statusOnApproval, withGst,
   type AuditEvent, type Brand, type Campaign, type Company, type DeliveryRecord, type Device, type DoohGroup,
-  type CinemaSpot, type Exhibitor, type Invoice, type Media, type Placement, type PlacementPosition, type Sac, type Screen,
+  type CinemaSpot, type Exhibitor, type Invoice, type Media, type PaymentGateway, type Placement, type PlacementPosition, type Sac, type SacContact, type Screen, type ScreenHistory,
   type TargetGroup, type Theatre, type User
 } from '@slate/domain';
 
 /** Bump when the persisted shape changes; the server reseeds data written by an older version. */
-export const DB_SCHEMA = 2; // 2: screen / DOOH level SAC mapping, theatre status
+export const DB_SCHEMA = 3; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status
 
 export interface Db {
   schema: number;
   exhibitors: Exhibitor[];
   sacs: Sac[];
+  /** Active mapped screens by month, per SAC id. */
+  screenHistory: Record<string, ScreenHistory>;
   theatres: Theatre[];
   doohGroups: DoohGroup[];
   devices: Device[];
@@ -257,37 +260,104 @@ const docs = (status: 'verified' | 'uploaded' | 'missing'): Company['kycDocs'] =
 export function createSeed(): Db {
   const { exhibitors, theatres, doohGroups, devices } = buildNetwork();
 
-  // Payment gateways here are India-only (Razorpay / PayU / CCAvenue); other markets stay on the stub until a local gateway is added.
-  const sac = (id: string, name: string, legalName: string, slug: string, taxId: string, exhibitorIds: string[], status: Sac['status'], ago: number,
-    gw?: Omit<Sac['gateway'], 'updatedAt'>): Sac => ({
-    id, name, legalName, slug, gstin: taxId, supportEmail: `adsales@${slug}.example`, exhibitorIds, lastSyncedAt: null, status, createdAt: at(ago),
-    gateway: { ...(gw ?? { provider: 'stub' as const, mode: 'test' as const, merchantId: '', keyHint: '', enabled: false }), updatedAt: at(ago + 5) }
+  // Payment gateways here are India-only (Razorpay / PayU / CCAvenue); other markets have none until a local gateway is added.
+  const gw = (id: string, provider: PaymentGateway['provider'], mode: PaymentGateway['mode'], merchantId: string, keyHint: string, enabled: boolean, isDefault: boolean,
+    enabledAgo: number | null, activatedAgo: number | null = null): PaymentGateway => ({
+    id, provider, mode, merchantId, keyHint, enabled, isDefault,
+    enabledOn: enabledAgo === null ? null : at(enabledAgo), activatedOn: activatedAgo === null ? null : at(activatedAgo), updatedAt: at(enabledAgo ?? -30)
   });
+  const contact = (name: string, email: string, phone = ''): SacContact => ({ name, email, phone });
+  // Realistic but partial: each SAC leaves some fields blank so the read views show `--`.
+  type SacSeed = Partial<Pick<Sac, 'supportEmail' | 'branding' | 'contacts' | 'billing' | 'collections' | 'gateways'>>;
+  const EDITORS = ['Harshit Thakkar', 'Meera Iyer'];
+  const sac = (id: string, name: string, legalName: string, host: string, city: string, country: string, exhibitorIds: string[], status: Sac['status'], ago: number, extra: SacSeed = {}): Sac => ({
+    id, name, legalName, location: { city, country }, url: host, exhibitorIds, lastSyncedAt: null, status, createdAt: at(ago),
+    updatedAt: at(Math.min(-1, Math.round(ago * 0.3))), updatedBy: EDITORS[id.length % 2]!,
+    supportEmail: extra.supportEmail ?? DEFAULT_SUPPORT_EMAIL,
+    branding: extra.branding ?? defaultBranding(),
+    contacts: { ...emptyContacts(), ...extra.contacts },
+    billing: extra.billing ?? { companyName: '', address: '', taxIds: [], method: null, billingDay: null, frequency: null, currency: null },
+    collections: extra.collections ?? { companyName: '', location: '', phone: '', email: '', taxIds: [] },
+    gateways: extra.gateways ?? []
+  });
+  const pvrLogo = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="168" height="32" viewBox="0 0 168 32"><rect width="32" height="32" rx="6" fill="#d4202f"/>' +
+    '<text x="16" y="22" font-family="Arial" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">P</text>' +
+    '<text x="42" y="22" font-family="Arial" font-size="15" font-weight="700" fill="#14213d">PVR INOX Media</text></svg>');
   const sacs: Sac[] = [
-    {
-      id: 'SAC-PVRM', name: 'PVR INOX Media Sales', legalName: 'PVR INOX Ltd (Media Sales)', slug: 'pvrinox-media',
-      gstin: '06AAACP4526D1Z1', supportEmail: 'adsales@pvrinox.example', exhibitorIds: [], lastSyncedAt: null, status: 'active', createdAt: at(-380),
-      gateway: { provider: 'razorpay', mode: 'test', merchantId: 'rzp_test_PVRM01', keyHint: '••••Q8x1', enabled: true, updatedAt: at(-20) }
-    },
-    {
-      id: 'SAC-QCN', name: 'Qube Cinema Network', legalName: 'Qube Cinema Technologies Pvt Ltd (Cinema Network)', slug: 'qube-cinema-network',
-      gstin: '33AABCQ1234M1Z5', supportEmail: 'adsales@qubecinemanetwork.example', exhibitorIds: [], lastSyncedAt: null, status: 'active', createdAt: at(-200),
-      gateway: { provider: 'payu', mode: 'test', merchantId: 'payu_test_QCN', keyHint: '••••a91c', enabled: false, updatedAt: at(-90) }
-    },
-    sac('SAC-CPAI', 'Cinépolis Advertising India', 'Cinépolis India Pvt Ltd (Advertising)', 'cinepolis-advertising-in', '27AAECC4410R1ZQ', ['EX-CPI'], 'active', -240,
-      { provider: 'ccavenue', mode: 'test', merchantId: 'ccav_test_CPAI', keyHint: '••••7d20', enabled: true }),
-    sac('SAC-CMC', 'CMC Media', 'CMC Media B.V.', 'cmc-media', 'NL859214378B01', ['EX-PTH'], 'active', -130),
-    sac('SAC-BRF', 'Brightfish Media', 'Brightfish NV', 'brightfish', 'BE0456812937', ['EX-KIN'], 'active', -125),
-    sac('SAC-BRD', 'Broad Media', 'Broad Media Co., Ltd.', 'broad-media', 'T4011001049183', ['EX-TOH'], 'onboarding', -20),
-    sac('SAC-CPAD', 'Cinépolis Advertising Indonesia', 'PT Cinemaxx Global Pasifik (Advertising)', 'cinepolis-advertising-id', '01.234.567.8-091.000', ['EX-CPID'], 'onboarding', -15),
-    sac('SAC-SVM', 'Screenvision Media', 'Screenvision Media LLC', 'screenvision', '13-4129755', ['EX-HRK', 'EX-CMK'], 'active', -200),
-    sac('SAC-SDL', 'Screen Dollars', 'Screen Dollars Inc.', 'screen-dollars', '47-2913385', ['EX-MRC'], 'active', -110),
-    sac('SAC-NCM', 'National CineMedia', 'National CineMedia LLC', 'ncm', '20-5665602', ['EX-AMC', 'EX-CMK'], 'active', -210)
+    sac('SAC-PVRM', 'PVR INOX Media Sales', 'PVR INOX Ltd (Media Sales)', 'pvrinox-media.slate.example', 'Gurugram', 'India', [], 'active', -380, {
+      supportEmail: 'adsales@pvrinox.example',
+      branding: { headerColor: '#14213d', primaryColor: '#d4202f', secondaryColor: '#f2a900', logo: pvrLogo },
+      contacts: {
+        operations_manager: [contact('Rohan Mehta', 'rohan.mehta@pvrinox.example', '+91 98100 11223'), contact('Sana Qureshi', 'sana.qureshi@pvrinox.example', '+91 98100 33445')],
+        billing_manager: [contact('Anita Kapoor', 'anita.kapoor@pvrinox.example', '+91 98100 55667')],
+        account_manager: [contact('Harshit Thakkar', 'harshit.thakkar@qubecinema.com', '+91 98840 20202')]
+      },
+      billing: {
+        companyName: 'PVR INOX Ltd', address: 'Block 4, DLF Corporate Park, Gurugram 122002, Haryana, India',
+        taxIds: [{ name: 'GSTIN', value: '06AAACP4526D1Z1' }, { name: 'PAN', value: 'AAACP4526D' }],
+        method: 'per_screen_month', billingDay: 5, frequency: 'monthly', currency: 'INR'
+      },
+      collections: {
+        companyName: 'PVR INOX Ltd (Media Sales)', location: 'Gurugram, India', phone: '+91 124 470 7000', email: 'accounts.media@pvrinox.example',
+        taxIds: [{ name: 'GSTIN', value: '06AAACP4526D1Z1' }]
+      },
+      gateways: [gw('GW-1', 'razorpay', 'test', 'rzp_test_PVRM01', '••••Q8x1', true, true, -60), gw('GW-2', 'payu', 'test', 'payu_test_PVRM', '••••m4p2', false, false, null)]
+    }),
+    sac('SAC-QCN', 'Qube Cinema Network', 'Qube Cinema Technologies Pvt Ltd (Cinema Network)', 'qcn.slate.example', 'Chennai', 'India', [], 'active', -200, {
+      contacts: { operations_manager: [contact('Priya Raman', 'priya.raman@qubecinema.com')], account_manager: [contact('Harshit Thakkar', 'harshit.thakkar@qubecinema.com')], billing_manager: [] },
+      billing: { companyName: 'Qube Cinema Technologies Pvt Ltd', address: '', taxIds: [{ name: 'GSTIN', value: '33AABCQ1234M1Z5' }], method: 'flat_monthly', billingDay: 1, frequency: 'quarterly', currency: 'INR' },
+      collections: { companyName: 'Qube Cinema Technologies Pvt Ltd', location: 'Chennai, India', phone: '', email: 'adsales@qubecinemanetwork.example', taxIds: [{ name: 'GSTIN', value: '33AABCQ1234M1Z5' }] },
+      gateways: [gw('GW-3', 'payu', 'test', 'payu_test_QCN', '••••a91c', false, true, null)]
+    }),
+    sac('SAC-CPAI', 'Cinépolis Advertising India', 'Cinépolis India Pvt Ltd (Advertising)', 'cinepolis-in.slate.example', 'Mumbai', 'India', ['EX-CPI'], 'active', -240, {
+      supportEmail: 'ads.support@cinepolis.example',
+      branding: { headerColor: '#0a2540', primaryColor: '#0a2540', secondaryColor: '#e4572e', logo: null },
+      contacts: { operations_manager: [contact('Karan Joshi', 'karan.joshi@cinepolis.example', '+91 99200 77881')], billing_manager: [contact('Meera Nair', 'meera.nair@cinepolis.example')], account_manager: [] },
+      billing: { companyName: 'Cinépolis India Pvt Ltd', address: '1st Floor, Lotus Link Square, Andheri West, Mumbai 400053, India', taxIds: [{ name: 'GSTIN', value: '27AAECC4410R1ZQ' }], method: 'per_screen_year', billingDay: 15, frequency: 'annually', currency: 'INR' },
+      collections: { companyName: 'Cinépolis India Pvt Ltd (Advertising)', location: 'Mumbai, India', phone: '+91 22 4000 1200', email: '', taxIds: [{ name: 'GSTIN', value: '27AAECC4410R1ZQ' }] },
+      gateways: [gw('GW-4', 'ccavenue', 'test', 'ccav_test_CPAI', '••••7d20', true, true, -100)]
+    }),
+    sac('SAC-CMC', 'CMC Media', 'CMC Media B.V.', 'cmc-media.slate.example', 'Amsterdam', 'Netherlands', ['EX-PTH'], 'active', -130, {
+      contacts: { operations_manager: [contact('Daan de Vries', 'daan@cmcmedia.example')], billing_manager: [], account_manager: [] },
+      billing: { companyName: 'CMC Media B.V.', address: 'Herengracht 450, 1017 CA Amsterdam, Netherlands', taxIds: [{ name: 'VAT', value: 'NL859214378B01' }], method: 'flat_annual', billingDay: 10, frequency: 'annually', currency: 'EUR' },
+      collections: { companyName: 'CMC Media B.V.', location: 'Amsterdam, Netherlands', phone: '', email: 'finance@cmcmedia.example', taxIds: [{ name: 'VAT', value: 'NL859214378B01' }] }
+    }),
+    sac('SAC-BRF', 'Brightfish Media', 'Brightfish NV', 'brightfish.slate.example', 'Brussels', 'Belgium', ['EX-KIN'], 'active', -125, {
+      billing: { companyName: 'Brightfish NV', address: '', taxIds: [{ name: 'VAT', value: 'BE0456812937' }], method: 'per_screen_month', billingDay: 20, frequency: 'monthly', currency: 'EUR' },
+      collections: { companyName: 'Brightfish NV', location: 'Brussels, Belgium', phone: '', email: '', taxIds: [{ name: 'VAT', value: 'BE0456812937' }] }
+    }),
+    sac('SAC-BRD', 'Broad Media', 'Broad Media Co., Ltd.', 'broad-media.slate.example', 'Tokyo', 'Japan', ['EX-TOH'], 'onboarding', -20, {
+      contacts: { account_manager: [contact('Harshit Thakkar', 'harshit.thakkar@qubecinema.com')], operations_manager: [], billing_manager: [] },
+      billing: { companyName: 'Broad Media Co., Ltd.', address: '', taxIds: [], method: 'flat_monthly', billingDay: null, frequency: null, currency: 'JPY' }
+    }),
+    sac('SAC-CPAD', 'Cinépolis Advertising Indonesia', 'PT Cinemaxx Global Pasifik (Advertising)', 'cinepolis-id.slate.example', 'Jakarta', 'Indonesia', ['EX-CPID'], 'onboarding', -15, {
+      billing: { companyName: '', address: '', taxIds: [{ name: 'NPWP', value: '01.234.567.8-091.000' }], method: null, billingDay: null, frequency: null, currency: 'IDR' }
+    }),
+    sac('SAC-SVM', 'Screenvision Media', 'Screenvision Media LLC', 'screenvision.slate.example', 'New York', 'USA', ['EX-HRK', 'EX-CMK'], 'active', -200, {
+      supportEmail: 'support@screenvision.example',
+      contacts: { operations_manager: [contact('Jordan Blake', 'jordan.blake@screenvision.example', '+1 212 555 0114')], billing_manager: [contact('Casey Moreno', 'casey.moreno@screenvision.example', '+1 212 555 0177')], account_manager: [] },
+      billing: { companyName: 'Screenvision Media LLC', address: '1 Penn Plaza, New York, NY 10119, USA', taxIds: [{ name: 'EIN', value: '13-4129755' }], method: 'per_screen_month', billingDay: 1, frequency: 'monthly', currency: 'USD' },
+      collections: { companyName: 'Screenvision Media LLC', location: 'New York, USA', phone: '+1 212 555 0100', email: 'ar@screenvision.example', taxIds: [{ name: 'EIN', value: '13-4129755' }] }
+    }),
+    sac('SAC-SDL', 'Screen Dollars', 'Screen Dollars Inc.', 'screen-dollars.slate.example', 'Milwaukee', 'USA', ['EX-MRC'], 'active', -110, {
+      billing: { companyName: 'Screen Dollars Inc.', address: '', taxIds: [{ name: 'EIN', value: '47-2913385' }], method: 'flat_monthly', billingDay: 12, frequency: 'monthly', currency: 'USD' }
+    }),
+    sac('SAC-NCM', 'National CineMedia', 'National CineMedia LLC', 'ncm.slate.example', 'Centennial', 'USA', ['EX-AMC', 'EX-CMK'], 'active', -210, {
+      contacts: { operations_manager: [contact('Taylor Reed', 'taylor.reed@ncm.example', '+1 303 555 0142')], account_manager: [contact('Harshit Thakkar', 'harshit.thakkar@qubecinema.com')], billing_manager: [] },
+      billing: { companyName: 'National CineMedia LLC', address: '6300 S Syracuse Way, Centennial, CO 80111, USA', taxIds: [{ name: 'EIN', value: '20-5665602' }], method: 'per_screen_year', billingDay: 28, frequency: 'half_yearly', currency: 'USD' },
+      collections: { companyName: 'National CineMedia LLC', location: 'Centennial, USA', phone: '', email: 'billing@ncm.example', taxIds: [{ name: 'EIN', value: '20-5665602' }] }
+    })
   ];
   // What each SAC sells comes from the screen / DOOH mapping; its exhibitor list is derived from that.
+  const nowIso = new Date().toISOString();
+  const screenHistory: Db['screenHistory'] = {};
   for (const x of sacs) {
     x.exhibitorIds = exhibitorsOf(x.id, theatres, doohGroups);
     x.lastSyncedAt = x.status === 'onboarding' ? null : at(-1, 2);
+    // Onboarding SACs are not live yet, so they have no billed-screen history.
+    const active = sacInventory(x.id, theatres, doohGroups).reduce((n, t) => n + t.screens.length, 0);
+    screenHistory[x.id] = x.status === 'onboarding' ? {} : rampScreenHistory(x.createdAt, active, nowIso);
   }
 
   const companies: Company[] = [
@@ -407,7 +477,7 @@ export function createSeed(): Db {
   m('MD-11', 'BR-NWA', 'Northwind Air Summer 30s', 'CPL', 30, ['2D', '2K', 'Flat', '5.1'], 'ready', 60, 'Vikram Desai', ['Hindi', 'English']);
 
   const db: Db = {
-    exhibitors, sacs, theatres, doohGroups, devices, companies, brands, users, targetGroups, media,
+    exhibitors, sacs, screenHistory, theatres, doohGroups, devices, companies, brands, users, targetGroups, media,
     campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000, schema: DB_SCHEMA
   };
 

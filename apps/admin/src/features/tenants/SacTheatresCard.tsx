@@ -89,7 +89,7 @@ export function SacTheatresCard({ sac, canSync }: { sac: SacRow; canSync: boolea
   const filtered = q !== '' || chain !== ALL || location !== ALL || status !== ALL;
 
   return (
-    <Card flush title="Linked exhibitors"
+    <Card flush title="Exhibitors"
       description={d ? `${num(d.totals.theatres)} theatres (${num(d.totals.activeTheatres)} active) · ${num(d.totals.screens)} screens · ${num(d.totals.doohScreens)} DOOH screens · mapped in CinemaDB` : 'Theatres and screens mapped to this SAC in CinemaDB.'}
       actions={
         <span className="sl-row" style={{ flexWrap: 'nowrap' }}>

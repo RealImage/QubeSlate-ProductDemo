@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarMobileHeader, Button } from 'prefab';
 import { LogoutIcon } from 'prefab/icons';
-import { ROLE_LABEL } from '@slate/domain';
+import { contrastText, ROLE_LABEL, type SacBranding } from '@slate/domain';
 import { useSession, sessionStore } from '@slate/api';
 import { DevAccountSwitcher } from './SignIn';
 import slateLogo from '../assets/QubeSlate.svg';
@@ -22,20 +22,51 @@ function matchLength(leaf: NavLeaf, pathname: string) {
 }
 
 /**
+ * CSS custom properties that restyle a portal for one SAC: header colour on the top bar (black or white text by contrast),
+ * primary colour on the brand and product tokens, secondary colour for accents.
+ */
+export function brandStyle(brand: Pick<SacBranding, 'headerColor' | 'primaryColor' | 'secondaryColor'>): Record<string, string> {
+  const { headerColor: header, primaryColor: primary, secondaryColor: secondary } = brand;
+  return {
+    '--sl-brand': primary, '--fill-product': primary, '--text-product': primary, '--border-product': primary, '--icon-product': primary,
+    '--fill-nav-bar-selected': primary, '--sl-active-fill': `color-mix(in srgb, ${primary} 10%, white)`,
+    '--sl-secondary': secondary, '--sl-topbar-bg': header, '--sl-topbar-fg': contrastText(header)
+  };
+}
+
+/** Applies the brand to the document too, so dialogs and menus (rendered in portals outside the shell) match. */
+function useBrandOnDocument(vars: Record<string, string> | null) {
+  const key = vars ? JSON.stringify(vars) : '';
+  useEffect(() => {
+    if (!key) return;
+    const entries = Object.entries(JSON.parse(key) as Record<string, string>);
+    const root = document.documentElement;
+    entries.forEach(([k, v]) => root.style.setProperty(k, v));
+    return () => entries.forEach(([k]) => root.style.removeProperty(k));
+  }, [key]);
+}
+
+/**
  * Persistent left sidebar + top bar shared by every portal.
  * `portalLabel` sits beside the wordmark (ADVERTISER / SAC / ADMIN); `orgName` and `orgMeta` describe who is signed in.
+ * `brand` restyles the shell with a SAC's colours and logo.
  */
-export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra }: {
+export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, brand }: {
   nav: NavEntry[];
   portalLabel: string;
   orgName: ReactNode;
   orgMeta?: ReactNode;
   topbarExtra?: ReactNode;
+  brand?: SacBranding | null;
 }) {
   const { pathname } = useLocation();
   const { session, signOut, portal } = useSession();
   const [open, setOpen] = useState(true);
   const stored = sessionStore.get(portal);
+  const vars = brand ? brandStyle(brand) : null;
+  useBrandOnDocument(vars);
+  const logo = brand?.logo ?? null;
+  const logoAlt = logo ? 'SAC logo' : 'Qube Slate';
   // Only the most specific match is active, so /campaigns/rate-bias doesn't also light up /campaigns.
   const leaves = nav.flatMap(e => (isGroup(e) ? e.items : [e]));
   const best = Math.max(-1, ...leaves.map(l => matchLength(l, pathname)));
@@ -48,13 +79,13 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra }: {
   );
 
   return (
-    <div className="sl-shell">
-      <SidebarMobileHeader open={open} onOpenChange={setOpen}><img src={slateLogo} alt="Qube Slate" height={24} /></SidebarMobileHeader>
+    <div className="sl-shell" style={vars as CSSProperties | undefined}>
+      <SidebarMobileHeader open={open} onOpenChange={setOpen}><img src={logo ?? slateLogo} alt={logoAlt} height={24} className="sl-logo" /></SidebarMobileHeader>
       <Sidebar open={open} onOpenChange={setOpen}>
         <Sidebar.Header>
           {({ collapsed }) => collapsed
-            ? <img src={slateMark} alt="Qube Slate" width={28} />
-            : <span className="sl-brandmark"><img src={slateLogo} alt="Qube Slate" height={24} /><small>{portalLabel}</small></span>}
+            ? <img src={logo ?? slateMark} alt={logoAlt} width={28} className="sl-logo" />
+            : <span className="sl-brandmark"><img src={logo ?? slateLogo} alt={logoAlt} height={24} className="sl-logo" /><small>{portalLabel}</small></span>}
         </Sidebar.Header>
         <Sidebar.Nav>
           {nav.map(e => isGroup(e)
@@ -76,7 +107,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra }: {
             <Button size="small" variant="default" onPress={() => { sessionStore.set(portal, null); window.close(); signOut(); }}>End session</Button>
           </div>
         )}
-        <header className="sl-topbar">
+        <header className={vars ? 'sl-topbar sl-topbar--branded' : 'sl-topbar'}>
           <div className="sl-topbar__org"><strong>{orgName}</strong>{orgMeta && <span>{orgMeta}</span>}</div>
           <div className="sl-topbar__spacer" />
           {topbarExtra}

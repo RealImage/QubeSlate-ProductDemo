@@ -36,24 +36,74 @@ export interface Exhibitor {
 
 export type GatewayProvider = 'razorpay' | 'payu' | 'ccavenue' | 'stub';
 
-export interface PaymentGatewayConfig {
+/** One payment gateway a SAC collects through. Exactly one is the default when any exist. */
+export interface PaymentGateway {
+  id: string;
   provider: GatewayProvider;
   mode: 'test' | 'live';
   merchantId: string;
   /** Only the last 4 characters are ever returned by the API. */
   keyHint: string;
   enabled: boolean;
+  isDefault: boolean;
+  /** When it was last switched on. Null while disabled since creation. */
+  enabledOn: ISODateTime | null;
+  /** When it first went live (enabled in live mode). Null until then. */
+  activatedOn: ISODateTime | null;
   updatedAt: ISODateTime;
+}
+
+export interface TaxId { name: string; value: string }
+
+export interface SacContact { name: string; email: string; phone: string }
+export type SacContactRole = 'operations_manager' | 'billing_manager' | 'account_manager';
+
+export interface SacBranding {
+  /** #RRGGBB */
+  headerColor: string;
+  primaryColor: string;
+  secondaryColor: string;
+  /** Uploaded logo as a data URL; null means the Slate logo. */
+  logo: string | null;
+}
+
+export type BillingMethod = 'per_screen_month' | 'per_screen_year' | 'flat_monthly' | 'flat_annual';
+export type BillingFrequency = 'monthly' | 'quarterly' | 'half_yearly' | 'annually';
+export type BillingCurrency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'IDR';
+
+/** How Qube bills the SAC. Blank values render as `--`. */
+export interface SacBillingProfile {
+  companyName: string;
+  address: string;
+  taxIds: TaxId[];
+  method: BillingMethod | null;
+  /** Day of month, 1-28. */
+  billingDay: number | null;
+  frequency: BillingFrequency | null;
+  currency: BillingCurrency | null;
+}
+
+/** How the SAC collects from its advertisers. */
+export interface SacCollectionsProfile {
+  companyName: string;
+  location: string;
+  phone: string;
+  email: string;
+  taxIds: TaxId[];
 }
 
 export interface Sac {
   id: string;
   name: string;
   legalName: string;
-  /** Used for per-SAC branding and the advertiser portal host, e.g. pvr-media.slate.qube.example */
-  slug: string;
-  gstin: string;
+  location: { city: string; country: string };
+  /** Host of the SAC's advertiser portal, e.g. qcn.slate.com. Its first label is the SAC's identifier (see `sacSubdomain`). */
+  url: string;
   supportEmail: string;
+  branding: SacBranding;
+  contacts: Record<SacContactRole, SacContact[]>;
+  billing: SacBillingProfile;
+  collections: SacCollectionsProfile;
   /**
    * Derived, never edited: exhibitors that have at least one screen or DOOH group mapped to this SAC.
    * The mapping itself lives on screens and DOOH groups and comes from CinemaDB (see `lastSyncedAt`).
@@ -61,9 +111,13 @@ export interface Sac {
   exhibitorIds: string[];
   /** Last pull of the screen-to-SAC mapping from CinemaDB. Null until the first sync. */
   lastSyncedAt: ISODateTime | null;
-  gateway: PaymentGatewayConfig;
-  status: 'active' | 'onboarding' | 'suspended';
+  gateways: PaymentGateway[];
+  /** Inactive SACs, their users and their advertisers cannot sign in. New SACs start as onboarding. */
+  status: 'active' | 'onboarding' | 'inactive';
   createdAt: ISODateTime;
+  updatedAt: ISODateTime;
+  /** Name of the admin who last saved any section of this SAC. */
+  updatedBy: string;
 }
 
 // ---------- inventory ----------

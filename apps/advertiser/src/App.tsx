@@ -3,7 +3,7 @@ import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from
 import { AdGroupIcon, CampaignIcon, CompaniesIcon, DashboardIcon, FolderIcon, ReportsIcon } from 'prefab/icons';
 import { useSession } from '@slate/api';
 import { KycBanner } from './features/company/KycBanner';
-import { SignUpEntry } from './features/company/SignUp';
+import { hasSacParam, SignUpEntry, useLinkedSac } from './features/company/SignUp';
 import { CompanyPage } from './features/company/CompanyPage';
 import { BrandsPage } from './features/company/BrandsPage';
 import { UsersPage } from './features/company/UsersPage';
@@ -47,12 +47,14 @@ export function App() {
   const { session } = useSession();
   const org = session?.org.kind === 'company' ? session.org : null;
   const nav = useNav();
+  const linked = useLinkedSac();
+  const sac = hasSacParam() && linked.data ? { name: linked.data.name, branding: linked.data.branding } : null;
   return (
     <>
       <ToastRegion />
-      <RequireSession signIn={<SignInPage headline="Plan, book and run cinema and DOOH campaigns."><SignUpEntry /></SignInPage>}>
+      <RequireSession signIn={<SignInPage sac={sac} headline="Plan, book and run cinema and DOOH campaigns."><SignUpEntry /></SignInPage>}>
         <Routes>
-          <Route element={<AppShell nav={nav} portalLabel="Advertiser" orgName={org?.company.name} orgMeta={org && `${org.company.code} · via ${org.sac.name}`} />}>
+          <Route element={<AppShell nav={nav} portalLabel="Advertiser" orgName={org?.company.name} orgMeta={org && `${org.company.code} · via ${org.sac.name}`} brand={org?.sac.branding} />}>
             <Route element={<KycFrame />}>
               <Route index element={<DashboardPage />} />
               <Route path="campaigns" element={<CampaignsPage />} />

@@ -2,12 +2,15 @@ import {
   applyPlacementAction, assertSubmittable, can, checkoutChecklist, decide, deviceHealth, ingestionFor, quotePlacement,
   resolveReach, rollupStatus, statusOnApproval, submissionPath, summarizeDelivery, summarizeTargetGroup, validateDoohGroup,
   visibleTheatres, withGst, CampaignRuleError, TransitionError, placementActions, sacInventory, exhibitorsOf,
+  BILLING_CURRENCIES, BILLING_FREQUENCIES, BILLING_METHODS, CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, addGateway, checkoutGateway, cleanContacts,
+  cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, primaryColourError, normaliseSacHost, removeGateway,
+  sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError,
   type Campaign, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
   AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
   Dashboard, DecisionInput, DeliveryBreakdown, DemoAccount, DeviceRow, DoohConfigInput, ExhibitorInput, ExhibitorRow,
-  GatewayInput, IngestionRow, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
+  GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacSortKey, SacsPage, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
   PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, SacSyncResult, SacTheatreRow, SacTheatresPage, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
 } from '@slate/api/contracts';
 import { forbidden, HttpError, invalid, notFound, Router, type Req } from './http';
@@ -26,10 +29,10 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!user) throw new HttpError(401, 'Not signed in.');
     const impId = req.headers['x-slate-impersonator'];
     const impersonator = impId ? db().users.find(u => u.id === impId && u.portal === 'admin') ?? null : null;
-    // A suspended SAC loses access for its own users and for every advertiser it sells to.
+    // An inactive SAC loses access for its own users and for every advertiser it sells to.
     const sacId = user.portal === 'sac' ? user.orgId : user.portal === 'advertiser' ? db().companies.find(c => c.id === user.orgId)?.sacId : null;
-    if (sacId && db().sacs.find(s => s.id === sacId)?.status === 'suspended') {
-      throw forbidden('This account is suspended. Contact Qube support.');
+    if (sacId && db().sacs.find(s => s.id === sacId)?.status === 'inactive') {
+      throw forbidden('This account is inactive. Contact Qube support.');
     }
     return { user, impersonator };
   }
@@ -144,18 +147,26 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       ? db().sacs.find(s => s.id === user.orgId)!.name : db().companies.find(c => c.id === user.orgId)!.name
   })));
   /** Public: resolves a SAC's sign-up link / branding. */
-  r.get('/api/sacs/:slug', req => {
-    const sac = db().sacs.find(s => s.slug === req.params.slug && s.status === 'active');
+  r.get('/api/sacs/:subdomain', (req): PublicSac => {
+    const sub = req.params.subdomain!.toLowerCase();
+    const sac = db().sacs.find(x => sacSubdomain(x.url) === sub && x.status === 'active');
     if (!sac) throw notFound('Unknown sales house.');
-    return { name: sac.name, legalName: sac.legalName, slug: sac.slug, supportEmail: sac.supportEmail };
+    return { name: sac.name, legalName: sac.legalName, subdomain: sub, supportEmail: sac.supportEmail, branding: sac.branding };
   });
+  const sessionSac = (sac: Db['sacs'][number]): SessionSac => {
+    const g = checkoutGateway(sac.gateways) ?? defaultGateway(sac.gateways);
+    return {
+      id: sac.id, name: sac.name, legalName: sac.legalName, url: sac.url, supportEmail: sac.supportEmail, branding: sac.branding,
+      gateway: g ? { provider: g.provider, mode: g.mode, enabled: g.enabled } : null
+    };
+  };
   r.get('/api/session', (req): Session => {
     const s = session(req);
     if (s.user.portal === 'advertiser') {
       const company = db().companies.find(c => c.id === s.user.orgId)!;
-      return { ...s, org: { kind: 'company', company, sac: db().sacs.find(x => x.id === company.sacId)! } };
+      return { ...s, org: { kind: 'company', company, sac: sessionSac(db().sacs.find(x => x.id === company.sacId)!) } };
     }
-    if (s.user.portal === 'sac') return { ...s, org: { kind: 'sac', sac: db().sacs.find(x => x.id === s.user.orgId)! } };
+    if (s.user.portal === 'sac') return { ...s, org: { kind: 'sac', sac: sessionSac(db().sacs.find(x => x.id === s.user.orgId)!) } };
     return { ...s, org: { kind: 'qube' } };
   });
   r.post('/api/_reset', () => { reset(); return { ok: true }; });
@@ -193,9 +204,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return s.company;
   });
   /** Self sign-up: creates the company record under a SAC plus its first admin user. */
-  r.post('/api/signup', (req: Req<{ sacSlug: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }>) => {
+  r.post('/api/signup', (req: Req<{ sacSubdomain: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }>) => {
     const b = req.body;
-    const sac = db().sacs.find(s => s.slug === b.sacSlug && s.status === 'active');
+    const sac = db().sacs.find(x => sacSubdomain(x.url) === (b.sacSubdomain ?? '').toLowerCase() && x.status === 'active');
     if (!sac) throw invalid('This sign-up link is not valid. Ask your sales house for the correct link.');
     if (!b.companyName?.trim() || !b.name?.trim() || !b.email?.includes('@')) throw invalid('Company name, your name and a valid email are required.');
     if (!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(b.gstin ?? '')) throw invalid('Enter a valid 15-character GSTIN.');
@@ -491,7 +502,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       if (path === 'pay') {
         c.payment = { method: body?.method ?? 'card', amount: total, gst, gatewayRef: `pay_${Math.random().toString(36).slice(2, 12)}`, paidAt: now(), refundedAt: null };
         const n = 310 + db().invoices.length + 1;
-        db().invoices.push({ id: `INV-${n}`, number: `${s.sac.slug.toUpperCase().slice(0, 4)}/INV/26-27/${n}`, sacId: c.sacId, companyId: company.id, campaignId: c.id, amount: total, gst, issuedAt: now(), status: 'paid' });
+        db().invoices.push({ id: `INV-${n}`, number: `${sacSubdomain(s.sac.url).toUpperCase().slice(0, 4)}/INV/26-27/${n}`, sacId: c.sacId, companyId: company.id, campaignId: c.id, amount: total, gst, issuedAt: now(), status: 'paid' });
       }
       Object.assign(c, { status: 'pending_approval', billingType: company.billingType, submittedAt: now() });
       audit(s, path === 'pay' ? 'campaign.pay' : 'campaign.submit', 'campaign', c.id, `${c.name} · ${total.toLocaleString('en-IN')}`);
@@ -503,8 +514,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   };
   r.post('/api/campaigns/:id/checkout', (req: Req<CheckoutInput>) => {
     const s = ownCampaign(req, 'campaign.checkout');
-    const gw = s.sac.gateway;
-    if (!gw.enabled) throw invalid(`${s.sac.name} has not enabled online payments yet. Contact ${s.sac.supportEmail}.`);
+    if (!checkoutGateway(s.sac.gateways)) throw invalid(`${s.sac.name} has not enabled online payments yet. Contact ${s.sac.supportEmail}.`);
     return submit(s, 'pay', req.body);
   });
   r.post('/api/campaigns/:id/submit', req => submit(ownCampaign(req, 'campaign.checkout'), 'submit'));
@@ -531,11 +541,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
 
   r.get('/api/billing', (req): BillingOverview => {
     const s = companyOf(req, 'billing.view');
-    const gw = s.sac.gateway;
+    const gw = defaultGateway(s.sac.gateways);
     return {
       billingType: s.company.billingType, contract: s.company.contract, outstanding: outstanding(s.company.id),
-      sac: { name: s.sac.name, legalName: s.sac.legalName, gstin: s.sac.gstin, supportEmail: s.sac.supportEmail },
-      gateway: s.company.billingType === 'card' ? { provider: gw.provider, enabled: gw.enabled, mode: gw.mode } : null
+      sac: { name: s.sac.name, legalName: s.sac.legalName, supportEmail: s.sac.supportEmail, taxIds: s.sac.collections.taxIds },
+      gateway: s.company.billingType === 'card' && gw ? { provider: gw.provider, enabled: gw.enabled, mode: gw.mode } : null
     };
   });
   const invoiceRow = (i: Db['invoices'][number]): InvoiceRow => ({
@@ -714,26 +724,40 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
 
   // ================= admin =================
   const adminOf = (req: Req, permission?: Permission) => need(req, 'admin', permission);
-  /** Theatres (cinema or DOOH mapped) and cinema screens per SAC, all statuses, for list counts. */
+  /**
+   * Per SAC: theatres (cinema or DOOH mapped) and cinema screens, all statuses, for list counts, plus the active
+   * theatres with a device online now. One pass over theatres, DOOH groups and devices, with maps instead of nested scans.
+   */
   const mappedCounts = () => {
-    const out = new Map<string, { theatres: Set<string>; screens: number }>();
+    const out = new Map<string, { theatres: Set<string>; screens: number; connected: Set<string> }>();
     const entry = (sacId: string) => {
       let m = out.get(sacId);
-      if (!m) { m = { theatres: new Set<string>(), screens: 0 }; out.set(sacId, m); }
+      if (!m) { m = { theatres: new Set<string>(), screens: 0, connected: new Set<string>() }; out.set(sacId, m); }
       return m;
     };
+    const t0 = Date.now();
+    const online = new Set<string>();
+    for (const d of db().devices) if (deviceHealth(d, t0) === 'online') online.add(d.theatreId);
+    const connectedNow = (t: { id: string; status: string }) => t.status === 'active' && online.has(t.id);
+    const theatreById = new Map(db().theatres.map(t => [t.id, t]));
     for (const t of db().theatres) for (const sc of t.screens) {
       if (!sc.sacId) continue;
       const m = entry(sc.sacId);
       m.theatres.add(t.id); m.screens += 1;
+      if (connectedNow(t)) m.connected.add(t.id);
     }
     // A theatre where the SAC only has DOOH still counts as one of its theatres (screens stay cinema-only).
-    for (const g of db().doohGroups) if (g.sacId) entry(g.sacId).theatres.add(g.theatreId);
+    for (const g of db().doohGroups) if (g.sacId) {
+      const m = entry(g.sacId);
+      m.theatres.add(g.theatreId);
+      const t = theatreById.get(g.theatreId);
+      if (t && connectedNow(t)) m.connected.add(t.id);
+    }
     return out;
   };
   const sacRow = (s: Db['sacs'][number], counts = mappedCounts()): SacRow => ({
     ...s, exhibitorNames: s.exhibitorIds.map(e => db().exhibitors.find(x => x.id === e)?.name ?? e),
-    theatres: counts.get(s.id)?.theatres.size ?? 0, screens: counts.get(s.id)?.screens ?? 0,
+    theatres: counts.get(s.id)?.theatres.size ?? 0, screens: counts.get(s.id)?.screens ?? 0, connectedTheatres: counts.get(s.id)?.connected.size ?? 0,
     advertisers: sacCompanies(s.id).length, users: db().users.filter(u => u.orgId === s.id).length,
     bookedValue: db().campaigns.filter(c => c.sacId === s.id && !['draft', 'rejected', 'cancelled'].includes(c.status)).reduce((a, c) => a + campaignRow(c).bookedValue, 0)
   });
@@ -768,50 +792,203 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     audit(s, 'exhibitor.create', 'exhibitor', e.id, e.name);
     return e;
   });
-  r.get('/api/admin/sacs', req => { adminOf(req); const counts = mappedCounts(); return db().sacs.map(x => sacRow(x, counts)); });
+  const SAC_SORTS: Record<SacSortKey, true> = {
+    name: true, theatres: true, screens: true, advertisers: true, users: true, connectedTheatres: true, status: true, createdAt: true, updatedAt: true, updatedBy: true
+  };
+  r.get('/api/admin/sacs', (req): SacsPage => {
+    adminOf(req);
+    const q = (req.query.get('q') ?? '').trim().toLowerCase();
+    const location = (req.query.get('location') ?? '').trim().toLowerCase();
+    const pageSize = Math.min(1000, Math.max(1, Number(req.query.get('pageSize')) || 100));
+    const asked = req.query.get('sort') ?? '';
+    const sort: SacSortKey = Object.hasOwn(SAC_SORTS, asked) ? asked as SacSortKey : 'name';
+    const dir = req.query.get('dir') === 'desc' ? -1 : 1;
+    const counts = mappedCounts();
+    // Sort the whole result before paging, so a column sort orders every SAC, not just the current page.
+    const matching = db().sacs
+      .filter(x => (!q || x.name.toLowerCase().includes(q)) && (!location || `${x.location.city} ${x.location.country}`.toLowerCase().includes(location)))
+      .map(x => sacRow(x, counts))
+      .sort((a, b) => {
+        const x = a[sort] ?? '', y = b[sort] ?? '';
+        const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
+        return (r || a.name.localeCompare(b.name)) * dir;
+      });
+    const page = Math.min(Math.max(1, Number(req.query.get('page')) || 1), Math.max(1, Math.ceil(matching.length / pageSize)));
+    return { rows: matching.slice((page - 1) * pageSize, page * pageSize), total: matching.length, page, pageSize };
+  });
+
+  type Actor = ReturnType<typeof adminOf>;
+  /** Every SAC save stamps who changed it and when, and writes an audit event. */
+  const saved = (s: Actor, sac: Db['sacs'][number], action: string, detail: string) => {
+    sac.updatedAt = now();
+    sac.updatedBy = s.user.name;
+    audit(s, action, 'sac', sac.id, detail);
+    return sacRow(sac);
+  };
+  const activeScreenCount = (sacId: string) => sacInventory(sacId, db().theatres, db().doohGroups).reduce((n, t) => n + t.screens.length, 0);
+
   r.post('/api/admin/sacs', (req: Req<SacInput>) => {
     const s = adminOf(req, 'tenants.manage');
     const b = req.body;
-    if (!b.name?.trim() || !b.slug?.trim()) throw invalid('Name and portal slug are required.');
-    if (db().sacs.some(x => x.slug === b.slug)) throw invalid('That portal slug is taken.');
-    if (!b.adminEmail?.includes('@')) throw invalid('A SAC admin email is required.');
-    const sac = {
-      id: id('SAC'), name: b.name, legalName: b.legalName, slug: b.slug, gstin: b.gstin, supportEmail: b.supportEmail,
+    if (!b.name?.trim()) throw invalid('SAC name is required.');
+    const urlError = sacUrlError(b.url ?? '', db().sacs);
+    if (urlError) throw invalid(urlError);
+    if (!b.adminName?.trim()) throw invalid('A SAC admin name is required.');
+    if (!isEmail(b.adminEmail ?? '')) throw invalid('A valid SAC admin email is required.');
+    if (b.supportEmail?.trim() && !isEmail(b.supportEmail)) throw invalid('Enter a valid support email.');
+    const sac: Db['sacs'][number] = {
+      id: id('SAC'), name: b.name.trim(), legalName: b.legalName?.trim() ?? '', location: { city: '', country: '' }, url: normaliseSacHost(b.url),
+      supportEmail: b.supportEmail?.trim() || DEFAULT_SUPPORT_EMAIL, branding: defaultBranding(), contacts: emptyContacts(),
+      billing: { companyName: '', address: '', taxIds: [], method: null, billingDay: null, frequency: null, currency: null },
+      collections: { companyName: '', location: '', phone: '', email: '', taxIds: [] },
       // Inventory arrives with the first CinemaDB sync, once screens are mapped to this SAC there.
-      exhibitorIds: [] as string[], lastSyncedAt: null, status: 'onboarding' as const, createdAt: now(),
-      gateway: { provider: 'stub' as const, mode: 'test' as const, merchantId: '', keyHint: '', enabled: false, updatedAt: now() }
+      exhibitorIds: [], lastSyncedAt: null, gateways: [], status: 'onboarding', createdAt: now(), updatedAt: now(), updatedBy: s.user.name
     };
     db().sacs.push(sac);
-    db().users.push({ id: id('U'), name: b.adminName, email: b.adminEmail, phone: '', portal: 'sac', orgId: sac.id, role: 'sac_admin', status: 'invited', lastActiveAt: null });
+    db().screenHistory[sac.id] = {};
+    db().users.push({ id: id('U'), name: b.adminName.trim(), email: b.adminEmail.trim(), phone: '', portal: 'sac', orgId: sac.id, role: 'sac_admin', status: 'invited', lastActiveAt: null });
     audit(s, 'sac.create', 'sac', sac.id, sac.name);
     return sacRow(sac);
   });
-  r.put('/api/admin/sacs/:id', (req: Req<Partial<SacInput> & { status?: Db['sacs'][number]['status'] }>) => {
+  r.put('/api/admin/sacs/:id/details', (req: Req<SacDetailsInput>) => {
     const s = adminOf(req, 'tenants.manage');
     const sac = find(db().sacs, req.params.id!, 'SAC');
-    const { name, legalName, slug, gstin, supportEmail, status } = req.body;
-    const rest = Object.fromEntries(Object.entries({ name, legalName, slug, gstin, supportEmail, status }).filter(([, v]) => v !== undefined)) as Partial<Db['sacs'][number]>;
-    if (rest.slug !== undefined && db().sacs.some(x => x.id !== sac.id && x.slug === rest.slug)) throw invalid('That portal slug is taken.');
-    Object.assign(sac, rest);
-    audit(s, 'sac.update', 'sac', sac.id, Object.keys(rest).join(', '));
-    return sacRow(sac);
+    const b = req.body;
+    if (!b.name?.trim()) throw invalid('SAC name is required.');
+    Object.assign(sac, { name: b.name.trim(), legalName: (b.legalName ?? '').trim(), location: { city: (b.city ?? '').trim(), country: (b.country ?? '').trim() } });
+    return saved(s, sac, 'sac.details', sac.name);
   });
-  r.put('/api/admin/sacs/:id/gateway', (req: Req<GatewayInput>) => {
-    const s = adminOf(req, 'gateway.manage');
+  r.put('/api/admin/sacs/:id/setup', (req: Req<SacSetupInput>) => {
+    const s = adminOf(req, 'tenants.manage');
     const sac = find(db().sacs, req.params.id!, 'SAC');
     const b = req.body;
-    if (b.enabled && b.provider === 'stub' && b.mode === 'live') throw invalid('The stub gateway cannot run in live mode.');
-    if (b.enabled && b.provider !== 'stub' && !b.merchantId.trim()) throw invalid('Merchant ID is required to enable the gateway.');
-    const hasKey = !!b.secretKey || (!!sac.gateway.keyHint && sac.gateway.provider === b.provider);
-    if (b.enabled && b.provider !== 'stub' && !hasKey) throw invalid('A secret key is required to enable this gateway.');
-    if (b.provider !== 'stub' && b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
-    sac.gateway = {
-      provider: b.provider, mode: b.mode, merchantId: b.merchantId, enabled: b.enabled, updatedAt: now(),
-      // A stored key belongs to its provider; switching provider without a new key leaves none.
-      keyHint: b.secretKey ? '••••' + b.secretKey.slice(-4) : b.provider === sac.gateway.provider ? sac.gateway.keyHint : ''
+    const urlError = sacUrlError(b.url ?? '', db().sacs.filter(x => x.id !== sac.id));
+    if (urlError) throw invalid(urlError);
+    if (b.supportEmail?.trim() && !isEmail(b.supportEmail)) throw invalid('Enter a valid support email.');
+    for (const [label, v] of [['Header', b.headerColor], ['Primary', b.primaryColor], ['Secondary', b.secondaryColor]] as const) {
+      if (!isHexColour(v ?? '')) throw invalid(`${label} colour must be a #RRGGBB hex value.`);
+    }
+    const primaryError = primaryColourError(b.primaryColor);
+    if (primaryError) throw invalid(`Primary colour: ${primaryError}`);
+    if (b.logo !== null && b.logo !== undefined) {
+      if (!/^data:image\/(png|jpeg|svg\+xml)[;,]/.test(b.logo)) throw invalid('The logo must be a PNG, SVG or JPEG image.');
+      if (b.logo.length > Math.ceil((LOGO_MAX_BYTES * 4) / 3) + 64) throw invalid('The logo must be 200 KB or smaller.');
+    }
+    Object.assign(sac, {
+      url: normaliseSacHost(b.url), supportEmail: b.supportEmail?.trim() || DEFAULT_SUPPORT_EMAIL,
+      branding: { headerColor: b.headerColor, primaryColor: b.primaryColor, secondaryColor: b.secondaryColor, logo: b.logo ?? null }
+    });
+    return saved(s, sac, 'sac.setup', `${sac.url}${b.logo ? ' · custom logo' : ''}`);
+  });
+  r.put('/api/admin/sacs/:id/contacts', (req: Req<SacContactsInput>) => {
+    const s = adminOf(req, 'tenants.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const next = emptyContacts();
+    for (const { role, label } of CONTACT_ROLES) {
+      next[role] = cleanContacts(req.body?.[role] ?? []);
+      for (const c of next[role]) {
+        const err = contactError(c);
+        if (err) throw invalid(`${label}: ${err}`);
+      }
+    }
+    sac.contacts = next;
+    return saved(s, sac, 'sac.contacts', CONTACT_ROLES.map(({ role }) => next[role].length).join(' / ') + ' contacts');
+  });
+  r.put('/api/admin/sacs/:id/billing', (req: Req<SacBillingInput>) => {
+    const s = adminOf(req, 'tenants.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const b = req.body;
+    const taxError = taxIdsError(b.taxIds ?? []);
+    if (taxError) throw invalid(taxError);
+    if (b.method && !BILLING_METHODS.some(m => m.value === b.method)) throw invalid('Choose a valid billing method.');
+    if (b.frequency && !BILLING_FREQUENCIES.some(f => f.value === b.frequency)) throw invalid('Choose a valid billing frequency.');
+    if (b.currency && !BILLING_CURRENCIES.includes(b.currency)) throw invalid('Choose a valid billing currency.');
+    if (b.billingDay !== null && b.billingDay !== undefined && !(Number.isInteger(b.billingDay) && b.billingDay >= 1 && b.billingDay <= 28)) throw invalid('Billing date must be a day from 1 to 28.');
+    sac.billing = {
+      companyName: (b.companyName ?? '').trim(), address: (b.address ?? '').trim(), taxIds: cleanTaxIds(b.taxIds ?? []),
+      method: b.method ?? null, billingDay: b.billingDay ?? null, frequency: b.frequency ?? null, currency: b.currency ?? null
     };
-    audit(s, 'gateway.update', 'sac', sac.id, `${b.provider} ${b.mode} ${b.enabled ? 'enabled' : 'disabled'}${b.secretKey ? ' · key rotated' : ''}`);
-    return sacRow(sac);
+    return saved(s, sac, 'sac.billing', sac.billing.companyName || sac.name);
+  });
+  r.put('/api/admin/sacs/:id/collections', (req: Req<SacCollectionsInput>) => {
+    const s = adminOf(req, 'tenants.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const b = req.body;
+    const taxError = taxIdsError(b.taxIds ?? []);
+    if (taxError) throw invalid(taxError);
+    if (b.email?.trim() && !isEmail(b.email)) throw invalid('Enter a valid company email.');
+    sac.collections = {
+      companyName: (b.companyName ?? '').trim(), location: (b.location ?? '').trim(), phone: (b.phone ?? '').trim(),
+      email: (b.email ?? '').trim(), taxIds: cleanTaxIds(b.taxIds ?? [])
+    };
+    return saved(s, sac, 'sac.collections', sac.collections.companyName || sac.name);
+  });
+  r.put('/api/admin/sacs/:id/status', (req: Req<SacStatusInput>) => {
+    const s = adminOf(req, 'tenants.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const status = req.body?.status;
+    if (status !== 'active' && status !== 'inactive' && status !== 'onboarding') throw invalid('Unknown status.');
+    if (status === sac.status) throw invalid(`${sac.name} is already ${status}.`);
+    const from = sac.status;
+    sac.status = status;
+    return saved(s, sac, 'sac.status', `${from} to ${status}`);
+  });
+  r.get('/api/admin/sacs/:id/active-screens', (req): SacActiveScreens => {
+    adminOf(req);
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    return screenHistoryGrid(db().screenHistory[sac.id] ?? {}, sac.createdAt, now());
+  });
+
+  // ---- payment gateways (the SAC's collections) ----
+  const gatewayOf = (req: Req) => {
+    const s = adminOf(req, 'gateway.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    return { s, sac, gw: req.params.gid ? find(sac.gateways, req.params.gid, 'Gateway') : null };
+  };
+  const keyHintOf = (key: string | null | undefined, prev: { provider: string; keyHint: string } | null, provider: string) =>
+    key ? '••••' + key.slice(-4) : prev && prev.provider === provider ? prev.keyHint : '';
+  const gatewayLabel = (g: { provider: string; mode: string; enabled: boolean }) => `${g.provider} ${g.mode} ${g.enabled ? 'enabled' : 'disabled'}`;
+  r.post('/api/admin/sacs/:id/gateways', (req: Req<GatewayInput>) => {
+    const { s, sac } = gatewayOf(req);
+    const b = req.body;
+    const err = gatewayError({ provider: b.provider, mode: b.mode, merchantId: b.merchantId ?? '', enabled: b.enabled }, null, b.secretKey);
+    if (err) throw invalid(err);
+    const dates = stampGatewayDates(null, b, now());
+    sac.gateways = addGateway(sac.gateways, {
+      id: id('GW'), provider: b.provider, mode: b.mode, merchantId: (b.merchantId ?? '').trim(), keyHint: keyHintOf(b.secretKey, null, b.provider),
+      enabled: b.enabled, isDefault: false, ...dates, updatedAt: now()
+    });
+    return saved(s, sac, 'gateway.add', gatewayLabel(b));
+  });
+  r.put('/api/admin/sacs/:id/gateways/:gid', (req: Req<GatewayInput>) => {
+    const { s, sac, gw } = gatewayOf(req);
+    const b = req.body;
+    const err = gatewayError({ provider: b.provider, mode: b.mode, merchantId: b.merchantId ?? '', enabled: b.enabled }, gw!, b.secretKey);
+    if (err) throw invalid(err);
+    Object.assign(gw!, {
+      provider: b.provider, mode: b.mode, merchantId: (b.merchantId ?? '').trim(), enabled: b.enabled, updatedAt: now(),
+      keyHint: keyHintOf(b.secretKey, gw, b.provider), ...stampGatewayDates(gw, b, now())
+    });
+    return saved(s, sac, 'gateway.update', `${gatewayLabel(b)}${b.secretKey ? ' · key rotated' : ''}`);
+  });
+  r.post('/api/admin/sacs/:id/gateways/:gid/default', req => {
+    const { s, sac, gw } = gatewayOf(req);
+    sac.gateways = setDefaultGateway(sac.gateways, gw!.id);
+    return saved(s, sac, 'gateway.default', `${gw!.provider} ${gw!.mode}`);
+  });
+  r.post('/api/admin/sacs/:id/gateways/:gid/enabled', (req: Req<{ enabled: boolean }>) => {
+    const { s, sac, gw } = gatewayOf(req);
+    const enabled = !!req.body?.enabled;
+    const draft = { provider: gw!.provider, mode: gw!.mode, merchantId: gw!.merchantId, enabled };
+    const err = gatewayError(draft, gw!, null);
+    if (err) throw invalid(err);
+    Object.assign(gw!, { enabled, updatedAt: now(), ...stampGatewayDates(gw, draft, now()) });
+    return saved(s, sac, enabled ? 'gateway.enable' : 'gateway.disable', gatewayLabel(gw!));
+  });
+  r.delete('/api/admin/sacs/:id/gateways/:gid', req => {
+    const { s, sac, gw } = gatewayOf(req);
+    sac.gateways = removeGateway(sac.gateways, gw!.id);
+    return saved(s, sac, 'gateway.delete', `${gw!.provider} ${gw!.mode}`);
   });
   /** Theatres where this SAC has screens or DOOH mapped (any status), with the counts attributed to it. */
   r.get('/api/admin/sacs/:id/theatres', (req): SacTheatresPage => {
@@ -872,7 +1049,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     sac.exhibitorIds = exhibitorsOf(sac.id, db().theatres, db().doohGroups);
     sac.lastSyncedAt = now();
     const detail = `CinemaDB sync: ${added.length} screen${added.length === 1 ? '' : 's'} mapped, ${removed.length} released`;
-    audit(s, 'sac.sync', 'sac', sac.id, detail);
+    (db().screenHistory[sac.id] ??= {})[monthKey(now())] = activeScreenCount(sac.id);
+    saved(s, sac, 'sac.sync', detail);
     return { added: added.length, removed: removed.length, lastSyncedAt: sac.lastSyncedAt };
   });
   r.get('/api/admin/users', req => { adminOf(req); return db().users; });

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { advertiserApi, type BillingOverview } from '@slate/api';
@@ -48,7 +49,7 @@ function BillingBody({ billing: b, company }: { billing: BillingOverview; compan
           <Card title="Billed by" description="Invoices and GST credit notes are raised by your sales house.">
             <KeyValue items={[
               ['Legal entity', b.sac.legalName],
-              ['GSTIN', <span className="sl-mono">{b.sac.gstin}</span>],
+              ...b.sac.taxIds.map(t => [t.name, <span key={t.name} className="sl-mono">{t.value}</span>] as [string, ReactNode]),
               ['Billing support', <a href={`mailto:${b.sac.supportEmail}`}>{b.sac.supportEmail}</a>]
             ]} />
           </Card>

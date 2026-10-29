@@ -40,6 +40,11 @@ test('admin: overview and SAC detail', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
   await page.goto(`${ADMIN}/tenants/sacs/SAC-PVRM`);
   await expect(page.getByRole('heading', { name: /PVR INOX Media Sales/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'SAC setup' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Billing Information' }).click();
+  await expect(page.getByRole('heading', { name: /Active screens/ })).toBeVisible();
+  await page.getByRole('tab', { name: 'Collections Management' }).click();
+  await expect(page.getByRole('heading', { name: 'Payment gateways' })).toBeVisible();
 });
 
 test('cross-portal: SAC approval reaches the advertiser', async ({ page, request }) => {

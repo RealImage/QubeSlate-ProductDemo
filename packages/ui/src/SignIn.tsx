@@ -1,24 +1,33 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ROLE_LABEL } from '@slate/domain';
+import { contrastText, ROLE_LABEL, type SacBranding } from '@slate/domain';
 import { sessionApi, useSession } from '@slate/api';
 import { Avatar, Loading } from './components';
+import { brandStyle } from './AppShell';
 import slateLogo from '../assets/QubeSlate.svg';
 
 /**
  * Mock sign-in. Lists the seeded accounts for this portal. Real SSO replaces this screen;
  * the rest of the app only depends on useSession().
  */
-export function SignInPage({ headline, footnote, children }: { headline: ReactNode; footnote?: ReactNode; children?: ReactNode }) {
+export function SignInPage({ headline, footnote, children, sac }: {
+  headline: ReactNode;
+  footnote?: ReactNode;
+  children?: ReactNode;
+  /** The SAC behind a `?sac=` link: its logo and colours replace Slate's on this screen. */
+  sac?: { name: string; branding: SacBranding } | null;
+}) {
   const { portal, signIn } = useSession();
   const accounts = useQuery({ queryKey: ['demo-accounts'], queryFn: sessionApi.demoAccounts });
   const mine = (accounts.data ?? []).filter(a => a.user.portal === portal);
   return (
-    <div className="sl-signin">
-      <div className="sl-signin__hero">
-        <img src={slateLogo} alt="Qube Slate" height={28} style={{ filter: 'brightness(0) invert(1)', alignSelf: 'flex-start' }} />
+    <div className="sl-signin" style={sac ? brandStyle(sac.branding) as CSSProperties : undefined}>
+      <div className="sl-signin__hero" style={sac ? { color: contrastText(sac.branding.primaryColor) } : undefined}>
+        {sac?.branding.logo
+          ? <img src={sac.branding.logo} alt={`${sac.name} logo`} height={32} className="sl-logo" style={{ alignSelf: 'flex-start', background: '#fff', padding: 8, borderRadius: 8, boxSizing: 'content-box' }} />
+          : <img src={slateLogo} alt="Qube Slate" height={28} style={{ filter: !sac || contrastText(sac.branding.primaryColor) === '#ffffff' ? 'brightness(0) invert(1)' : 'brightness(0)', alignSelf: 'flex-start' }} />}
         <h1>{headline}</h1>
-        <p style={{ margin: 0, opacity: 0.75, fontSize: 13 }}>Qube Slate · cinema and DOOH advertising</p>
+        <p style={{ margin: 0, opacity: sac ? 1 : 0.75, fontSize: 13 }}>{sac ? `${sac.name} · powered by Qube Slate` : 'Qube Slate · cinema and DOOH advertising'}</p>
       </div>
       <div className="sl-signin__panel">
         <div>
