@@ -306,6 +306,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const s = companyOf(req, 'targets.edit');
     const tg = find(db().targetGroups, req.params.id!, 'Target group');
     if (tg.companyId !== s.company.id) throw notFound('Target group not found.');
+    if (req.body.channel !== tg.channel && db().campaigns.some(c => c.targetGroupIds.includes(tg.id))) {
+      throw invalid('This target group is used by campaigns, so its channel can’t change. Create a new group instead.');
+    }
     Object.assign(tg, req.body, { updatedAt: now() });
     return tgRow(s.company, tg);
   });
@@ -328,6 +331,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!b.name?.trim()) throw invalid('Media name is required.');
     if (!db().brands.some(x => x.id === b.brandId && x.companyId === s.company.id && x.status === 'approved')) throw invalid('Pick an approved brand.');
     if (b.fileType === 'CPL' && !b.censorCertificate) throw invalid('A censor certificate is required for CPLs.');
+    if (b.fileType === 'CPL' && !b.attributes?.length) throw invalid('Pick the CPL’s projection, aspect and sound attributes.');
     if (b.fileType !== 'Image' && !(b.durationSecs > 0)) throw invalid('Duration is required.');
     if (b.fileType !== 'CPL' && !b.orientation) throw invalid('Orientation is required.');
     const m = { ...b, id: id('MD'), companyId: s.company.id, status: 'processing' as const, rejectionReason: null, createdAt: now(), createdBy: s.user.name };
