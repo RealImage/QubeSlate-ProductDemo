@@ -108,7 +108,7 @@ function MediaForm({ brands }: { brands: Brand[] }) {
           </div>
           <div className="adv-span">
             <Field label="File type">
-              <ChoiceCards label="File type" value={fileType} onChange={t => { setFileType(t); setFile(null); }} options={[
+              <ChoiceCards label="File type" value={fileType} onChange={t => { if (t !== fileType) { setFileType(t); setFile(null); } }} options={[
                 { value: 'CPL', title: 'CPL', hint: 'DCP package for cinema screens.' },
                 { value: 'Video', title: 'Video', hint: 'MP4/MOV for DOOH displays.' },
                 { value: 'Image', title: 'Image', hint: 'Still image for DOOH displays.' }
