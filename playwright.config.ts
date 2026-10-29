@@ -7,7 +7,8 @@ const app = (name: string, port: number) => ({
   command: `npx vite --port ${port} --strictPort`,
   cwd: `apps/${name}`,
   url: `http://localhost:${port}`,
-  env: { SLATE_API_ORIGIN: API },
+  // Empty VITE_API_URL wins over any .env.local override, so the browser always goes through the proxy to :4199.
+  env: { SLATE_API_ORIGIN: API, VITE_API_URL: '' },
   reuseExistingServer: false,
   timeout: 60_000
 });

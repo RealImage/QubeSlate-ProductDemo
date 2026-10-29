@@ -56,6 +56,12 @@ npm test             # vitest: domain rules
 npm run test:e2e     # Playwright smoke test per portal
 ```
 
+Before the first e2e run, install Playwright's browser (on Linux, add `--with-deps` for the system libraries):
+
+```bash
+npx playwright install chromium
+```
+
 ## Design system
 
 `@slate/ui` re-exports [prefab-ui](https://github.com/RealImage/prefab-ui) `v1.0.0-beta.18`, vendored as `packages/ui/vendor/prefab-1.0.0-beta.18.tgz`. The tag's git install pins Node to exactly 24.13.1 and needs GitHub credentials; the tarball avoids both. To upgrade, pack a newer tag the same way and update `packages/ui/package.json`.
