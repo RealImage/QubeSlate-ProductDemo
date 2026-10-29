@@ -4,7 +4,7 @@ import { useSession } from '@slate/api';
 import { EmptyState, Page, PageHeader, Query, TabPanel, Tabs } from '@slate/ui';
 import { SacStatusTag } from '../../components/SacStatusTag';
 import { useSacs } from '../../components/queries';
-import { SacExhibitorsCard } from './SacExhibitorsCard';
+import { SacTheatresCard } from './SacTheatresCard';
 import { SacGatewayCard } from './SacGatewayCard';
 import { SacProfileCard } from './SacProfileCard';
 import { SacUsersCard } from './SacUsersCard';
@@ -31,7 +31,7 @@ export function SacDetailPage() {
               ]} />
               <TabPanel of="sac" id={tab}>
                 {tab === 'profile' && <SacProfileCard sac={sac} canEdit={can('tenants.manage')} />}
-                {tab === 'exhibitors' && <SacExhibitorsCard sac={sac} canEdit={can('tenants.manage')} />}
+                {tab === 'exhibitors' && <SacTheatresCard sac={sac} canSync={can('tenants.manage')} />}
                 {tab === 'gateway' && <SacGatewayCard sac={sac} canEdit={can('gateway.manage')} />}
                 {tab === 'users' && <SacUsersCard sac={sac} />}
               </TabPanel>

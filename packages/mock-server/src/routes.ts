@@ -1,14 +1,14 @@
 import {
   applyPlacementAction, assertSubmittable, can, checkoutChecklist, decide, deviceHealth, ingestionFor, quotePlacement,
   resolveReach, rollupStatus, statusOnApproval, submissionPath, summarizeDelivery, summarizeTargetGroup, validateDoohGroup,
-  visibleTheatres, withGst, CampaignRuleError, TransitionError, placementActions,
+  visibleTheatres, withGst, CampaignRuleError, TransitionError, placementActions, sacInventory, exhibitorsOf,
   type Campaign, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
   AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
   Dashboard, DecisionInput, DeliveryBreakdown, DemoAccount, DeviceRow, DoohConfigInput, ExhibitorInput, ExhibitorRow,
   GatewayInput, IngestionRow, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
-  PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
+  PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, SacSyncResult, SacTheatreRow, SacTheatresPage, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
 } from '@slate/api/contracts';
 import { forbidden, HttpError, invalid, notFound, Router, type Req } from './http';
 import { createSeed, today, type Db } from './seed';
@@ -58,6 +58,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   const isIsoDate = (v: unknown): v is string =>
     typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v + 'T00:00:00Z')) &&
     new Date(v + 'T00:00:00Z').toISOString().slice(0, 10) === v;
+  const byKey = <T,>(items: T[], key: (t: T) => string) => {
+    const m = new Map<string, T[]>();
+    for (const it of items) { const k = key(it); const arr = m.get(k); if (arr) arr.push(it); else m.set(k, [it]); }
+    return m;
+  };
   const find = <T extends { id: string }>(list: T[], key: string, what: string) => {
     const x = list.find(i => i.id === key);
     if (!x) throw notFound(`${what} not found.`);
@@ -65,13 +70,15 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   };
 
   // ---------- derived rows ----------
-  const theatresFor = (company: Company) => {
-    const sac = db().sacs.find(s => s.id === company.sacId)!;
-    return visibleTheatres(company, sac, db().theatres);
+  const theatresFor = (company: Company) => visibleTheatres(company, db().theatres, db().doohGroups);
+  /** DOOH groups mapped to the advertiser's SAC, in theatres it may book. */
+  const doohFor = (company: Company) => {
+    const ids = new Set(theatresFor(company).map(t => t.id));
+    return db().doohGroups.filter(g => g.sacId === company.sacId && ids.has(g.theatreId));
   };
   const reachOf = (company: Company, tgId: string) => {
     const tg = find(db().targetGroups, tgId, 'Target group');
-    return resolveReach(tg, theatresFor(company), db().doohGroups);
+    return resolveReach(tg, theatresFor(company), doohFor(company));
   };
   const deliveryOf = (pred: (d: Db['delivery'][number]) => boolean) => summarizeDelivery(db().delivery.filter(pred));
   const placementRow = (p: Placement): PlacementRow => {
@@ -122,7 +129,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     c.status = rollupStatus(c.status, db().placements.filter(p => p.campaignId === c.id));
   };
   const tgRow = (company: Company, tg: Db['targetGroups'][number]): TargetGroupWithReach => {
-    const reach = resolveReach(tg, theatresFor(company), db().doohGroups);
+    const reach = resolveReach(tg, theatresFor(company), doohFor(company));
     return {
       ...tg, summary: summarizeTargetGroup(tg),
       reach: { units: reach.units, theatres: reach.theatres.length, cities: reach.cities },
@@ -270,10 +277,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return b;
   });
   r.get('/api/inventory/theatres', req => theatresFor(companyOf(req).company));
-  r.get('/api/inventory/dooh-groups', req => {
-    const ids = new Set(theatresFor(companyOf(req).company).map(t => t.id));
-    return db().doohGroups.filter(g => ids.has(g.theatreId));
-  });
+  r.get('/api/inventory/dooh-groups', req => doohFor(companyOf(req).company));
 
   // ================= advertiser: target groups =================
   r.get('/api/target-groups', req => {
@@ -288,7 +292,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.post('/api/target-groups/preview', (req: Req<TargetGroupInput>): ReachPreview => {
     const { company } = companyOf(req);
-    const reach = resolveReach({ ...req.body, id: 'preview', companyId: company.id, createdAt: '', updatedAt: '' }, theatresFor(company), db().doohGroups);
+    const reach = resolveReach({ ...req.body, id: 'preview', companyId: company.id, createdAt: '', updatedAt: '' }, theatresFor(company), doohFor(company));
     return {
       units: reach.units, theatres: reach.theatres.length, cities: reach.cities,
       sample: reach.theatres.slice(0, 8).map(t => ({
@@ -567,7 +571,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const { sac } = sacOf(req);
     const companies = sacCompanies(sac.id).map(c => c.id);
     const camps = db().campaigns.filter(c => companies.includes(c.companyId));
-    const theatres = db().theatres.filter(t => sac.exhibitorIds.includes(t.exhibitorId));
+    const theatres = sacInventory(sac.id, db().theatres, db().doohGroups);
     return {
       activeCampaigns: camps.filter(c => c.status === 'active').length,
       pendingCampaigns: camps.filter(c => c.status === 'pending_approval').length,
@@ -663,15 +667,16 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.get('/api/sac/theatres', (req): TheatreRow[] => {
     const { sac } = sacOf(req);
-    return db().theatres.filter(t => sac.exhibitorIds.includes(t.exhibitorId)).map(t => {
-      const groups = db().doohGroups.filter(g => g.theatreId === t.id);
+    const mine = db().doohGroups.filter(g => g.sacId === sac.id);
+    return sacInventory(sac.id, db().theatres, mine).map(t => {
+      const groups = mine.filter(g => g.theatreId === t.id);
       return { ...t, exhibitorName: db().exhibitors.find(e => e.id === t.exhibitorId)!.name, doohGroups: groups, doohStatus: groups.length ? 'Configured' : 'Pending' };
     });
   });
   r.put('/api/sac/theatres/:id/dooh', (req: Req<DoohConfigInput>) => {
     const s = sacOf(req, 'inventory.edit');
     const t = find(db().theatres, req.params.id!, 'Theatre');
-    if (!s.sac.exhibitorIds.includes(t.exhibitorId)) throw notFound('Theatre not found.');
+    if (!t.screens.some(x => x.sacId === s.sac.id) && !db().doohGroups.some(g => g.theatreId === t.id && g.sacId === s.sac.id)) throw notFound('Theatre not found.');
     // New groups arrive without ids; give each a temporary one so the uniqueness check compares them too.
     const keyed = req.body.groups.map((g, i) => ({ ...g, id: g.id || `new-${i}` }));
     const errors = keyed.flatMap(g => validateDoohGroup(g, keyed).map(e => `${g.name || 'Unnamed group'}: ${e}`));
@@ -679,9 +684,14 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     t.hours = req.body.hours;
     t.updatedAt = now();
     t.updatedBy = s.user.name;
-    db().doohGroups = db().doohGroups.filter(g => g.theatreId !== t.id).concat(req.body.groups.map(g => ({ ...g, id: g.id || id('DG'), theatreId: t.id })));
+    // Only this SAC's groups are replaced; another SAC's displays in the same theatre are untouched.
+    db().doohGroups = db().doohGroups.filter(g => !(g.theatreId === t.id && g.sacId === s.sac.id))
+      .concat(req.body.groups.map(g => ({ ...g, id: g.id || id('DG'), theatreId: t.id, sacId: s.sac.id })));
+    // DOOH groups are part of the mapping the SAC's exhibitor list is derived from.
+    s.sac.exhibitorIds = exhibitorsOf(s.sac.id, db().theatres, db().doohGroups);
     audit(s, 'dooh.configure', 'theatre', t.id, `${req.body.groups.length} display groups`);
-    return { ...t, doohGroups: db().doohGroups.filter(g => g.theatreId === t.id) };
+    // Return only this SAC's screens and groups, as /api/sac/theatres does, so split theatres stay isolated.
+    return { ...t, screens: t.screens.filter(x => x.sacId === s.sac.id), doohGroups: db().doohGroups.filter(g => g.theatreId === t.id && g.sacId === s.sac.id) };
   });
   r.get('/api/sac/proof-of-play', (req): ProofOfPlayRow[] => {
     const { sac } = sacOf(req);
@@ -704,8 +714,26 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
 
   // ================= admin =================
   const adminOf = (req: Req, permission?: Permission) => need(req, 'admin', permission);
-  const sacRow = (s: Db['sacs'][number]): SacRow => ({
+  /** Theatres (cinema or DOOH mapped) and cinema screens per SAC, all statuses, for list counts. */
+  const mappedCounts = () => {
+    const out = new Map<string, { theatres: Set<string>; screens: number }>();
+    const entry = (sacId: string) => {
+      let m = out.get(sacId);
+      if (!m) { m = { theatres: new Set<string>(), screens: 0 }; out.set(sacId, m); }
+      return m;
+    };
+    for (const t of db().theatres) for (const sc of t.screens) {
+      if (!sc.sacId) continue;
+      const m = entry(sc.sacId);
+      m.theatres.add(t.id); m.screens += 1;
+    }
+    // A theatre where the SAC only has DOOH still counts as one of its theatres (screens stay cinema-only).
+    for (const g of db().doohGroups) if (g.sacId) entry(g.sacId).theatres.add(g.theatreId);
+    return out;
+  };
+  const sacRow = (s: Db['sacs'][number], counts = mappedCounts()): SacRow => ({
     ...s, exhibitorNames: s.exhibitorIds.map(e => db().exhibitors.find(x => x.id === e)?.name ?? e),
+    theatres: counts.get(s.id)?.theatres.size ?? 0, screens: counts.get(s.id)?.screens ?? 0,
     advertisers: sacCompanies(s.id).length, users: db().users.filter(u => u.orgId === s.id).length,
     bookedValue: db().campaigns.filter(c => c.sacId === s.id && !['draft', 'rejected', 'cancelled'].includes(c.status)).reduce((a, c) => a + campaignRow(c).bookedValue, 0)
   });
@@ -722,11 +750,12 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.get('/api/admin/exhibitors', (req): ExhibitorRow[] => {
     adminOf(req);
+    const exhibitorOf = new Map(db().theatres.map(t => [t.id, t.exhibitorId]));
     return db().exhibitors.map(e => {
       const ts = db().theatres.filter(t => t.exhibitorId === e.id);
       return {
         ...e, theatres: ts.length, screens: ts.reduce((s, t) => s + t.screens.length, 0),
-        doohGroups: db().doohGroups.filter(g => ts.some(t => t.id === g.theatreId)).length,
+        doohGroups: db().doohGroups.filter(g => exhibitorOf.get(g.theatreId) === e.id).length,
         sacs: db().sacs.filter(s => s.exhibitorIds.includes(e.id)).map(s => s.name)
       };
     });
@@ -739,7 +768,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     audit(s, 'exhibitor.create', 'exhibitor', e.id, e.name);
     return e;
   });
-  r.get('/api/admin/sacs', req => { adminOf(req); return db().sacs.map(sacRow); });
+  r.get('/api/admin/sacs', req => { adminOf(req); const counts = mappedCounts(); return db().sacs.map(x => sacRow(x, counts)); });
   r.post('/api/admin/sacs', (req: Req<SacInput>) => {
     const s = adminOf(req, 'tenants.manage');
     const b = req.body;
@@ -747,19 +776,21 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (db().sacs.some(x => x.slug === b.slug)) throw invalid('That portal slug is taken.');
     if (!b.adminEmail?.includes('@')) throw invalid('A SAC admin email is required.');
     const sac = {
-      id: id('SAC'), name: b.name, legalName: b.legalName, slug: b.slug, gstin: b.gstin, supportEmail: b.supportEmail, exhibitorIds: b.exhibitorIds,
-      status: 'onboarding' as const, createdAt: now(),
+      id: id('SAC'), name: b.name, legalName: b.legalName, slug: b.slug, gstin: b.gstin, supportEmail: b.supportEmail,
+      // Inventory arrives with the first CinemaDB sync, once screens are mapped to this SAC there.
+      exhibitorIds: [] as string[], lastSyncedAt: null, status: 'onboarding' as const, createdAt: now(),
       gateway: { provider: 'stub' as const, mode: 'test' as const, merchantId: '', keyHint: '', enabled: false, updatedAt: now() }
     };
     db().sacs.push(sac);
     db().users.push({ id: id('U'), name: b.adminName, email: b.adminEmail, phone: '', portal: 'sac', orgId: sac.id, role: 'sac_admin', status: 'invited', lastActiveAt: null });
-    audit(s, 'sac.create', 'sac', sac.id, `${sac.name} · ${b.exhibitorIds.length} exhibitors`);
+    audit(s, 'sac.create', 'sac', sac.id, sac.name);
     return sacRow(sac);
   });
   r.put('/api/admin/sacs/:id', (req: Req<Partial<SacInput> & { status?: Db['sacs'][number]['status'] }>) => {
     const s = adminOf(req, 'tenants.manage');
     const sac = find(db().sacs, req.params.id!, 'SAC');
-    const { adminName: _n, adminEmail: _e, ...rest } = req.body;
+    const { name, legalName, slug, gstin, supportEmail, status } = req.body;
+    const rest = Object.fromEntries(Object.entries({ name, legalName, slug, gstin, supportEmail, status }).filter(([, v]) => v !== undefined)) as Partial<Db['sacs'][number]>;
     if (rest.slug !== undefined && db().sacs.some(x => x.id !== sac.id && x.slug === rest.slug)) throw invalid('That portal slug is taken.');
     Object.assign(sac, rest);
     audit(s, 'sac.update', 'sac', sac.id, Object.keys(rest).join(', '));
@@ -782,23 +813,92 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     audit(s, 'gateway.update', 'sac', sac.id, `${b.provider} ${b.mode} ${b.enabled ? 'enabled' : 'disabled'}${b.secretKey ? ' · key rotated' : ''}`);
     return sacRow(sac);
   });
+  /** Theatres where this SAC has screens or DOOH mapped (any status), with the counts attributed to it. */
+  r.get('/api/admin/sacs/:id/theatres', (req): SacTheatresPage => {
+    adminOf(req);
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const q = (req.query.get('q') ?? '').trim().toLowerCase();
+    const chain = req.query.get('chain');
+    const location = req.query.get('location');
+    const status = req.query.get('status');
+    const page = Math.max(1, Number(req.query.get('page')) || 1);
+    const pageSize = Math.min(100, Math.max(10, Number(req.query.get('pageSize')) || 25));
+    const dooh = byKey(db().doohGroups.filter(g => g.sacId === sac.id), g => g.theatreId);
+    const all: SacTheatreRow[] = [];
+    for (const t of db().theatres) {
+      const mine = t.screens.filter(s => s.sacId === sac.id);
+      const groups = dooh.get(t.id) ?? [];
+      if (!mine.length && !groups.length) continue;
+      all.push({
+        theatreId: t.id, name: t.name, city: t.city, state: t.state, country: t.country, chain: t.brand, status: t.status,
+        screensTotal: t.screens.length, screensForSac: mine.length, category: t.category,
+        formats: [...new Set(mine.map(s => s.format).filter(f => f !== 'Standard'))],
+        doohScreens: groups.reduce((n, g) => n + g.screens, 0), doohGroups: groups.length
+      });
+    }
+    const facet = <K extends string>(rows: SacTheatreRow[], key: (r: SacTheatreRow) => K) => {
+      const m = new Map<K, number>();
+      for (const r of rows) m.set(key(r), (m.get(key(r)) ?? 0) + 1);
+      return [...m].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    };
+    const rows = all.filter(r =>
+      (!q || `${r.name} ${r.city} ${r.state} ${r.country}`.toLowerCase().includes(q)) &&
+      (!chain || r.chain === chain) && (!location || r.city === location) && (!status || r.status === status));
+    rows.sort((a, b) => a.name.localeCompare(b.name));
+    return {
+      rows: rows.slice((page - 1) * pageSize, page * pageSize), total: rows.length, page, pageSize,
+      totals: {
+        theatres: all.length, activeTheatres: all.filter(r => r.status === 'active').length,
+        screens: all.reduce((n, r) => n + r.screensForSac, 0), doohScreens: all.reduce((n, r) => n + r.doohScreens, 0)
+      },
+      facets: { chains: facet(all, r => r.chain), locations: facet(all, r => r.city), statuses: facet(all, r => r.status) },
+      lastSyncedAt: sac.lastSyncedAt
+    };
+  });
+  /**
+   * Mock of the CinemaDB pull: maps a few pending screens in theatres this SAC already sells,
+   * releases one screen, and records the sync. The real integration replaces this handler.
+   */
+  r.post('/api/admin/sacs/:id/sync', (req): SacSyncResult => {
+    const s = adminOf(req, 'tenants.manage');
+    const sac = find(db().sacs, req.params.id!, 'SAC');
+    const sold = db().theatres.filter(t => t.screens.some(x => x.sacId === sac.id));
+    const pending = sold.flatMap(t => t.screens.filter(x => x.sacId === null));
+    const added = pending.slice(0, 1 + (Date.now() % 5));
+    added.forEach(x => { x.sacId = sac.id; });
+    const releasable = sold.flatMap(t => t.screens.filter(x => x.sacId === sac.id)).filter(x => !added.includes(x));
+    const removed = releasable.length > 20 && Date.now() % 3 === 0 ? [releasable[Date.now() % releasable.length]!] : [];
+    removed.forEach(x => { x.sacId = null; });
+    sac.exhibitorIds = exhibitorsOf(sac.id, db().theatres, db().doohGroups);
+    sac.lastSyncedAt = now();
+    const detail = `CinemaDB sync: ${added.length} screen${added.length === 1 ? '' : 's'} mapped, ${removed.length} released`;
+    audit(s, 'sac.sync', 'sac', sac.id, detail);
+    return { added: added.length, removed: removed.length, lastSyncedAt: sac.lastSyncedAt };
+  });
   r.get('/api/admin/users', req => { adminOf(req); return db().users; });
   r.get('/api/admin/theatres', req => {
     adminOf(req);
-    return db().theatres.map(t => ({ ...t, exhibitorName: db().exhibitors.find(e => e.id === t.exhibitorId)!.name, doohGroups: db().doohGroups.filter(g => g.theatreId === t.id), doohStatus: db().doohGroups.some(g => g.theatreId === t.id) ? 'Configured' : 'Pending' }));
+    const groups = byKey(db().doohGroups, g => g.theatreId);
+    const exName = new Map(db().exhibitors.map(e => [e.id, e.name]));
+    return db().theatres.map(t => ({ ...t, exhibitorName: exName.get(t.exhibitorId)!, doohGroups: groups.get(t.id) ?? [], doohStatus: groups.has(t.id) ? 'Configured' : 'Pending' }));
   });
   r.get('/api/admin/devices', (req): DeviceRow[] => {
     adminOf(req);
+    const theatre = new Map(db().theatres.map(t => [t.id, t]));
+    const exName = new Map(db().exhibitors.map(e => [e.id, e.name]));
     return db().devices.map(d => {
-      const t = db().theatres.find(x => x.id === d.theatreId)!;
-      return { ...d, theatreName: t.name, city: t.city, exhibitorName: db().exhibitors.find(e => e.id === t.exhibitorId)!.name, health: deviceHealth(d, Date.now()) };
+      const t = theatre.get(d.theatreId)!;
+      return { ...d, theatreName: t.name, city: t.city, exhibitorName: exName.get(t.exhibitorId)!, health: deviceHealth(d, Date.now()) };
     });
   });
   r.get('/api/admin/ingestion', (req): IngestionRow[] => {
     adminOf(req);
-    return db().theatres.map(t => ({
-      ...ingestionFor(t.id, db().devices, db().delivery, Date.now()),
-      theatreName: t.name, city: t.city, exhibitorName: db().exhibitors.find(e => e.id === t.exhibitorId)!.name
+    const devices = byKey(db().devices, d => d.theatreId);
+    const delivery = byKey(db().delivery, d => d.theatreId);
+    const exName = new Map(db().exhibitors.map(e => [e.id, e.name]));
+    return db().theatres.filter(t => t.status !== 'closed').map(t => ({
+      ...ingestionFor(t.id, devices.get(t.id) ?? [], delivery.get(t.id) ?? [], Date.now()),
+      theatreName: t.name, city: t.city, exhibitorName: exName.get(t.exhibitorId)!
     }));
   });
   r.get('/api/admin/advertisers', req => { adminOf(req); return db().companies.map(c => ({ ...advertiserRow(c), sacName: db().sacs.find(s => s.id === c.sacId)!.name })); });

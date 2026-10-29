@@ -2,7 +2,7 @@
 import type {
   AuditEvent, BillingType, Brand, Campaign, CampaignDecision, CampaignType, Channel, ChecklistItem, Company, Contract,
   DeliveryRecord, DeliverySummary, Device, DoohGroup, Exhibitor, IngestionStatus, InventoryAccess, Invoice, Media,
-  PaymentGatewayConfig, Placement, PlacementAction, PlacementPosition, Sac, TargetGroup, Theatre, TimeBand, User
+  PaymentGatewayConfig, Placement, PlacementAction, PlacementPosition, Sac, ScreenFormat, TargetGroup, Theatre, TheatreStatus, TimeBand, User
 } from '@slate/domain';
 
 export interface Session {
@@ -188,7 +188,8 @@ export interface TheatreRow extends Theatre {
 
 export interface DoohConfigInput {
   hours: Theatre['hours'];
-  groups: Omit<DoohGroup, 'theatreId'>[];
+  /** The server assigns theatre and SAC; a SAC only edits its own groups. */
+  groups: Omit<DoohGroup, 'theatreId' | 'sacId'>[];
 }
 
 export interface ProofOfPlayRow {
@@ -216,6 +217,9 @@ export interface ExhibitorRow extends Exhibitor {
 
 export interface SacRow extends Sac {
   exhibitorNames: string[];
+  /** Theatres and screens mapped to this SAC in CinemaDB (any theatre status). */
+  theatres: number;
+  screens: number;
   advertisers: number;
   users: number;
   bookedValue: number;
@@ -227,9 +231,55 @@ export interface SacInput {
   slug: string;
   gstin: string;
   supportEmail: string;
-  exhibitorIds: string[];
   adminName: string;
   adminEmail: string;
+}
+
+export interface SacTheatreRow {
+  theatreId: string;
+  name: string;
+  city: string;
+  state: string;
+  country: string;
+  chain: string;
+  status: TheatreStatus;
+  category: Theatre['category'];
+  /** Special formats among this SAC's screens (IMAX, 4DX, Recliner…). */
+  formats: ScreenFormat[];
+  screensTotal: number;
+  /** Screens in this theatre mapped to the SAC; can be fewer than screensTotal when screens are split between SACs. */
+  screensForSac: number;
+  doohScreens: number;
+  doohGroups: number;
+}
+
+export interface SacTheatresQuery {
+  q?: string;
+  chain?: string;
+  location?: string;
+  status?: TheatreStatus;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface SacTheatresPage {
+  rows: SacTheatreRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totals: { theatres: number; activeTheatres: number; screens: number; doohScreens: number };
+  facets: {
+    chains: { value: string; count: number }[];
+    locations: { value: string; count: number }[];
+    statuses: { value: TheatreStatus; count: number }[];
+  };
+  lastSyncedAt: string | null;
+}
+
+export interface SacSyncResult {
+  added: number;
+  removed: number;
+  lastSyncedAt: string;
 }
 
 export interface ExhibitorInput {

@@ -17,7 +17,7 @@
     "dev:sac": "npm run dev -w @slate/sac",
     "dev:admin": "npm run dev -w @slate/admin",
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -b --force",
     "lint": "oxlint apps packages",
     "test": "vitest run",
     "test:e2e": "playwright test"

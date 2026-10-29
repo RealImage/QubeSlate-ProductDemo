@@ -1,11 +1,15 @@
 import {
-  DOOH_TYPES, quotePlacement, resolveReach, statusOnApproval, withGst,
+  DOOH_TYPES, exhibitorsOf, sacInventory, quotePlacement, resolveReach, statusOnApproval, withGst,
   type AuditEvent, type Brand, type Campaign, type Company, type DeliveryRecord, type Device, type DoohGroup,
   type CinemaSpot, type Exhibitor, type Invoice, type Media, type Placement, type PlacementPosition, type Sac, type Screen,
   type TargetGroup, type Theatre, type User
 } from '@slate/domain';
 
+/** Bump when the persisted shape changes; the server reseeds data written by an older version. */
+export const DB_SCHEMA = 2; // 2: screen / DOOH level SAC mapping, theatre status
+
 export interface Db {
+  schema: number;
   exhibitors: Exhibitor[];
   sacs: Sac[];
   theatres: Theatre[];
@@ -65,7 +69,11 @@ function buildNetwork() {
     { id: 'EX-AMC', name: 'AMC Theatres', code: 'AMC-US', hq: 'Leawood', createdAt: at(-220) },
     { id: 'EX-CMK', name: 'Cinemark USA', code: 'CINEMARK-US', hq: 'Plano', createdAt: at(-210) },
     { id: 'EX-HRK', name: 'Harkins Theatres', code: 'HARKINS-US', hq: 'Scottsdale', createdAt: at(-180) },
-    { id: 'EX-MRC', name: 'Marcus Theatres', code: 'MARCUS-US', hq: 'Milwaukee', createdAt: at(-170) }
+    { id: 'EX-MRC', name: 'Marcus Theatres', code: 'MARCUS-US', hq: 'Milwaukee', createdAt: at(-170) },
+    { id: 'EX-IND-IN', name: 'Independent cinemas (India)', code: 'IND-IN', hq: 'India', createdAt: at(-360) },
+    { id: 'EX-IND-NL', name: 'Independent cinemas (Netherlands)', code: 'IND-NL', hq: 'Netherlands', createdAt: at(-150) },
+    { id: 'EX-IND-BE', name: 'Independent cinemas (Belgium)', code: 'IND-BE', hq: 'Belgium', createdAt: at(-140) },
+    { id: 'EX-IND-US', name: 'Independent cinemas (USA)', code: 'IND-US', hq: 'USA', createdAt: at(-200) }
   ];
   const plan: [string, string, City, Theatre['category']][] = [
     ['EX-PVR', 'PVR ICON Phoenix Palladium', 'Mumbai', 'Premium'], ['EX-PVR', 'INOX Megaplex Inorbit', 'Mumbai', 'Premium'],
@@ -90,45 +98,131 @@ function buildNetwork() {
     ['EX-MRC', 'Marcus Majestic Cinema', 'Milwaukee', 'Value']
   ];
   const brandOf = (n: string) => n.split(' ').slice(0, n.startsWith('PVR ICON') || n.startsWith('PVR Director') ? 2 : 1).join(' ').replace('’s', '’s Cut');
-  const theatres: Theatre[] = plan.map(([exhibitorId, name, city, category], i) => {
-    const id = `TH-${101 + i}`;
-    const count = category === 'Premium' ? 6 + Math.floor(r() * 4) : category === 'Mainstream' ? 4 + Math.floor(r() * 3) : 3 + Math.floor(r() * 2);
-    const screens: Screen[] = Array.from({ length: count }, (_, s) => {
+  const exName = (id: string) => exhibitors.find(e => e.id === id)!.name;
+
+  // Which SAC sells each exhibitor's screens (as mapped in CinemaDB). Cinemark is split per screen.
+  const SAC_OF: Record<string, string> = {
+    'EX-PVR': 'SAC-PVRM', 'EX-STR': 'SAC-QCN', 'EX-AUR': 'SAC-QCN', 'EX-IND-IN': 'SAC-QCN', 'EX-CPI': 'SAC-CPAI',
+    'EX-PTH': 'SAC-CMC', 'EX-IND-NL': 'SAC-CMC', 'EX-KIN': 'SAC-BRF', 'EX-IND-BE': 'SAC-BRF', 'EX-TOH': 'SAC-BRD',
+    'EX-CPID': 'SAC-CPAD', 'EX-AMC': 'SAC-NCM', 'EX-CMK': 'SAC-NCM', 'EX-HRK': 'SAC-SVM', 'EX-IND-US': 'SAC-SVM', 'EX-MRC': 'SAC-SDL'
+  };
+  const screenSac = (exhibitorId: string, index: number, total: number) =>
+    exhibitorId === 'EX-CMK' && index >= Math.ceil(total * 0.7) ? 'SAC-SVM' : SAC_OF[exhibitorId]!;
+
+  const makeScreens = (id: string, exhibitorId: string, category: Theatre['category'], count: number, mapAll: boolean): Screen[] =>
+    Array.from({ length: count }, (_, s) => {
       const special = category === 'Premium' ? (['IMAX', '4DX', 'Recliner', 'Onyx LED', 'ScreenX'] as const)[s] : s === 0 && category === 'Mainstream' ? 'Recliner' : undefined;
       return {
         id: `${id}-S${s + 1}`, theatreId: id, name: `Audi ${s + 1}`, format: special ?? 'Standard',
         category: special ? 'Gold' : s % 3 === 0 ? 'Silver' : 'Standard',
         projection: category === 'Value' ? '2K' : r() > 0.3 ? '4K' : '2K',
-        sound: special ? 'Atmos' : r() > 0.5 ? '7.1' : '5.1', seats: 120 + Math.floor(r() * 260)
+        sound: special ? 'Atmos' : r() > 0.5 ? '7.1' : '5.1', seats: 120 + Math.floor(r() * 260),
+        // ~3% of screens aren't mapped yet in CinemaDB; a sync picks some of them up.
+        sacId: !mapAll && r() < 0.03 ? null : screenSac(exhibitorId, s, count)
       };
     });
+
+  // Hand-named flagship theatres keep their ids (TH-101…) so seeded campaigns stay stable.
+  const theatres: Theatre[] = plan.map(([exhibitorId, name, city, category], i) => {
+    const id = `TH-${101 + i}`;
+    const count = category === 'Premium' ? 6 + Math.floor(r() * 4) : category === 'Mainstream' ? 4 + Math.floor(r() * 3) : 3 + Math.floor(r() * 2);
     return {
-      id, exhibitorId, name, brand: exhibitorId === 'EX-PVR' ? brandOf(name) : exhibitors.find(e => e.id === exhibitorId)!.name,
-      city, state: CITY[city].state, country: CITY[city].country, category, screens, hours: HOURS,
+      id, exhibitorId, name, brand: exhibitorId === 'EX-PVR' ? brandOf(name) : exName(exhibitorId),
+      city, state: CITY[city].state, country: CITY[city].country, category, status: 'active', screens: makeScreens(id, exhibitorId, category, count, true), hours: HOURS,
       updatedAt: at(-Math.floor(r() * 60), 9 + (i % 8)), updatedBy: i % 3 ? 'Rohan Mehta' : 'Sana Qureshi'
     };
   });
 
-  // DOOH is configured at roughly two-thirds of theatres; the rest show as Pending in the SAC.
+  // Bulk network at realistic scale (PVR ~400 theatres, QCN ~1,200, Brightfish ~40…).
+  type Place = [city: string, state: string];
+  const PLACES: Record<string, Place[]> = {
+    India: [['Mumbai', 'Maharashtra'], ['Pune', 'Maharashtra'], ['Nagpur', 'Maharashtra'], ['Nashik', 'Maharashtra'], ['Aurangabad', 'Maharashtra'],
+      ['Delhi NCR', 'Delhi'], ['Bengaluru', 'Karnataka'], ['Mysuru', 'Karnataka'], ['Mangaluru', 'Karnataka'], ['Hubballi', 'Karnataka'],
+      ['Hyderabad', 'Telangana'], ['Warangal', 'Telangana'], ['Chennai', 'Tamil Nadu'], ['Coimbatore', 'Tamil Nadu'], ['Madurai', 'Tamil Nadu'],
+      ['Tiruchirappalli', 'Tamil Nadu'], ['Salem', 'Tamil Nadu'], ['Kolkata', 'West Bengal'], ['Siliguri', 'West Bengal'], ['Ahmedabad', 'Gujarat'],
+      ['Surat', 'Gujarat'], ['Vadodara', 'Gujarat'], ['Rajkot', 'Gujarat'], ['Indore', 'Madhya Pradesh'], ['Bhopal', 'Madhya Pradesh'],
+      ['Lucknow', 'Uttar Pradesh'], ['Kanpur', 'Uttar Pradesh'], ['Varanasi', 'Uttar Pradesh'], ['Agra', 'Uttar Pradesh'], ['Kochi', 'Kerala'],
+      ['Thiruvananthapuram', 'Kerala'], ['Kozhikode', 'Kerala'], ['Thrissur', 'Kerala'], ['Vijayawada', 'Andhra Pradesh'], ['Visakhapatnam', 'Andhra Pradesh'],
+      ['Guntur', 'Andhra Pradesh'], ['Tirupati', 'Andhra Pradesh'], ['Jaipur', 'Rajasthan'], ['Jodhpur', 'Rajasthan'], ['Chandigarh', 'Chandigarh'],
+      ['Ludhiana', 'Punjab'], ['Amritsar', 'Punjab'], ['Patna', 'Bihar'], ['Ranchi', 'Jharkhand'], ['Bhubaneswar', 'Odisha'], ['Guwahati', 'Assam'],
+      ['Raipur', 'Chhattisgarh'], ['Dehradun', 'Uttarakhand'], ['Goa', 'Goa']],
+    Netherlands: [['Amsterdam', 'North Holland'], ['Haarlem', 'North Holland'], ['Rotterdam', 'South Holland'], ['The Hague', 'South Holland'],
+      ['Utrecht', 'Utrecht'], ['Eindhoven', 'North Brabant'], ['Tilburg', 'North Brabant'], ['Groningen', 'Groningen'], ['Arnhem', 'Gelderland'], ['Nijmegen', 'Gelderland']],
+    Belgium: [['Brussels', 'Brussels-Capital'], ['Antwerp', 'Antwerp'], ['Mechelen', 'Antwerp'], ['Ghent', 'East Flanders'], ['Bruges', 'West Flanders'],
+      ['Leuven', 'Flemish Brabant'], ['Liège', 'Liège'], ['Namur', 'Namur'], ['Charleroi', 'Hainaut'], ['Hasselt', 'Limburg']],
+    Japan: [['Tokyo', 'Tokyo'], ['Yokohama', 'Kanagawa'], ['Osaka', 'Osaka'], ['Kyoto', 'Kyoto'], ['Kobe', 'Hyogo'], ['Nagoya', 'Aichi'],
+      ['Sapporo', 'Hokkaido'], ['Fukuoka', 'Fukuoka'], ['Sendai', 'Miyagi'], ['Hiroshima', 'Hiroshima']],
+    Indonesia: [['Jakarta', 'DKI Jakarta'], ['Bekasi', 'West Java'], ['Bandung', 'West Java'], ['Surabaya', 'East Java'], ['Malang', 'East Java'],
+      ['Medan', 'North Sumatra'], ['Makassar', 'South Sulawesi'], ['Denpasar', 'Bali'], ['Semarang', 'Central Java'], ['Yogyakarta', 'Yogyakarta']],
+    USA: [['New York', 'New York'], ['Buffalo', 'New York'], ['Los Angeles', 'California'], ['San Diego', 'California'], ['San Jose', 'California'],
+      ['Dallas', 'Texas'], ['Houston', 'Texas'], ['Austin', 'Texas'], ['Phoenix', 'Arizona'], ['Tucson', 'Arizona'], ['Chicago', 'Illinois'],
+      ['Milwaukee', 'Wisconsin'], ['Madison', 'Wisconsin'], ['Atlanta', 'Georgia'], ['Miami', 'Florida'], ['Orlando', 'Florida'], ['Denver', 'Colorado'],
+      ['Seattle', 'Washington'], ['Columbus', 'Ohio'], ['Minneapolis', 'Minnesota'], ['Charlotte', 'North Carolina'], ['Boston', 'Massachusetts']]
+  };
+  const pick = <T,>(xs: readonly T[]) => xs[Math.floor(r() * xs.length)]!;
+  const VENUES = ['Phoenix', 'Nexus', 'Lulu', 'Forum', 'Inorbit', 'Pacific', 'DLF', 'VR', 'Orion', 'Mantri', 'Ambience', 'Logix', 'City Centre', 'Prozone', 'R City', 'Viviana', 'Seasons', 'Infiniti', 'Elante', 'Select'];
+  const IND_PREFIX = ['Sri Venkateswara', 'Raj', 'Maya', 'Laxmi', 'Apsara', 'Ganga', 'Shree', 'Amba', 'Kalpana', 'Jyoti', 'Sangam', 'Ashoka', 'Krishna', 'Sapna', 'Alankar', 'Natraj', 'Gaiety', 'Liberty', 'Regal', 'Minerva', 'Maratha Mandir', 'Navrang', 'Sudarshan', 'Kamala', 'Santosh', 'Vijaya', 'Sathyam', 'Devi', 'Udaya', 'Bharat'];
+  const IND_SUFFIX = ['Talkies', 'Cinema', 'Theatre', 'Picture Palace', 'Cineplex', 'Chitra Mandir'];
+  const lots: { exhibitorId: string; country: string; count: number; screens: () => number; name: (city: string, n: number) => string; brand: (n: number) => string; category: () => Theatre['category'] }[] = [
+    { exhibitorId: 'EX-PVR', country: 'India', count: 382, screens: () => 3 + Math.floor(r() * 4) + (r() < 0.2 ? 3 : 0), category: () => (r() < 0.15 ? 'Premium' : r() < 0.7 ? 'Mainstream' : 'Value'),
+      brand: n => (n % 3 === 0 ? 'INOX' : n % 11 === 0 ? 'PVR ICON' : 'PVR'), name: (city, n) => `${n % 3 === 0 ? 'INOX' : n % 11 === 0 ? 'PVR ICON' : 'PVR'} ${VENUES[n % VENUES.length]} ${city}` },
+    { exhibitorId: 'EX-STR', country: 'India', count: 26, screens: () => 3 + Math.floor(r() * 4), category: () => (r() < 0.6 ? 'Mainstream' : 'Value'), brand: () => 'Starlite Cinemas', name: (city, n) => `Starlite ${VENUES[(n + 5) % VENUES.length]} ${city}` },
+    { exhibitorId: 'EX-AUR', country: 'India', count: 18, screens: () => 3 + Math.floor(r() * 3), category: () => (r() < 0.5 ? 'Mainstream' : 'Value'), brand: () => 'Aurora Multiplex', name: (city, n) => `Aurora ${VENUES[(n + 9) % VENUES.length]} ${city}` },
+    { exhibitorId: 'EX-IND-IN', country: 'India', count: 1150, screens: () => 1 + Math.floor(r() * 4) + (r() < 0.15 ? 2 : 0), category: () => (r() < 0.2 ? 'Mainstream' : 'Value'), brand: () => 'Independent',
+      name: (_city, n) => `${IND_PREFIX[n % IND_PREFIX.length]} ${IND_SUFFIX[Math.floor(n / IND_PREFIX.length) % IND_SUFFIX.length]}` },
+    { exhibitorId: 'EX-CPI', country: 'India', count: 88, screens: () => 4 + Math.floor(r() * 3), category: () => (r() < 0.25 ? 'Premium' : 'Mainstream'), brand: () => 'Cinépolis', name: (city, n) => `Cinépolis ${VENUES[(n + 3) % VENUES.length]} ${city}` },
+    { exhibitorId: 'EX-PTH', country: 'Netherlands', count: 26, screens: () => 6 + Math.floor(r() * 5), category: () => (r() < 0.3 ? 'Premium' : 'Mainstream'), brand: () => 'Pathé', name: (city, n) => `Pathé ${city}${n > 9 ? ` ${['Noord', 'Zuid', 'Centrum', 'Oost', 'West'][n % 5]}` : ''}` },
+    { exhibitorId: 'EX-IND-NL', country: 'Netherlands', count: 32, screens: () => 3 + Math.floor(r() * 4), category: () => 'Mainstream', brand: () => 'Independent', name: (city, n) => `${['Filmhuis', 'Cinema', 'Kriterion', 'Lumen', 'Vue'][n % 5]} ${city}` },
+    { exhibitorId: 'EX-KIN', country: 'Belgium', count: 9, screens: () => 10 + Math.floor(r() * 10), category: () => 'Premium', brand: () => 'Kinepolis', name: city => `Kinepolis ${city}` },
+    { exhibitorId: 'EX-IND-BE', country: 'Belgium', count: 29, screens: () => 3 + Math.floor(r() * 4), category: () => (r() < 0.5 ? 'Mainstream' : 'Value'), brand: () => 'Independent', name: (city, n) => `${['Cinema Palace', 'Cinéma Galeries', 'Studio Skoop', 'Sphinx', 'Cartoon’s', 'Le Parc'][n % 6]} ${city}` },
+    { exhibitorId: 'EX-TOH', country: 'Japan', count: 48, screens: () => 6 + Math.floor(r() * 5), category: () => (r() < 0.3 ? 'Premium' : 'Mainstream'), brand: () => 'Toho Cinemas', name: (city, n) => `Toho Cinemas ${city}${n > 9 ? ` ${['Chuo', 'Kita', 'Minami', 'Higashi', 'Nishi'][n % 5]}` : ''}` },
+    { exhibitorId: 'EX-CPID', country: 'Indonesia', count: 28, screens: () => 4 + Math.floor(r() * 4), category: () => (r() < 0.25 ? 'Premium' : 'Mainstream'), brand: () => 'Cinépolis', name: (city, n) => `Cinépolis ${['Grand Mall', 'Plaza', 'Square', 'Town Square', 'Lippo Mall'][n % 5]} ${city}` },
+    { exhibitorId: 'EX-AMC', country: 'USA', count: 148, screens: () => 10 + Math.floor(r() * 10), category: () => (r() < 0.4 ? 'Premium' : 'Mainstream'), brand: () => 'AMC', name: (city, n) => `AMC ${['Metreon', 'Town Center', 'Fork & Screen', 'Classic', 'Dine-In', 'Mall'][n % 6]} ${city} ${8 + (n % 17)}` },
+    { exhibitorId: 'EX-CMK', country: 'USA', count: 99, screens: () => 12 + Math.floor(r() * 8), category: () => (r() < 0.3 ? 'Premium' : 'Mainstream'), brand: () => 'Cinemark', name: (city, n) => `Cinemark ${['Century', 'Tinseltown', 'XD', 'Movies', 'Reel'][n % 5]} ${city} ${10 + (n % 15)}` },
+    { exhibitorId: 'EX-HRK', country: 'USA', count: 29, screens: () => 12 + Math.floor(r() * 10), category: () => 'Mainstream', brand: () => 'Harkins Theatres', name: (city, n) => `Harkins ${['Camelview', 'Norterra', 'Christown', 'Gateway', 'Shea'][n % 5]} ${city}` },
+    { exhibitorId: 'EX-IND-US', country: 'USA', count: 170, screens: () => 3 + Math.floor(r() * 6), category: () => (r() < 0.4 ? 'Mainstream' : 'Value'), brand: () => 'Independent', name: (city, n) => `${['Paramount', 'Strand', 'Regent', 'Bijou', 'Grand', 'Majestic', 'Roxy', 'Capitol'][n % 8]} ${city}` },
+    { exhibitorId: 'EX-MRC', country: 'USA', count: 39, screens: () => 6 + Math.floor(r() * 6), category: () => 'Mainstream', brand: () => 'Marcus Theatres', name: (city, n) => `Marcus ${['Majestic', 'Ridge', 'Palace', 'Point', 'Oakdale'][n % 5]} ${city}` }
+  ];
+  let seq = 1000;
+  for (const lot of lots) {
+    for (let n = 0; n < lot.count; n++) {
+      const [city, state] = pick(PLACES[lot.country]!);
+      const id = `TH-${++seq}`;
+      const category = lot.category();
+      const roll = r();
+      theatres.push({
+        id, exhibitorId: lot.exhibitorId, name: lot.name(city, n), brand: lot.brand(n), city, state, country: lot.country, category,
+        status: roll < 0.92 ? 'active' : roll < 0.97 ? 'inactive' : 'closed',
+        screens: makeScreens(id, lot.exhibitorId, category, lot.screens(), false), hours: HOURS,
+        updatedAt: at(-Math.floor(r() * 90), 9 + (n % 8)), updatedBy: 'CinemaDB sync'
+      });
+    }
+  }
+
+  // DOOH: about two-thirds of flagship theatres and a third of the rest; each group belongs to the theatre's main SAC.
   const doohGroups: DoohGroup[] = [];
   theatres.forEach((t, i) => {
-    if (i % 3 === 2) return;
-    const types = DOOH_TYPES.filter((_, k) => r() < (k < 4 ? 0.8 : 0.25));
+    const flagship = i < plan.length;
+    if (flagship ? i % 3 === 2 : r() > (t.category === 'Value' ? 0.15 : 0.45)) return;
+    const types = DOOH_TYPES.filter((_, k) => r() < (k < 4 ? (flagship ? 0.8 : 0.5) : flagship ? 0.25 : 0.08));
     types.forEach((type, k) => {
       const screens = 1 + Math.floor(r() * (type === 'Lobby' || type === 'Foyer' ? 8 : 3));
       doohGroups.push({
         id: `DG-${t.id}-${k + 1}`, theatreId: t.id, type, name: `${type.split(' ')[0]} ${k % 2 ? 'East' : 'Main'}`,
         screens, orientation: r() > 0.7 ? 'Vertical' : 'Horizontal',
         mode: screens > 3 ? 'Synchronized Screens' : 'Independent Screens',
-        loop: r() > 0.4 ? 'Scheduled' : 'Synchronized with Screen', loopSecs: 120
+        loop: r() > 0.4 ? 'Scheduled' : 'Synchronized with Screen', loopSecs: 120, sacId: SAC_OF[t.exhibitorId]!
       });
     });
   });
 
   const devices: Device[] = [];
+  const groupsByTheatre = new Map<string, DoohGroup[]>();
+  for (const g of doohGroups) groupsByTheatre.set(g.theatreId, [...(groupsByTheatre.get(g.theatreId) ?? []), g]);
   for (const t of theatres) {
-    // A couple of theatres have stale or offline log uploads, so ingestion health has something to show.
-    const lag = t.id === 'TH-111' ? 30 : t.id === 'TH-117' ? 5 : 0;
+    if (t.status === 'closed') continue;
+    // A few theatres have stale or offline log uploads, so ingestion health has something to show.
+    const lag = t.id === 'TH-111' ? 30 : t.id === 'TH-117' ? 5 : t.status === 'inactive' ? 48 : r() < 0.01 ? 30 : r() < 0.01 ? 5 : 0;
     for (const s of t.screens) {
       devices.push({
         id: `DV-${s.id}`, theatreId: t.id, screenId: s.id, doohGroupId: null, kind: 'cinema-server',
@@ -137,7 +231,7 @@ function buildNetwork() {
         lastLogAt: new Date(Date.now() - (lag * 3_600_000 + r() * 3_600_000)).toISOString()
       });
     }
-    for (const g of doohGroups.filter(g => g.theatreId === t.id)) {
+    for (const g of groupsByTheatre.get(t.id) ?? []) {
       devices.push({
         id: `DV-${g.id}`, theatreId: t.id, screenId: null, doohGroupId: g.id, kind: 'dooh-player',
         model: 'Qube Wire Player', serial: `QWP${Math.floor(r() * 1e6)}`,
@@ -166,18 +260,18 @@ export function createSeed(): Db {
   // Payment gateways here are India-only (Razorpay / PayU / CCAvenue); other markets stay on the stub until a local gateway is added.
   const sac = (id: string, name: string, legalName: string, slug: string, taxId: string, exhibitorIds: string[], status: Sac['status'], ago: number,
     gw?: Omit<Sac['gateway'], 'updatedAt'>): Sac => ({
-    id, name, legalName, slug, gstin: taxId, supportEmail: `adsales@${slug}.example`, exhibitorIds, status, createdAt: at(ago),
+    id, name, legalName, slug, gstin: taxId, supportEmail: `adsales@${slug}.example`, exhibitorIds, lastSyncedAt: null, status, createdAt: at(ago),
     gateway: { ...(gw ?? { provider: 'stub' as const, mode: 'test' as const, merchantId: '', keyHint: '', enabled: false }), updatedAt: at(ago + 5) }
   });
   const sacs: Sac[] = [
     {
       id: 'SAC-PVRM', name: 'PVR INOX Media Sales', legalName: 'PVR INOX Ltd (Media Sales)', slug: 'pvrinox-media',
-      gstin: '06AAACP4526D1Z1', supportEmail: 'adsales@pvrinox.example', exhibitorIds: ['EX-PVR'], status: 'active', createdAt: at(-380),
+      gstin: '06AAACP4526D1Z1', supportEmail: 'adsales@pvrinox.example', exhibitorIds: [], lastSyncedAt: null, status: 'active', createdAt: at(-380),
       gateway: { provider: 'razorpay', mode: 'test', merchantId: 'rzp_test_PVRM01', keyHint: '••••Q8x1', enabled: true, updatedAt: at(-20) }
     },
     {
       id: 'SAC-QCN', name: 'Qube Cinema Network', legalName: 'Qube Cinema Technologies Pvt Ltd (Cinema Network)', slug: 'qube-cinema-network',
-      gstin: '33AABCQ1234M1Z5', supportEmail: 'adsales@qubecinemanetwork.example', exhibitorIds: ['EX-STR', 'EX-AUR'], status: 'active', createdAt: at(-200),
+      gstin: '33AABCQ1234M1Z5', supportEmail: 'adsales@qubecinemanetwork.example', exhibitorIds: [], lastSyncedAt: null, status: 'active', createdAt: at(-200),
       gateway: { provider: 'payu', mode: 'test', merchantId: 'payu_test_QCN', keyHint: '••••a91c', enabled: false, updatedAt: at(-90) }
     },
     sac('SAC-CPAI', 'Cinépolis Advertising India', 'Cinépolis India Pvt Ltd (Advertising)', 'cinepolis-advertising-in', '27AAECC4410R1ZQ', ['EX-CPI'], 'active', -240,
@@ -190,6 +284,11 @@ export function createSeed(): Db {
     sac('SAC-SDL', 'Screen Dollars', 'Screen Dollars Inc.', 'screen-dollars', '47-2913385', ['EX-MRC'], 'active', -110),
     sac('SAC-NCM', 'National CineMedia', 'National CineMedia LLC', 'ncm', '20-5665602', ['EX-AMC', 'EX-CMK'], 'active', -210)
   ];
+  // What each SAC sells comes from the screen / DOOH mapping; its exhibitor list is derived from that.
+  for (const x of sacs) {
+    x.exhibitorIds = exhibitorsOf(x.id, theatres, doohGroups);
+    x.lastSyncedAt = x.status === 'onboarding' ? null : at(-1, 2);
+  }
 
   const companies: Company[] = [
     {
@@ -309,7 +408,7 @@ export function createSeed(): Db {
 
   const db: Db = {
     exhibitors, sacs, theatres, doohGroups, devices, companies, brands, users, targetGroups, media,
-    campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000
+    campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000, schema: DB_SCHEMA
   };
 
   // ---- campaigns, built through the same rules the API uses so the numbers agree.
@@ -330,7 +429,7 @@ export function createSeed(): Db {
     const tgObj = targetGroups.find(t => t.id === tgId)!;
     const company = companies.find(x => x.id === c.companyId)!;
     const sac = sacs.find(s => s.id === company.sacId)!;
-    const reach = resolveReach(tgObj, theatres.filter(t => sac.exhibitorIds.includes(t.exhibitorId)), doohGroups);
+    const reach = resolveReach(tgObj, sacInventory(sac.id, theatres, doohGroups), doohGroups.filter(g => g.sacId === sac.id));
     const q = quotePlacement({ screens: reach.units, from: d(from), to: d(to), position });
     const p: Placement = {
       id: `PL-${++pl}`, code: `PL-${pl}`, campaignId: c.id, mediaId, targetGroupId: tgId, from: d(from), to: d(to), timeBand: 'All day',
@@ -400,7 +499,7 @@ export function createSeed(): Db {
     const tgObj = targetGroups.find(t => t.id === p.targetGroupId)!;
     const company = companies.find(c => c.id === db.campaigns.find(c => c.id === p.campaignId)!.companyId)!;
     const sac = sacs.find(s => s.id === company.sacId)!;
-    const reach = resolveReach(tgObj, theatres.filter(t => sac.exhibitorIds.includes(t.exhibitorId)), doohGroups);
+    const reach = resolveReach(tgObj, sacInventory(sac.id, theatres, doohGroups), doohGroups.filter(g => g.sacId === sac.id));
     const until = p.status === 'paused' ? Math.min(Date.parse(p.to), Date.now() - 4 * DAY) : Math.min(Date.parse(p.to), Date.now() - DAY);
     for (let t = Date.parse(p.from); t <= until; t += DAY) {
       const date = new Date(t).toISOString().slice(0, 10);

@@ -54,7 +54,13 @@ export interface Sac {
   slug: string;
   gstin: string;
   supportEmail: string;
+  /**
+   * Derived, never edited: exhibitors that have at least one screen or DOOH group mapped to this SAC.
+   * The mapping itself lives on screens and DOOH groups and comes from CinemaDB (see `lastSyncedAt`).
+   */
   exhibitorIds: string[];
+  /** Last pull of the screen-to-SAC mapping from CinemaDB. Null until the first sync. */
+  lastSyncedAt: ISODateTime | null;
   gateway: PaymentGatewayConfig;
   status: 'active' | 'onboarding' | 'suspended';
   createdAt: ISODateTime;
@@ -75,6 +81,8 @@ export interface Screen {
   projection: '2K' | '4K';
   sound: '5.1' | '7.1' | 'Atmos';
   seats: number;
+  /** The SAC that sells this screen, as mapped in CinemaDB. One theatre's screens can belong to different SACs. */
+  sacId: string | null;
 }
 
 export interface Theatre {
@@ -86,12 +94,16 @@ export interface Theatre {
   state: string;
   country: string;
   category: TheatreCategory;
+  /** Active = bookable; Inactive = temporarily not selling (renovation, dispute); Closed = shut, kept for history. */
+  status: TheatreStatus;
   screens: Screen[];
   /** Daily operating hours for DOOH, Mon..Sun. */
   hours: { open: string; close: string }[];
   updatedAt: ISODateTime;
   updatedBy: string;
 }
+
+export type TheatreStatus = 'active' | 'inactive' | 'closed';
 
 export const DOOH_TYPES = [
   'Lobby', 'Foyer', 'Box Office / Ticketing', 'Concessions', 'Corridor / Circulation',
@@ -113,6 +125,8 @@ export interface DoohGroup {
   mode: DoohScreenMode;
   loop: DoohLoopMode;
   loopSecs: number | null;
+  /** The SAC that sells this display group, as mapped in CinemaDB. */
+  sacId: string | null;
 }
 
 export type DeviceKind = 'cinema-server' | 'dooh-player';

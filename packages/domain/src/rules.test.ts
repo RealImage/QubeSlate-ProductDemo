@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyPlacementAction, checkoutChecklist, decide, hasCredit, inr, inrShort, placementActions, quotePlacement,
   resolveReach, rollupStatus, statusOnApproval, submissionPath, suggestCampaignName, TransitionError, validateDoohGroup,
-  visibleTheatres, withGst, crossesMidnight, summarizeDelivery
+  visibleTheatres, withGst, crossesMidnight, summarizeDelivery, sacInventory, exhibitorsOf
 } from './index';
 import type { Company, TargetGroup, Theatre } from './types';
 
@@ -113,9 +113,9 @@ describe('SAC approval', () => {
   });
 });
 
-const theatre = (id: string, exhibitorId: string, city: string, formats: string[]): Theatre => ({
-  id, exhibitorId, name: id, brand: 'PVR', city, state: 'S', country: 'India', category: 'Premium',
-  screens: formats.map((f, i) => ({ id: `${id}-S${i + 1}`, theatreId: id, name: `Audi ${i + 1}`, format: f as never, category: 'Gold', projection: '4K', sound: 'Atmos', seats: 200 })),
+const theatre = (id: string, exhibitorId: string, city: string, formats: string[], sacs: (string | null)[] = formats.map(() => 's1'), status: Theatre['status'] = 'active'): Theatre => ({
+  id, exhibitorId, name: id, brand: 'PVR', city, state: 'S', country: 'India', category: 'Premium', status,
+  screens: formats.map((f, i) => ({ id: `${id}-S${i + 1}`, theatreId: id, name: `Audi ${i + 1}`, format: f as never, category: 'Gold', projection: '4K', sound: 'Atmos', seats: 200, sacId: sacs[i] ?? null })),
   hours: [], updatedAt: '', updatedBy: ''
 });
 
@@ -128,11 +128,27 @@ const tg = (over: Partial<TargetGroup> = {}): TargetGroup => ({
 describe('inventory', () => {
   const theatres = [theatre('T1', 'e1', 'Mumbai', ['IMAX', 'Standard']), theatre('T2', 'e2', 'Pune', ['Standard']), theatre('T3', 'e3', 'Delhi', ['4DX'])];
 
-  it('shows the SAC exhibitors by default and narrows on restricted access', () => {
-    const sac = { exhibitorIds: ['e1', 'e2'] };
-    expect(visibleTheatres(company(), sac, theatres).map(t => t.id)).toEqual(['T1', 'T2']);
-    const restricted = company({ inventoryAccess: { mode: 'restricted', exhibitorIds: [], theatreIds: ['T2'] } });
-    expect(visibleTheatres(restricted, sac, theatres).map(t => t.id)).toEqual(['T2']);
+  it('sells only the screens mapped to the SAC, in active theatres', () => {
+    const split = [
+      theatre('A', 'e1', 'Mumbai', ['IMAX', 'Standard', 'Standard'], ['s1', 's2', 's1']),
+      theatre('B', 'e2', 'Pune', ['Standard'], ['s2']),
+      theatre('C', 'e1', 'Delhi', ['4DX'], ['s1'], 'inactive'),
+      theatre('D', 'e3', 'Delhi', ['Standard'], [null])
+    ];
+    const inv = sacInventory('s1', split, []);
+    expect(inv.map(t => t.id)).toEqual(['A']);
+    expect(inv[0]!.screens.map(s => s.id)).toEqual(['A-S1', 'A-S3']);
+    expect(sacInventory('s2', split, []).map(t => t.screens.length)).toEqual([1, 1]);
+    // A theatre with only a DOOH group for the SAC is still part of its inventory.
+    expect(sacInventory('s3', split, [{ theatreId: 'D', sacId: 's3' }]).map(t => t.id)).toEqual(['D']);
+    expect(exhibitorsOf('s2', split, [])).toEqual(['e1', 'e2']);
+  });
+
+  it('shows the advertiser its SAC inventory and narrows on restricted access', () => {
+    const sold = [theatre('T1', 'e1', 'Mumbai', ['Standard']), theatre('T2', 'e2', 'Pune', ['Standard']), theatre('T3', 'e3', 'Delhi', ['Standard'], ['other'])];
+    expect(visibleTheatres(company({ sacId: 's1' }), sold, []).map(t => t.id)).toEqual(['T1', 'T2']);
+    const restricted = company({ sacId: 's1', inventoryAccess: { mode: 'restricted', exhibitorIds: [], theatreIds: ['T2'] } });
+    expect(visibleTheatres(restricted, sold, []).map(t => t.id)).toEqual(['T2']);
   });
 
   it('resolves geography and formats to screens', () => {
@@ -143,8 +159,8 @@ describe('inventory', () => {
 
   it('resolves DOOH groups by display type', () => {
     const dooh = [
-      { id: 'd1', theatreId: 'T1', type: 'Lobby' as const, name: 'L', screens: 4, orientation: 'Horizontal' as const, mode: 'Synchronized Screens' as const, loop: 'Scheduled' as const, loopSecs: 60 },
-      { id: 'd2', theatreId: 'T1', type: 'Restroom' as const, name: 'R', screens: 2, orientation: 'Vertical' as const, mode: 'Independent Screens' as const, loop: 'Free Duration' as const, loopSecs: null }
+      { id: 'd1', theatreId: 'T1', type: 'Lobby' as const, name: 'L', screens: 4, orientation: 'Horizontal' as const, mode: 'Synchronized Screens' as const, loop: 'Scheduled' as const, loopSecs: 60, sacId: 's1' },
+      { id: 'd2', theatreId: 'T1', type: 'Restroom' as const, name: 'R', screens: 2, orientation: 'Vertical' as const, mode: 'Independent Screens' as const, loop: 'Free Duration' as const, loopSecs: null, sacId: 's1' }
     ];
     const r = resolveReach(tg({ channel: 'dooh', doohTypes: ['Lobby'] }), theatres, dooh);
     expect(r.doohGroups.map(d => d.id)).toEqual(['d1']);
