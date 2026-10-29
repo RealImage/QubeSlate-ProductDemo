@@ -53,8 +53,10 @@ export function StatusTag({ tone, children, size = 'small' }: { tone: Tone; chil
 /** `label` names what is progressing for screen readers, e.g. "Plays delivered". */
 export function Progress({ value, tone, label }: { value: number; tone?: 'positive' | 'notice' | 'negative'; label: string }) {
   const color = tone ? `var(--fill-${tone})` : undefined;
-  return <div className="sl-progress" role="progressbar" aria-label={label} aria-valuenow={Math.round(value * 100)} aria-valuemin={0} aria-valuemax={100}>
-    <span style={{ width: `${Math.min(100, Math.max(0, value * 100))}%`, background: color }} />
+  // Over-delivery (value > 1) shows a full bar; announce the same clamped figure.
+  const percent = Math.min(100, Math.max(0, Math.round(value * 100)));
+  return <div className="sl-progress" role="progressbar" aria-label={label} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+    <span style={{ width: `${percent}%`, background: color }} />
   </div>;
 }
 
