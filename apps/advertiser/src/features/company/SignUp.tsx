@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { sessionApi, useSession } from '@slate/api';
 import { Alert, Button, Dialog, Input, Textarea } from '@slate/ui';
 import { errorText } from '../../components/org';
 
 /**
- * The SAC whose advertiser portal this is. In production the portal is served per SAC host
- * (e.g. pvrinox-media.slate…); the mock server falls back to its first SAC for unknown slugs.
+ * The SAC whose registration link brought the advertiser here: `?sac=<slug>` on the sign-in URL,
+ * else this deployment's default (in production each SAC gets its own host).
  */
-const SAC_SLUG = (import.meta.env.VITE_SAC_SLUG as string | undefined) ?? 'pvrinox-media';
+const sacSlug = () =>
+  new URLSearchParams(window.location.search).get('sac') ?? (import.meta.env.VITE_SAC_SLUG as string | undefined) ?? 'pvrinox-media';
 
-const GSTIN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
-const PAN = /^[A-Z]{5}\d{4}[A-Z]$/;
+export const GSTIN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+export const PAN = /^[A-Z]{5}\d{4}[A-Z]$/;
 
 const blank = { companyName: '', gstin: '', pan: '', address: '', name: '', email: '', phone: '' };
 
@@ -48,8 +49,11 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
   const valid = Object.values(errors).every(e => !e);
   const err = (k: keyof typeof errors) => (touched ? errors[k] ?? undefined : undefined);
 
+  const [slug] = useState(sacSlug);
+  const sac = useQuery({ queryKey: ['sac-by-slug', slug], queryFn: () => sessionApi.sacBySlug(slug), retry: false });
+
   const signup = useMutation({
-    mutationFn: () => sessionApi.signup({ ...f, sacSlug: SAC_SLUG, companyName: f.companyName.trim(), name: f.name.trim() }),
+    mutationFn: () => sessionApi.signup({ ...f, sacSlug: slug, companyName: f.companyName.trim(), name: f.name.trim() }),
     onSuccess: ({ userId }) => {
       navigate('/company');
       signIn(userId);
@@ -58,7 +62,7 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
 
   const submit = () => {
     setTouched(true);
-    if (valid) signup.mutate();
+    if (valid && sac.data) signup.mutate();
   };
 
   return (
@@ -66,6 +70,11 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
       <Dialog.Header>Register your company</Dialog.Header>
       <Dialog.Body>
         <form className="adv-form" onSubmit={e => { e.preventDefault(); submit(); }} id="signup-form" noValidate>
+          <div className="adv-span">
+            {sac.isError
+              ? <Alert variant="negative" closable={false}>This registration link isn’t valid. Ask your sales house for the correct link.</Alert>
+              : <p className="sl-muted sl-small" style={{ margin: 0 }}>{sac.data ? <>Registering with <strong>{sac.data.name}</strong>, who will review your KYC.</> : 'Checking your registration link…'}</p>}
+          </div>
           <div className="adv-span">
             <Input label="Registered company name" value={f.companyName} onChange={set('companyName')} isInvalid={!!err('companyName')} errorMessage={err('companyName')} isRequired />
           </div>
@@ -85,7 +94,7 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
       </Dialog.Body>
       <Dialog.Footer>
         <Button variant="default" onPress={onClose}>Cancel</Button>
-        <Button variant="primary" type="submit" form="signup-form" isPending={signup.isPending}>Create account</Button>
+        <Button variant="primary" type="submit" form="signup-form" isPending={signup.isPending} isDisabled={!sac.data}>Create account</Button>
       </Dialog.Footer>
     </Dialog>
   );
