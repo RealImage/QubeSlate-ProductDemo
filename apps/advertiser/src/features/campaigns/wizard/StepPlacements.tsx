@@ -20,7 +20,12 @@ export function StepPlacements({ campaign, targetGroups, media }: {
   const [removing, setRemoving] = useState<PlacementRow | null>(null);
   const remove = useMutation({
     mutationFn: (p: PlacementRow) => advertiserApi.placementAction(p.id, 'delete'),
-    onSuccess: d => { qc.setQueryData(qk.campaign(campaign.id), d); setRemoving(null); },
+    onSuccess: d => {
+      qc.setQueryData(qk.campaign(campaign.id), d);
+      qc.invalidateQueries({ queryKey: qk.campaigns });
+      qc.invalidateQueries({ queryKey: qk.dashboard });
+      setRemoving(null);
+    },
     onError: e => { notifyError(e); setRemoving(null); }
   });
   const ready = campaign.targetGroupIds.length > 0 && campaign.mediaIds.length > 0;

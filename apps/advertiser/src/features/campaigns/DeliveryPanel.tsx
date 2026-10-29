@@ -54,7 +54,12 @@ function DayBars({ days }: { days: DeliveryBreakdown['byDay'] }) {
         <span><i style={{ background: 'var(--fill-product, var(--sl-brand))' }} />Played</span>
         <span><i style={{ background: 'var(--fill-default, #eef1f4)' }} />Planned</span>
       </div>
-      <div className="adv-bars" role="img" aria-label={`Daily plays from ${first ? dateShort(first.date) : ''} to ${last ? dateShort(last.date) : ''}. Peak planned ${num(max)} plays per day.`}>
+      <table className="sr-only">
+        <caption>Daily plays from {first ? dateShort(first.date) : ''} to {last ? dateShort(last.date) : ''}</caption>
+        <thead><tr><th scope="col">Date</th><th scope="col">Planned</th><th scope="col">Played</th><th scope="col">Failed</th></tr></thead>
+        <tbody>{days.map(d => <tr key={d.date}><th scope="row">{dateShort(d.date)}</th><td>{num(d.planned)}</td><td>{num(d.played)}</td><td>{num(d.failed)}</td></tr>)}</tbody>
+      </table>
+      <div className="adv-bars" aria-hidden>
         {days.map(d => (
           <div key={d.date} className="adv-bars__col" title={`${dateShort(d.date)} · ${num(d.played)} of ${num(d.planned)} played${d.failed ? `, ${num(d.failed)} failed` : ''}`}>
             <span className="adv-bars__planned" style={{ height: `${(d.planned / max) * 100}%` }} />

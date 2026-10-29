@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { advertiserApi, type CampaignDetail, type PlacementInput, type TargetGroupWithReach } from '@slate/api';
 import { Alert, Button, ChoiceCards, DateRangePicker, Input, KeyValue, Loading, Select, Sheet, StatusTag } from '@slate/ui';
@@ -39,10 +39,12 @@ export function PlacementSheet({ campaign, targetGroups, media, onClose }: {
   const mediaOk = eligibleMedia.some(m => m.id === mediaId);
   const sph = Number(spotsPerHour);
   const sphOk = Number.isInteger(sph) && sph >= 1 && sph <= 12;
-  const input: PlacementInput | null = tg && mediaOk && range.start && range.end && (channel === 'cinema' || sphOk) ? {
-    mediaId, targetGroupId: tg.id, from: range.start, to: range.end, timeBand,
+  const pickedTg = tg?.id;
+  // Memoised so the debounce sees a stable value instead of a new object every render.
+  const input = useMemo<PlacementInput | null>(() => (pickedTg && mediaOk && range.start && range.end && (channel === 'cinema' || sphOk) ? {
+    mediaId, targetGroupId: pickedTg, from: range.start, to: range.end, timeBand,
     position: channel === 'cinema' ? { channel, pack, segment, spot, unavailableAction } : { channel, spotsPerHour: sph }
-  } : null;
+  } : null), [pickedTg, mediaOk, range.start, range.end, channel, sphOk, mediaId, timeBand, pack, segment, spot, unavailableAction, sph]);
 
   const debounced = useDebounced(input, 300);
   const quote = useQuery({
@@ -70,6 +72,8 @@ export function PlacementSheet({ campaign, targetGroups, media, onClose }: {
   };
 
   const q = quote.data;
+  // Only book against a quote for exactly what's on screen: not during the debounce, a refetch, or after an error.
+  const quoteCurrent = !!input && JSON.stringify(input) === JSON.stringify(debounced) && quote.isSuccess && !quote.isFetching;
   const unit = channel === 'cinema' ? 'Screens' : 'Display groups';
   return (
     <Sheet isOpen onOpenChange={o => !o && onClose()} size={520}>
@@ -146,7 +150,7 @@ export function PlacementSheet({ campaign, targetGroups, media, onClose }: {
       </Sheet.Body>
       <Sheet.Footer>
         <Button variant="default" onPress={onClose}>Cancel</Button>
-        <Button variant="primary" isDisabled={!input || q?.units === 0} isPending={add.isPending} onPress={() => input && add.mutate(input)}>Add placement</Button>
+        <Button variant="primary" isDisabled={!input || !quoteCurrent || !q || q.units === 0} isPending={add.isPending} onPress={() => input && add.mutate(input)}>Add placement</Button>
       </Sheet.Footer>
     </Sheet>
   );

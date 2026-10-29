@@ -74,6 +74,7 @@ a:hover { text-decoration: underline; }
 .sl-stack { display: flex; flex-direction: column; gap: 16px; }
 .sl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .sl-muted { color: var(--sl-text-2); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .sl-small { font-size: 12px; }
 .sl-mono { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 12px; }
 

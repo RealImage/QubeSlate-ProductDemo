@@ -48,6 +48,7 @@ export function CampaignsPage() {
 }
 
 function CampaignTable({ rows }: { rows: CampaignRow[] }) {
+  const { can } = useOrg();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState('');
@@ -74,7 +75,7 @@ function CampaignTable({ rows }: { rows: CampaignRow[] }) {
         <span className="sl-muted sl-small">{shown.length} of {rows.length} shown</span>
       </div>
       <DataTable rows={shown} columns={columns} rowKey={c => c.id} caption="Campaigns"
-        onRowClick={c => navigate(c.status === 'draft' ? `/campaigns/${c.id}/edit` : `/campaigns/${c.id}`)}
+        onRowClick={c => navigate(c.status === 'draft' && can('campaign.edit') ? `/campaigns/${c.id}/edit` : `/campaigns/${c.id}`)}
         empty={<EmptyState title={rows.length ? 'No campaigns match' : 'No campaigns yet'}>
           {rows.length ? 'Try a different search or status.' : 'Create a campaign to start booking cinema and DOOH inventory.'}
         </EmptyState>} />
