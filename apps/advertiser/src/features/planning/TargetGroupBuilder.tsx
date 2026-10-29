@@ -122,7 +122,7 @@ function Builder({ id, initial, theatres, channelLocked }: { id?: string; initia
             <Field label="Cinema" hint="Picking a cinema includes all of its screens."><IdChips label="Cinema" options={opts.theatres} value={geo.theatreIds} onChange={theatreIds => setGeo({ theatreIds })} /></Field>
             {f.channel === 'cinema' && (
               <Select<{ id: string; label: string }, 'multiple'> label="Specific screens" selectionMode="multiple" items={opts.screens} value={geo.screenIds}
-                onChange={keys => setGeo({ screenIds: keys.map(String) })} placeholder="Any screen" description="Optional — narrow to individual auditoriums.">
+                onChange={keys => setGeo({ screenIds: keys.map(String) })} placeholder="Any screen" description="Optional — adds individual auditoriums. A selected cinema already includes all of its screens.">
                 {s => <Select.Option id={s.id} textValue={s.label}>{s.label}</Select.Option>}
               </Select>
             )}
@@ -189,7 +189,7 @@ function Builder({ id, initial, theatres, channelLocked }: { id?: string; initia
               {reach.data.sample.map(c => (
                 <div key={c.id} className="adv-list__item">
                   <div className="adv-list__main"><span className="sl-table__primary">{c.name}</span><span className="sl-table__secondary">{c.city}</span></div>
-                  <span className="sl-muted sl-small">{c.units} {f.channel === 'cinema' ? 'screens' : 'displays'}</span>
+                  <span className="sl-muted sl-small">{c.units} {f.channel === 'cinema' ? (c.units === 1 ? 'screen' : 'screens') : (c.units === 1 ? 'display group' : 'display groups')}</span>
                 </div>
               ))}
             </div>
