@@ -12,6 +12,8 @@ const q = (params: Record<string, string | undefined>) => {
 export const sessionApi = {
   demoAccounts: () => http.get<C.DemoAccount[]>('/demo-accounts'),
   current: () => http.get<C.Session>('/session'),
+  /** Public: the SAC behind a registration link. */
+  sacBySlug: (slug: string) => http.get<{ name: string; legalName: string; slug: string; supportEmail: string }>(`/sacs/${encodeURIComponent(slug)}`),
   signup: (b: { sacSlug: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }) =>
     http.post<{ userId: string }>('/signup', b),
   reset: () => http.post('/_reset')

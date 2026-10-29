@@ -48,7 +48,7 @@ function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupI
   const [touched, setTouched] = useState(false);
   const editable = can('targets.edit');
   const geo = f.geo;
-  const setGeo = (patch: Partial<TargetGroupInput['geo']>) => setF(x => ({ ...x, geo: { ...x.geo, ...patch } }));
+  const setGeo = (patch: Partial<TargetGroupInput['geo']>) => setF(x => ({ ...x, geo: reconcileGeo({ ...x.geo, ...patch }, theatres) }));
 
   // Each geographic level narrows the options below it.
   const opts = useMemo(() => {
@@ -64,9 +64,10 @@ function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupI
     };
   }, [theatres, geo.countries, geo.states, geo.cities]);
 
-  const payload: TargetGroupInput = f.channel === 'cinema'
+  // Memoised on the form so the debounce sees a stable value and doesn't re-render forever.
+  const payload = useMemo<TargetGroupInput>(() => (f.channel === 'cinema'
     ? { ...f, name: f.name.trim(), doohTypes: [] }
-    : { ...f, name: f.name.trim(), geo: { ...f.geo, screenIds: [], screenCategories: [], formats: [] }, interest: { genres: [], ratings: [], languages: [] }, advanced: { movies: [], actors: [] } };
+    : { ...f, name: f.name.trim(), geo: { ...f.geo, screenIds: [], screenCategories: [], formats: [] }, interest: { genres: [], ratings: [], languages: [] }, advanced: { movies: [], actors: [] } }), [f]);
   const debounced = useDebounced(payload, 400);
   const reach = useQuery({
     queryKey: ['reach-preview', debounced],
@@ -192,4 +193,19 @@ function Builder({ id, initial, theatres }: { id?: string; initial: TargetGroupI
       </div>
     </div>
   );
+}
+
+/**
+ * Drops selections that a parent geography no longer allows (e.g. Mumbai after switching the
+ * state to Telangana), so nothing invisible stays in the payload and zeroes the reach.
+ */
+function reconcileGeo(geo: TargetGroupInput['geo'], theatres: Theatre[]): TargetGroupInput['geo'] {
+  const inCountry = theatres.filter(t => !geo.countries.length || geo.countries.includes(t.country));
+  const states = geo.states.filter(s => inCountry.some(t => t.state === s));
+  const inState = inCountry.filter(t => !states.length || states.includes(t.state));
+  const cities = geo.cities.filter(c => inState.some(t => t.city === c));
+  const inCity = inState.filter(t => !cities.length || cities.includes(t.city));
+  const theatreIds = geo.theatreIds.filter(id => inCity.some(t => t.id === id));
+  const screenIds = geo.screenIds.filter(id => inCity.some(t => t.screens.some(s => s.id === id)));
+  return { ...geo, states, cities, theatreIds, screenIds };
 }
