@@ -71,6 +71,7 @@ export function SacTheatresCard({ sac, canSync }: { sac: SacRow; canSync: boolea
   const sync = useMutation({
     mutationFn: () => adminApi.syncSac(sac.id),
     onSuccess: r => {
+      setPage(1);
       void qc.invalidateQueries({ queryKey: ['admin', 'sac-theatres', sac.id] });
       void qc.invalidateQueries({ queryKey: ['admin', 'sacs'] });
       void qc.invalidateQueries({ queryKey: ['admin', 'exhibitors'] });
@@ -81,6 +82,10 @@ export function SacTheatresCard({ sac, canSync }: { sac: SacRow; canSync: boolea
 
   const d = theatres.data;
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;
+  // If the result set shrinks (sync, another admin's change) past the current page, step back to the last page.
+  useEffect(() => {
+    if (d && !theatres.isPlaceholderData && page > pages) setPage(pages);
+  }, [d, page, pages, theatres.isPlaceholderData]);
   const filtered = q !== '' || chain !== ALL || location !== ALL || status !== ALL;
 
   return (
