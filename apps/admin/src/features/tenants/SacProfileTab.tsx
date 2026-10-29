@@ -10,8 +10,9 @@ import { Dash, FormDialog, useSectionSave } from './shared';
 
 type Editing = 'details' | 'setup' | 'contacts' | null;
 
-export function SacProfileTab({ sac, sacs, canEdit }: { sac: SacRow; sacs: SacRow[]; canEdit: boolean }) {
-  const [open, setOpen] = useState<Editing>(null);
+/** `editOnOpen` opens the details form straight away (the SACs list's "Edit SAC details" action). */
+export function SacProfileTab({ sac, sacs, canEdit, editOnOpen = false }: { sac: SacRow; sacs: SacRow[]; canEdit: boolean; editOnOpen?: boolean }) {
+  const [open, setOpen] = useState<Editing>(canEdit && editOnOpen ? 'details' : null);
   const close = () => setOpen(null);
   const edit = (d: Exclude<Editing, null>, what: string) => canEdit
     ? <Button variant="default" size="small" aria-label={`Edit ${what}`} onPress={() => setOpen(d)}>Edit</Button>
@@ -153,7 +154,7 @@ function SetupDialog({ sac, others, onClose }: { sac: SacRow; others: SacRow[]; 
     if (!LOGO_TYPES.includes(file.type)) return setLogoError('Upload a PNG, SVG or JPEG image.');
     if (file.size > LOGO_MAX_BYTES) return setLogoError('The logo must be 200 KB or smaller.');
     try {
-      setF(p => ({ ...p, logo: null }));
+      // Keep the current logo until the replacement has been read.
       const logo = await readAsDataUrl(file);
       setLogoError(null);
       setF(p => ({ ...p, logo }));

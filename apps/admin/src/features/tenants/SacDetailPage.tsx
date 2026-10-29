@@ -36,7 +36,7 @@ export function SacDetailPage() {
                 { id: 'collections', label: 'Collections Management' }, { id: 'users', label: 'Users' }
               ]} />
               <TabPanel of="sac" id={tab}>
-                {tab === 'profile' && <SacProfileTab sac={sac} sacs={sacs} canEdit={can('tenants.manage')} />}
+                {tab === 'profile' && <SacProfileTab sac={sac} sacs={sacs} canEdit={can('tenants.manage')} editOnOpen={params.get('edit') === 'details'} />}
                 {tab === 'exhibitors' && <SacTheatresCard sac={sac} canSync={can('tenants.manage')} />}
                 {tab === 'billing' && <SacBillingTab sac={sac} canEdit={can('tenants.manage')} />}
                 {tab === 'collections' && <SacCollectionsTab sac={sac} canEditCompany={can('tenants.manage')} canManageGateways={can('gateway.manage')} />}

@@ -59,7 +59,7 @@ export function SacsPage() {
     { key: 'updatedBy', header: 'Updated by', sort: r => r.updatedBy, cell: r => orDash(r.updatedBy) },
     {
       key: 'actions', header: <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Actions</span>, width: 56,
-      cell: r => <SacActionsMenu sac={r} canManage={canManage} onView={() => nav(`/tenants/sacs/${r.id}`)} onEdit={() => nav(`/tenants/sacs/${r.id}?tab=profile`)} />
+      cell: r => <SacActionsMenu sac={r} canManage={canManage} onView={() => nav(`/tenants/sacs/${r.id}`)} onEdit={() => nav(`/tenants/sacs/${r.id}?tab=profile&edit=details`)} />
     }
   ];
 
@@ -87,7 +87,8 @@ export function SacsPage() {
           </>
         )}
       </Card>
-      <OnboardSacSheet open={open} onClose={() => setOpen(false)} />
+      {/* Mounted only while open: the sheet loads every SAC to check URL uniqueness. */}
+      {open && <OnboardSacSheet open onClose={() => setOpen(false)} />}
     </Page>
   );
 }

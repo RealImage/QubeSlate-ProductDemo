@@ -283,7 +283,7 @@ export function createSeed(): Db {
   const pvrLogo = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="168" height="32" viewBox="0 0 168 32"><rect width="32" height="32" rx="6" fill="#d4202f"/>' +
     '<text x="16" y="22" font-family="Arial" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">P</text>' +
-    '<text x="42" y="22" font-family="Arial" font-size="15" font-weight="700" fill="#fff">PVR INOX Media</text></svg>');
+    '<text x="42" y="22" font-family="Arial" font-size="15" font-weight="700" fill="#14213d">PVR INOX Media</text></svg>');
   const sacs: Sac[] = [
     sac('SAC-PVRM', 'PVR INOX Media Sales', 'PVR INOX Ltd (Media Sales)', 'pvrinox-media.slate.example', 'Gurugram', 'India', [], 'active', -380, {
       supportEmail: 'adsales@pvrinox.example',
