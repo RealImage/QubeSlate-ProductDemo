@@ -5,7 +5,8 @@
   --sl-control: #d3dae2;
   --sl-text: #14212e;
   --sl-text-2: #5a6b7f;
-  --sl-text-3: #7a8a9c;
+  /* Darkened from the handoff's #7A8A9C to meet 4.5:1 on white and the page background. */
+  --sl-text-3: #627285;
   --sl-muted-fill: #f7fafc;
   --sl-active-fill: #eaf1f8;
   --sl-brand: #084782;
@@ -95,6 +96,7 @@ a:hover { text-decoration: underline; }
   border-bottom: 2px solid var(--sl-hairline); background: #fff; position: sticky; top: 0;
 }
 .sl-table th button { all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+.sl-table th button:focus-visible, .sl-step:focus-visible, .sl-chip:focus-visible, .sl-table tbody tr.is-clickable:focus-visible { outline: 2px solid var(--sl-brand); outline-offset: 2px; }
 .sl-table td { padding: 12px 16px; border-bottom: 1px solid var(--sl-hairline); vertical-align: middle; }
 .sl-table tbody tr:hover td { background: var(--sl-muted-fill); }
 .sl-table tbody tr.is-clickable { cursor: pointer; }
