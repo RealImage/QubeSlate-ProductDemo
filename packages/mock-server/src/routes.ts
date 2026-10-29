@@ -107,7 +107,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return {
       ...campaignRow(c),
       placements: pls.map(placementRow),
-      checklist: checkoutChecklist({ campaign: c, media: db().media, placements: pls, company, outstanding: outstanding(company.id) }),
+      checklist: checkoutChecklist({ campaign: c, media: db().media, placements: pls, company, outstanding: outstanding(company.id) })
+        .concat(pls.length ? [{ key: 'fit' as const, label: 'Placements fit the flight, channels and attachments', done: misfits(c.id, c).length === 0 }] : []),
       path
     };
   };
@@ -415,7 +416,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const s = ownCampaign(req, 'campaign.edit');
     if (s.c.status !== 'draft') throw invalid('Only draft campaigns can be edited.');
     validateCampaign(req.body, s.company);
-    assertPlacementsFit(s.c.id, req.body);
+    // Misfit placements don't block saving (the user needs to reach the Placements step to fix them);
+    // they show as an open checklist item and block submission.
     Object.assign(s.c, req.body);
     return campaignDetail(s.c);
   });
