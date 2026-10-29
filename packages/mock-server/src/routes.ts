@@ -135,6 +135,12 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     orgName: user.portal === 'admin' ? 'Qube Cinema' : user.portal === 'sac'
       ? db().sacs.find(s => s.id === user.orgId)!.name : db().companies.find(c => c.id === user.orgId)!.name
   })));
+  /** Public: resolves a SAC's sign-up link / branding. */
+  r.get('/api/sacs/:slug', req => {
+    const sac = db().sacs.find(s => s.slug === req.params.slug && s.status === 'active');
+    if (!sac) throw notFound('Unknown sales house.');
+    return { name: sac.name, legalName: sac.legalName, slug: sac.slug, supportEmail: sac.supportEmail };
+  });
   r.get('/api/session', (req): Session => {
     const s = session(req);
     if (s.user.portal === 'advertiser') {
@@ -177,8 +183,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   /** Self sign-up: creates the company record under a SAC plus its first admin user. */
   r.post('/api/signup', (req: Req<{ sacSlug: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }>) => {
     const b = req.body;
-    const sac = db().sacs.find(s => s.slug === b.sacSlug) ?? db().sacs[0]!;
+    const sac = db().sacs.find(s => s.slug === b.sacSlug && s.status === 'active');
+    if (!sac) throw invalid('This sign-up link is not valid. Ask your sales house for the correct link.');
     if (!b.companyName?.trim() || !b.name?.trim() || !b.email?.includes('@')) throw invalid('Company name, your name and a valid email are required.');
+    if (!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(b.gstin ?? '')) throw invalid('Enter a valid 15-character GSTIN.');
+    if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(b.pan ?? '')) throw invalid('Enter a valid 10-character PAN.');
     const company: Company = {
       id: id('CO'), sacId: sac.id, code: `ADV-${10000 + db().seq}`, name: b.companyName.trim(), gstin: b.gstin, pan: b.pan, address: b.address,
       kycStatus: 'draft', kycSubmittedAt: null, kycReviewedAt: null, kycNote: null, billingType: null, contract: null, inventoryAccess: { mode: 'full' },
@@ -358,6 +367,16 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!db().brands.some(x => x.id === b.brandId && x.companyId === company.id && x.status === 'approved')) throw invalid('Pick an approved brand.');
     if (!b.channels?.length) throw invalid('Pick at least one channel.');
     if (b.start && b.end && b.start > b.end) throw invalid('End date must be on or after the start date.');
+    for (const tgId of b.targetGroupIds ?? []) {
+      const tg = db().targetGroups.find(t => t.id === tgId && t.companyId === company.id);
+      if (!tg) throw invalid('One of the target groups is not available.');
+      if (!b.channels.includes(tg.channel)) throw invalid(`“${tg.name}” is a ${tg.channel === 'cinema' ? 'cinema' : 'DOOH'} target group; add that channel or remove it.`);
+    }
+    for (const mId of b.mediaIds ?? []) {
+      const m = db().media.find(x => x.id === mId && x.companyId === company.id);
+      if (!m) throw invalid('One of the media items is not available.');
+      if (m.brandId !== b.brandId) throw invalid(`“${m.name}” belongs to a different brand.`);
+    }
   };
   r.post('/api/campaigns', (req: Req<CampaignInput>) => {
     const s = companyOf(req, 'campaign.edit');
@@ -493,6 +512,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.get('/api/invoices', req => {
     const s = session(req);
+    if (s.user.portal === 'advertiser' && !can(s.user.role, 'billing.view')) throw forbidden();
+    if (s.user.portal === 'sac' && !['sac_admin', 'finance'].includes(s.user.role)) throw forbidden();
     const list = s.user.portal === 'advertiser' ? db().invoices.filter(i => i.companyId === s.user.orgId)
       : s.user.portal === 'sac' ? db().invoices.filter(i => i.sacId === s.user.orgId) : db().invoices;
     return list.map(invoiceRow).sort((a, b) => b.issuedAt.localeCompare(a.issuedAt));
