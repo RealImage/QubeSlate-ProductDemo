@@ -160,9 +160,11 @@ export function ClientDirectory() {
                 </Sheet.Body>
                 <Sheet.Footer><Button variant="default" onPress={() => setOpen(null)}>Close</Button></Sheet.Footer>
               </>
-            ) : theatres.isLoading ? <Sheet.Body><p className="sl-muted">Loading inventory…</p></Sheet.Body>
-              : theatres.error || !theatres.data ? <Sheet.Body><FormError error={theatres.error ?? new Error('Could not load theatres.')} /></Sheet.Body>
-              : <TermsForm key={current.id} a={current} theatres={theatres.data} canEdit={can('billing.classify')} onClose={() => setOpen(null)} />}
+            ) : theatres.data
+              // Cached inventory keeps the form mounted through a failed background refresh.
+              ? <TermsForm key={current.id} a={current} theatres={theatres.data} canEdit={can('billing.classify')} onClose={() => setOpen(null)} />
+              : theatres.isLoading ? <Sheet.Body><p className="sl-muted">Loading inventory…</p></Sheet.Body>
+              : <Sheet.Body><FormError error={theatres.error ?? new Error('Could not load theatres.')} /></Sheet.Body>}
           </>
         )}
       </Sheet>

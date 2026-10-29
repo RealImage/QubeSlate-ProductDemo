@@ -1,5 +1,5 @@
 import { Fragment, useRef, type KeyboardEvent, type ReactNode } from 'react';
-import { Tag, Button } from 'prefab';
+import { Alert, Tag, Button } from 'prefab';
 import { ApiError } from '@slate/api';
 
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
@@ -79,11 +79,19 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
   return <EmptyState title="Couldn’t load this" action={onRetry && <Button variant="default" size="small" onPress={onRetry}>Try again</Button>}>{message}</EmptyState>;
 }
 
-/** Renders loading / error / content for a React Query result. */
+/**
+ * Renders loading / error / content for a React Query result. When cached data exists, a failed
+ * background refresh shows a notice and keeps the content mounted, so open forms don't lose edits.
+ */
 export function Query<T>({ q, children, rows }: { q: { data: T | undefined; isLoading: boolean; error: unknown; refetch: () => unknown }; children: (data: T) => ReactNode; rows?: number }) {
+  if (q.data !== undefined) {
+    return <>
+      {q.error ? <Alert variant="notice" inline closable={false}>Couldn’t refresh; showing the last loaded data.</Alert> : null}
+      {children(q.data)}
+    </>;
+  }
   if (q.isLoading) return <Loading rows={rows} />;
-  if (q.error || q.data === undefined) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
-  return <>{children(q.data)}</>;
+  return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
 }
 
 export function Checklist({ items }: { items: { label: string; done: boolean }[] }) {
