@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/domain" },
     { "path": "packages/api" },
+    { "path": "packages/ui" },
     { "path": "packages/mock-server" },
     { "path": "apps/sac" }
   ]
