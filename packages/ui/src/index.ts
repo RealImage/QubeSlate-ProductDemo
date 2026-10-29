@@ -7,6 +7,7 @@ export * from 'prefab';
 export * from './components';
 export * from './DataTable';
 export * from './Stepper';
+export * from './Tabs';
 export * from './AppShell';
 export * from './SignIn';
 export * from './ConfirmDialog';
