@@ -69,34 +69,6 @@ export function TagInput({ label, value, onChange, placeholder, description }: {
   );
 }
 
-/** Accessible tab strip. Panels are rendered by the caller. */
-export function Tabs<T extends string>({ tabs, value, onChange, label }: {
-  tabs: { id: T; label: ReactNode }[];
-  value: T;
-  onChange: (v: T) => void;
-  label: string;
-}) {
-  return (
-    <div className="adv-tabs" role="tablist" aria-label={label}>
-      {tabs.map(t => (
-        <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-selected={value === t.id} aria-controls={`panel-${t.id}`}
-          tabIndex={value === t.id ? 0 : -1} className="adv-tab" onClick={() => onChange(t.id)}
-          onKeyDown={e => {
-            const i = tabs.findIndex(x => x.id === value);
-            const next = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length] : undefined;
-            if (next) { e.preventDefault(); onChange(next.id); document.getElementById(`tab-${next.id}`)?.focus(); }
-          }}>
-          {t.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export function TabPanel({ id, children }: { id: string; children: ReactNode }) {
-  return <div role="tabpanel" id={`panel-${id}`} aria-labelledby={`tab-${id}`}>{children}</div>;
-}
-
 /** Labelled group for non-input controls (chips, choice cards) so they read like form fields. */
 export function Field({ label, hint, error, children }: { label: string; hint?: ReactNode; error?: string; children: ReactNode }) {
   return (

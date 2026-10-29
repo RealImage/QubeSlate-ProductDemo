@@ -17,10 +17,6 @@
 .adv-toolbar__search { width: 280px; max-width: 100%; }
 .adv-toolbar__spacer { flex: 1; }
 
-.adv-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--sl-hairline); }
-.adv-tab { all: unset; cursor: pointer; padding: 10px 14px; font-size: 13.5px; font-weight: 500; color: var(--sl-text-2); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.adv-tab[aria-selected='true'] { color: var(--sl-brand); border-bottom-color: var(--sl-brand); }
-.adv-tab:focus-visible { outline: 2px solid var(--sl-brand); outline-offset: -2px; }
 
 .adv-list { display: flex; flex-direction: column; }
 .adv-list__item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--sl-hairline); }

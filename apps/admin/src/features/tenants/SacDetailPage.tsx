@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '@slate/api';
-import { EmptyState, Page, PageHeader, Query } from '@slate/ui';
+import { EmptyState, Page, PageHeader, Query, TabPanel, Tabs } from '@slate/ui';
 import { SacStatusTag } from '../../components/SacStatusTag';
-import { SectionTabs } from '../../components/Tabs';
 import { useSacs } from '../../components/queries';
 import { SacExhibitorsCard } from './SacExhibitorsCard';
 import { SacGatewayCard } from './SacGatewayCard';
@@ -26,14 +25,16 @@ export function SacDetailPage() {
           return (
             <>
               <PageHeader eyebrow={<><Link to="/tenants/sacs">SACs</Link> / {sac.slug}</>} title={<>{sac.name} <SacStatusTag status={sac.status} /></>} description={sac.legalName} />
-              <SectionTabs label="SAC sections" value={tab} onChange={setTab} tabs={[
-                { value: 'profile', label: 'Profile' }, { value: 'exhibitors', label: 'Linked exhibitors' },
-                { value: 'gateway', label: 'Payment gateway' }, { value: 'users', label: 'Users' }
+              <Tabs name="sac" label="SAC sections" value={tab} onChange={setTab} tabs={[
+                { id: 'profile', label: 'Profile' }, { id: 'exhibitors', label: 'Linked exhibitors' },
+                { id: 'gateway', label: 'Payment gateway' }, { id: 'users', label: 'Users' }
               ]} />
-              {tab === 'profile' && <SacProfileCard sac={sac} canEdit={can('tenants.manage')} />}
-              {tab === 'exhibitors' && <SacExhibitorsCard sac={sac} canEdit={can('tenants.manage')} />}
-              {tab === 'gateway' && <SacGatewayCard sac={sac} canEdit={can('gateway.manage')} />}
-              {tab === 'users' && <SacUsersCard sac={sac} />}
+              <TabPanel of="sac" id={tab}>
+                {tab === 'profile' && <SacProfileCard sac={sac} canEdit={can('tenants.manage')} />}
+                {tab === 'exhibitors' && <SacExhibitorsCard sac={sac} canEdit={can('tenants.manage')} />}
+                {tab === 'gateway' && <SacGatewayCard sac={sac} canEdit={can('gateway.manage')} />}
+                {tab === 'users' && <SacUsersCard sac={sac} />}
+              </TabPanel>
             </>
           );
         }}

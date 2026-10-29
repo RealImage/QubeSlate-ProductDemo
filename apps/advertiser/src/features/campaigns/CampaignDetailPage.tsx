@@ -2,10 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { advertiserApi, type CampaignDetail } from '@slate/api';
-import { Alert, Card, KeyValue, Page, PageHeader, Query, StatCard } from '@slate/ui';
+import { Alert, Card, KeyValue, Page, PageHeader, Query, StatCard, TabPanel, Tabs } from '@slate/ui';
 import { date, dateTime, flight, inr, inrShort, num, pct, withGst } from '@slate/domain';
 import { qk, useOrg } from '../../components/org';
-import { TabPanel, Tabs } from '../../components/controls';
 import { CampaignStatusTag, channelsLabel } from './shared';
 import { PlacementsTable } from './PlacementsTable';
 import { DeliveryPanel } from './DeliveryPanel';
@@ -56,22 +55,22 @@ function Detail({ c }: { c: CampaignDetail }) {
         <StatCard label="Flight" value={<span style={{ fontSize: 18 }}>{flight(c.start, c.end)}</span>} hint={c.code} />
       </div>
 
-      <Tabs label="Campaign sections" value={tab} onChange={setTab} tabs={[
+      <Tabs name="campaign" label="Campaign sections" value={tab} onChange={setTab} tabs={[
         { id: 'placements', label: `Placements (${c.placements.length})` },
         { id: 'delivery', label: 'Delivery' },
         { id: 'billing', label: 'Payment & approval' }
       ]} />
 
       {tab === 'placements' && (
-        <TabPanel id="placements">
+        <TabPanel of="campaign" id="placements">
           <Card title="Placements" description="Pause, resume, cancel or delete individual placements without touching the rest of the campaign." flush>
             <PlacementsTable campaign={c} />
           </Card>
         </TabPanel>
       )}
-      {tab === 'delivery' && <TabPanel id="delivery"><DeliveryPanel campaignId={c.id} /></TabPanel>}
+      {tab === 'delivery' && <TabPanel of="campaign" id="delivery"><DeliveryPanel campaignId={c.id} /></TabPanel>}
       {tab === 'billing' && (
-        <TabPanel id="billing">
+        <TabPanel of="campaign" id="billing">
           <div className="sl-grid sl-grid--2">
             <Card title="Payment">
               <KeyValue items={[

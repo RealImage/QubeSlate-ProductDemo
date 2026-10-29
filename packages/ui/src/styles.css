@@ -132,6 +132,14 @@ a:hover { text-decoration: underline; }
 .sl-step__label strong { font-size: 13.5px; font-weight: 600; }
 .sl-step__label span { font-size: 11.5px; color: var(--sl-text-3); }
 
+/* ---------- tabs (sections) — pills below are for filters ---------- */
+.sl-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--sl-hairline); overflow-x: auto; }
+.sl-tab { all: unset; box-sizing: border-box; cursor: pointer; padding: 10px 14px; font-size: 14px; font-weight: 500; color: var(--sl-text-2); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.sl-tab:hover { color: var(--sl-text); }
+.sl-tab[aria-selected='true'] { color: var(--sl-brand); border-bottom-color: var(--sl-brand); font-weight: 600; }
+.sl-tab:focus-visible { outline: 2px solid var(--sl-brand); outline-offset: -2px; border-radius: 4px 4px 0 0; }
+.sl-tabpanel:focus-visible { outline: 2px solid var(--sl-brand); outline-offset: 4px; border-radius: 4px; }
+
 /* ---------- choice cards / chips ---------- */
 .sl-choices { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .sl-choice {
