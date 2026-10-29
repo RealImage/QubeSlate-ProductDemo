@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { playlistItems } from '../data/mockData';
 import { getTheatres, secs } from '../data/helpers';
@@ -66,6 +67,7 @@ export function PreShowPlaylist() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1300 }}>
       <PageHeader title="Pre-Show Playlist" description="The exact sequence around a show — the difference between what should play and in what order." />
+      <PrototypeNote />
 
       <Card padding="14px 16px" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 420px' }}>
