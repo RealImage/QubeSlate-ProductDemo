@@ -329,7 +329,7 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
         return (
           <section key={ty} className="sl-card" style={{ overflow: 'hidden' }}>
             <button type="button" aria-expanded={isOpen} onClick={() => setOpen(o => (isOpen ? o.filter(x => x !== ty) : [...o, ty]))}
-              style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', width: '100%', padding: '14px 20px' }}>
+              style={{ appearance: 'none', background: 'none', border: 0, margin: 0, font: 'inherit', color: 'inherit', textAlign: 'left', boxSizing: 'border-box', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', width: '100%', padding: '14px 20px' }}>
               <strong>{isOpen ? '▾' : '▸'} {ty}</strong>
               <span className="sl-muted">{n} {n === 1 ? 'screen' : 'screens'}</span>
             </button>
@@ -382,13 +382,17 @@ export function NetworkDooh() {
   const q = useQuery({ queryKey: ['sac', 'theatres'], queryFn: sacApi.theatres });
   const [selected, setSelected] = useState<string | null>(null);
   return (
-    <Query q={q} rows={6}>
-      {theatres => {
-        const t = theatres.find(x => x.id === selected);
-        return t
-          ? <TheatreConfig key={t.id} t={t} canEdit={can('inventory.edit')} onBack={() => setSelected(null)} />
-          : <TheatreList theatres={theatres} onOpen={setSelected} />;
-      }}
-    </Query>
+    // With cached data, a failed background refresh shows a notice instead of unmounting an editor with unsaved changes.
+    q.data ? (
+      <>
+        {q.isError && <Alert variant="notice" inline closable={false}>Couldn’t refresh theatres; showing the last loaded data.</Alert>}
+        {(() => {
+          const t = q.data.find(x => x.id === selected);
+          return t
+            ? <TheatreConfig key={t.id} t={t} canEdit={can('inventory.edit')} onBack={() => setSelected(null)} />
+            : <TheatreList theatres={q.data} onOpen={setSelected} />;
+        })()}
+      </>
+    ) : <Query q={q} rows={6}>{() => null}</Query>
   );
 }

@@ -221,7 +221,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   r.post('/api/users', (req: Req<UserInput>) => {
     const s = session(req);
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
-    if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
+    if (!req.body.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email ?? '')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
     if (!req.body.role) throw invalid('Choose a role for the new user.');
     assertRole(s.user.portal, req.body.role);
@@ -380,6 +380,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       const m = db().media.find(x => x.id === mId && x.companyId === company.id);
       if (!m) throw invalid('One of the media items is not available.');
       if (m.brandId !== b.brandId) throw invalid(`“${m.name}” belongs to a different brand.`);
+      // CPL plays in cinemas; video and image play on DOOH displays.
+      const usable = m.fileType === 'CPL' ? b.channels.includes('cinema') : b.channels.includes('dooh');
+      if (!usable) throw invalid(`“${m.name}” (${m.fileType}) can't play on the selected channels.`);
     }
   };
   r.post('/api/campaigns', (req: Req<CampaignInput>) => {
