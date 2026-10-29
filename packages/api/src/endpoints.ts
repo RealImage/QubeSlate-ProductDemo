@@ -1,0 +1,112 @@
+import type {
+  AuditEvent, Brand, Company, Exhibitor, Media, Theatre, DoohGroup, User, PlacementAction, KycDoc
+} from '@slate/domain';
+import { http } from './client';
+import type * as C from './contracts';
+
+const q = (params: Record<string, string | undefined>) => {
+  const s = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
+  return s ? '?' + s : '';
+};
+
+export const sessionApi = {
+  demoAccounts: () => http.get<C.DemoAccount[]>('/demo-accounts'),
+  current: () => http.get<C.Session>('/session'),
+  signup: (b: { sacSlug: string; companyName: string; gstin: string; pan: string; address: string; name: string; email: string; phone: string }) =>
+    http.post<{ userId: string }>('/signup', b),
+  reset: () => http.post('/_reset')
+};
+
+export const advertiserApi = {
+  dashboard: () => http.get<C.Dashboard>('/dashboard'),
+  company: () => http.get<Company>('/company'),
+  updateCompany: (b: Partial<Pick<Company, 'name' | 'gstin' | 'pan' | 'address' | 'contacts'>>) => http.put<Company>('/company', b),
+  uploadKycDoc: (kind: KycDoc['kind'], fileName: string) => http.post<Company>('/company/kyc-docs', { kind, fileName }),
+  submitKyc: () => http.post<Company>('/company/submit-kyc'),
+  brands: () => http.get<Brand[]>('/brands'),
+  requestBrand: (b: { name: string; category: string }) => http.post<Brand>('/brands', b),
+  theatres: () => http.get<Theatre[]>('/inventory/theatres'),
+  doohGroups: () => http.get<DoohGroup[]>('/inventory/dooh-groups'),
+
+  targetGroups: () => http.get<C.TargetGroupWithReach[]>('/target-groups'),
+  targetGroup: (id: string) => http.get<C.TargetGroupWithReach>(`/target-groups/${id}`),
+  previewReach: (b: C.TargetGroupInput) => http.post<C.ReachPreview>('/target-groups/preview', b),
+  createTargetGroup: (b: C.TargetGroupInput) => http.post<C.TargetGroupWithReach>('/target-groups', b),
+  updateTargetGroup: (id: string, b: C.TargetGroupInput) => http.put<C.TargetGroupWithReach>(`/target-groups/${id}`, b),
+  deleteTargetGroup: (id: string) => http.del(`/target-groups/${id}`),
+
+  media: () => http.get<Media[]>('/media'),
+  createMedia: (b: C.MediaInput) => http.post<Media>('/media', b),
+  deleteMedia: (id: string) => http.del(`/media/${id}`),
+
+  campaigns: () => http.get<C.CampaignRow[]>('/campaigns'),
+  campaign: (id: string) => http.get<C.CampaignDetail>(`/campaigns/${id}`),
+  createCampaign: (b: C.CampaignInput) => http.post<C.CampaignDetail>('/campaigns', b),
+  updateCampaign: (id: string, b: C.CampaignInput) => http.put<C.CampaignDetail>(`/campaigns/${id}`, b),
+  deleteCampaign: (id: string) => http.del(`/campaigns/${id}`),
+  quotePlacement: (id: string, b: C.PlacementInput) => http.post<C.PlacementQuoteResponse>(`/campaigns/${id}/quote`, b),
+  addPlacement: (id: string, b: C.PlacementInput) => http.post<C.CampaignDetail>(`/campaigns/${id}/placements`, b),
+  placementAction: (placementId: string, action: PlacementAction) => http.patch<C.CampaignDetail>(`/placements/${placementId}`, { action }),
+  checkout: (id: string, b: C.CheckoutInput) => http.post<C.CampaignDetail>(`/campaigns/${id}/checkout`, b),
+  submit: (id: string) => http.post<C.CampaignDetail>(`/campaigns/${id}/submit`),
+  campaignDelivery: (id: string) => http.get<C.DeliveryBreakdown>(`/campaigns/${id}/delivery`),
+  placementDelivery: (placementId: string) => http.get<C.DeliveryBreakdown>(`/placements/${placementId}/delivery`),
+
+  billing: () => http.get<C.BillingOverview>('/billing'),
+  invoices: () => http.get<C.InvoiceRow[]>('/invoices')
+};
+
+/** Same endpoints in every portal; scoped by the signed-in user's organisation. */
+export const usersApi = {
+  list: () => http.get<User[]>('/users'),
+  invite: (b: C.UserInput) => http.post<User>('/users', b),
+  update: (id: string, b: Partial<C.UserInput & { status: User['status'] }>) => http.put<User>(`/users/${id}`, b),
+  remove: (id: string) => http.del(`/users/${id}`)
+};
+
+export interface SacDashboard {
+  activeCampaigns: number;
+  pendingCampaigns: number;
+  pendingKyc: number;
+  pendingBrands: number;
+  theatres: number;
+  screens: number;
+  bookedValue: number;
+  delivery: { planned: number; played: number; failed: number; rate: number };
+  recent: C.CampaignRow[];
+}
+
+export const sacApi = {
+  dashboard: () => http.get<SacDashboard>('/sac/dashboard'),
+  advertisers: () => http.get<C.AdvertiserRow[]>('/sac/advertisers'),
+  advertiser: (id: string) => http.get<C.AdvertiserRow>(`/sac/advertisers/${id}`),
+  decideKyc: (id: string, b: C.KycDecisionInput) => http.post<C.AdvertiserRow>(`/sac/advertisers/${id}/kyc-decision`, b),
+  setTerms: (id: string, b: C.AdvertiserTermsInput) => http.put<C.AdvertiserRow>(`/sac/advertisers/${id}/terms`, b),
+  brands: () => http.get<C.BrandRow[]>('/sac/brands'),
+  decideBrand: (id: string, b: { decision: 'approve' | 'reject'; note: string | null }) => http.post<Brand>(`/sac/brands/${id}/decision`, b),
+  campaigns: () => http.get<C.CampaignRow[]>('/sac/campaigns'),
+  campaign: (id: string) => http.get<C.CampaignDetail>(`/sac/campaigns/${id}`),
+  decideCampaign: (id: string, b: C.DecisionInput) => http.post<C.CampaignDetail>(`/sac/campaigns/${id}/decision`, b),
+  theatres: () => http.get<C.TheatreRow[]>('/sac/theatres'),
+  saveDooh: (theatreId: string, b: C.DoohConfigInput) => http.put<Theatre & { doohGroups: DoohGroup[] }>(`/sac/theatres/${theatreId}/dooh`, b),
+  proofOfPlay: () => http.get<C.ProofOfPlayRow[]>('/sac/proof-of-play'),
+  invoices: () => http.get<C.InvoiceRow[]>('/invoices')
+};
+
+export const adminApi = {
+  overview: () => http.get<C.PlatformOverview>('/admin/overview'),
+  exhibitors: () => http.get<C.ExhibitorRow[]>('/admin/exhibitors'),
+  createExhibitor: (b: C.ExhibitorInput) => http.post<Exhibitor>('/admin/exhibitors', b),
+  sacs: () => http.get<C.SacRow[]>('/admin/sacs'),
+  createSac: (b: C.SacInput) => http.post<C.SacRow>('/admin/sacs', b),
+  updateSac: (id: string, b: Partial<C.SacInput> & { status?: C.SacRow['status'] }) => http.put<C.SacRow>(`/admin/sacs/${id}`, b),
+  updateGateway: (id: string, b: C.GatewayInput) => http.put<C.SacRow>(`/admin/sacs/${id}/gateway`, b),
+  users: () => http.get<User[]>('/admin/users'),
+  theatres: () => http.get<C.TheatreRow[]>('/admin/theatres'),
+  devices: () => http.get<C.DeviceRow[]>('/admin/devices'),
+  ingestion: () => http.get<C.IngestionRow[]>('/admin/ingestion'),
+  advertisers: () => http.get<(C.AdvertiserRow & { sacName: string })[]>('/admin/advertisers'),
+  campaigns: () => http.get<(C.CampaignRow & { sacName: string })[]>('/admin/campaigns'),
+  audit: (filter?: { entity?: string }) => http.get<AuditEvent[]>('/admin/audit' + q(filter ?? {})),
+  impersonate: (userId: string, reason: string) => http.post<{ userId: string; impersonatorId: string; portal: 'advertiser' | 'sac' }>('/admin/impersonate', { userId, reason })
+};

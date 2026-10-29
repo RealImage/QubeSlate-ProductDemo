@@ -1,0 +1,15 @@
+{
+  "name": "@slate/mock-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "fresh": "tsx src/server.ts --fresh"
+  },
+  "dependencies": {
+    "@slate/api": "*",
+    "@slate/domain": "*"
+  }
+}

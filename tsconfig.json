@@ -1,4 +1,9 @@
 {
   "files": [],
-  "references": [{ "path": "apps/sac" }]
+  "references": [
+    { "path": "packages/domain" },
+    { "path": "packages/api" },
+    { "path": "packages/mock-server" },
+    { "path": "apps/sac" }
+  ]
 }
