@@ -21,7 +21,7 @@ export function DeliveryCell({ row }: { row: Pick<CampaignRow, 'delivered' | 'st
   return (
     <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 110 }}>
       <span className="sl-small">{pct(row.delivered.rate)} delivered</span>
-      <Progress value={row.delivered.rate} tone={deliveryTone(row.delivered.rate)} />
+      <Progress label="Plays delivered vs planned" value={row.delivered.rate} tone={deliveryTone(row.delivered.rate)} />
     </span>
   );
 }

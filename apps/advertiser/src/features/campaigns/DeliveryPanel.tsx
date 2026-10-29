@@ -18,7 +18,7 @@ const theatreColumns: Column<TheatreRow>[] = [
   {
     key: 'rate', header: 'Delivery', sort: t => (t.planned ? t.played / t.planned : 0), width: 180, cell: t => {
       const r = t.planned ? t.played / t.planned : 0;
-      return <span className="sl-row" style={{ flexWrap: 'nowrap' }}><span style={{ flex: 1 }}><Progress value={r} tone={deliveryTone(r)} /></span><span className="sl-small">{pct(r)}</span></span>;
+      return <span className="sl-row" style={{ flexWrap: 'nowrap' }}><span style={{ flex: 1 }}><Progress label={`Delivery at ${t.theatre}`} value={r} tone={deliveryTone(r)} /></span><span className="sl-small">{pct(r)}</span></span>;
     }
   }
 ];

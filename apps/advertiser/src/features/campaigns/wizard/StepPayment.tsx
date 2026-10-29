@@ -145,7 +145,7 @@ function SubmitPanel({ campaign, total, summary, blockers, disabled, onDone }: P
                     ['Available after', <strong style={{ color: headroom - total < 0 ? 'var(--text-negative)' : undefined }}>{inr(headroom - total)}</strong>]
                   ] as [string, ReactNode][] : [['This campaign', inr(total)] as [string, string]])
                 ]} />
-                {headroom !== null && <Progress value={(outstanding! + total) / contract.creditLimit} tone={headroom - total < 0 ? 'negative' : undefined} />}
+                {headroom !== null && <Progress label="Contract credit used including this campaign" value={(outstanding! + total) / contract.creditLimit} tone={headroom - total < 0 ? 'negative' : undefined} />}
               </>
             )}
           {submit.error && <Alert variant="negative" closable={false}>{errorText(submit.error)}</Alert>}

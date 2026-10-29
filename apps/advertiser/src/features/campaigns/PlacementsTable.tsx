@@ -57,7 +57,7 @@ export function PlacementsTable({ campaign }: { campaign: CampaignDetail }) {
       key: 'plays', header: 'Delivered / planned', sort: p => p.delivered.rate, cell: p => (
         <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 130 }}>
           <span className="sl-small">{num(p.delivered.played)} / {num(p.plannedPlays)} plays</span>
-          {p.delivered.planned > 0 && <Progress value={p.delivered.played / Math.max(1, p.plannedPlays)} tone={deliveryTone(p.delivered.rate)} />}
+          {p.delivered.planned > 0 && <Progress label={`Delivery for ${p.code}`} value={p.delivered.played / Math.max(1, p.plannedPlays)} tone={deliveryTone(p.delivered.rate)} />}
         </span>
       )
     },
