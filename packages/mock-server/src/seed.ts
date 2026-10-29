@@ -344,6 +344,12 @@ export function createSeed(): Db {
   place(c8, 'MD-11', 'TG-6', -30, 10, cinema('Pre-show', 2, 'Spot C'));
   c8.review = { by: 'Rohan Mehta', at: at(-33), note: null };
 
+  // Budgets sit a little above what's booked, rounded to the lakh.
+  for (const c of db.campaigns) {
+    const booked = db.placements.filter(p => p.campaignId === c.id).reduce((a, p) => a + p.cost, 0);
+    c.budget = Math.max(c.budget, Math.ceil((booked * 1.15) / 100_000) * 100_000);
+  }
+
   // ---- delivery: daily play-log roll-ups per theatre for everything that has run.
   const r = rng(7);
   for (const p of db.placements) {

@@ -5,6 +5,7 @@
     { "path": "packages/api" },
     { "path": "packages/ui" },
     { "path": "packages/mock-server" },
+    { "path": "apps/advertiser" },
     { "path": "apps/sac" },
     { "path": "apps/admin" }
   ]
