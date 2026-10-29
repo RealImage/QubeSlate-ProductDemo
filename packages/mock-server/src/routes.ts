@@ -157,8 +157,12 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   r.put('/api/company', (req: Req<Partial<Pick<Company, 'name' | 'gstin' | 'pan' | 'address' | 'contacts'>>>) => {
     const s = companyOf(req, 'company.edit');
     const c = s.company;
-    const regChanged = (req.body.gstin && req.body.gstin !== c.gstin) || (req.body.pan && req.body.pan !== c.pan);
-    Object.assign(c, req.body);
+    const { name, address, contacts, gstin, pan } = req.body;
+    if (gstin !== undefined && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin)) throw invalid('Enter a valid 15-character GSTIN.');
+    if (pan !== undefined && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) throw invalid('Enter a valid 10-character PAN.');
+    if (name !== undefined && !name.trim()) throw invalid('Registered name is required.');
+    const regChanged = (gstin !== undefined && gstin !== c.gstin) || (pan !== undefined && pan !== c.pan);
+    Object.assign(c, Object.fromEntries(Object.entries({ name, address, contacts, gstin, pan }).filter(([, v]) => v !== undefined)));
     if (regChanged && c.kycStatus === 'approved') {
       c.kycStatus = 'pending'; c.kycSubmittedAt = now(); c.kycReviewedAt = null;
       audit(s, 'kyc.resubmit', 'company', c.id, 'GST/PAN changed — KYC re-submitted for review');

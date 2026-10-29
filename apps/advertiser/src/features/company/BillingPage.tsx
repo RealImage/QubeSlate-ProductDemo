@@ -62,7 +62,7 @@ function BillingBody({ billing: b, company }: { billing: BillingOverview; compan
                     <div className="adv-total">{inr(b.contract.creditLimit - b.outstanding)}</div>
                     <span className="sl-muted sl-small">credit available</span>
                   </div>
-                  <Progress value={used} tone={used > 0.9 ? 'negative' : used > 0.75 ? 'notice' : undefined} />
+                  <Progress label="Contract credit used" value={used} tone={used > 0.9 ? 'negative' : used > 0.75 ? 'notice' : undefined} />
                   <KeyValue items={[
                     ['Contract', b.contract.ref],
                     ['Credit used', inr(b.outstanding)],
