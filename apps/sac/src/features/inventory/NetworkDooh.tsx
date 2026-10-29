@@ -230,7 +230,7 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
   const dirty = JSON.stringify(draft) !== JSON.stringify(base);
   useLeaveGuard(dirty, setLeave);
 
-  const edit = (fn: (d: Draft) => Draft) => { setDraft(fn); setSaved(false); setErrors([]); };
+  const edit = (fn: (d: Draft) => Draft) => { if (save.isPending) return; setDraft(fn); setSaved(false); setErrors([]); };
   const total = draft.groups.reduce((n, g) => n + g.screens, 0);
 
   const save = useMutation({
@@ -245,6 +245,9 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
     }
   });
 
+  // Editing is locked while a save is in flight, so the server response can't overwrite later edits.
+  const editable = canEdit && !save.isPending;
+
   const onSave = () => {
     const errs = draft.groups.flatMap(g => validateDoohGroup(g, draft.groups).map(e => `${g.name || 'Unnamed group'}: ${e}`));
     if (draft.hours.some(h => !h.open || !h.close)) errs.push('Every day needs opening and closing times.');
@@ -256,7 +259,8 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
   const confirmLeave = () => {
     const to = leave;
     setLeave(null);
-    if (to) { setBase(draft); navigate(to); } else onBack();
+    // Discard means back to the saved values, even when the link leads to this same screen.
+    if (to) { setDraft(base); navigate(to); } else onBack();
   };
 
   const startNew = (type: DoohType) => {
@@ -296,7 +300,7 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
       <FormError error={save.error} />
       {draft.groups.length === 0 && (
         <Card>
-          <EmptyState title="No Network DOOH inventory configured for this theatre." action={canEdit && <Button variant="primary" onPress={() => startNew('Lobby')}>Configure DOOH inventory</Button>}>
+          <EmptyState title="No Network DOOH inventory configured for this theatre." action={editable && <Button variant="primary" onPress={() => startNew('Lobby')}>Configure DOOH inventory</Button>}>
             Add display groups under a display type to record the digital surfaces this theatre operates.
           </EmptyState>
         </Card>
@@ -306,9 +310,9 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
           {draft.hours.map((h, i) => (
             <div key={DAYS[i]} className="sl-row" style={{ gap: 14, flexWrap: 'nowrap' }}>
               <span style={{ width: 110, fontSize: 13, fontWeight: 500 }}>{DAYS[i]}</span>
-              <input type="time" aria-label={`${DAYS[i]} opens`} value={h.open} disabled={!canEdit} onChange={e => edit(d => ({ ...d, hours: d.hours.map((x, j) => (j === i ? { ...x, open: e.target.value } : x)) }))} />
+              <input type="time" aria-label={`${DAYS[i]} opens`} value={h.open} disabled={!editable} onChange={e => edit(d => ({ ...d, hours: d.hours.map((x, j) => (j === i ? { ...x, open: e.target.value } : x)) }))} />
               <span className="sl-muted">to</span>
-              <input type="time" aria-label={`${DAYS[i]} closes`} value={h.close} disabled={!canEdit} onChange={e => edit(d => ({ ...d, hours: d.hours.map((x, j) => (j === i ? { ...x, close: e.target.value } : x)) }))} />
+              <input type="time" aria-label={`${DAYS[i]} closes`} value={h.close} disabled={!editable} onChange={e => edit(d => ({ ...d, hours: d.hours.map((x, j) => (j === i ? { ...x, close: e.target.value } : x)) }))} />
               {h.open && h.close && crossesMidnight(h.open, h.close) && <span className="sl-muted sl-small">crosses midnight</span>}
             </div>
           ))}
@@ -342,7 +346,7 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
                       { key: 'orientation', header: 'Orientation', cell: g => g.orientation },
                       { key: 'mode', header: 'Mode', cell: g => g.mode },
                       { key: 'loop', header: 'Loop', cell: g => (g.loop === 'Scheduled' ? `Scheduled — ${g.loopSecs}s` : g.loop) },
-                      ...(canEdit ? [{
+                      ...(editable ? [{
                         key: 'act', header: <span className="sr-only">Actions</span>, align: 'right' as const, cell: (g: DraftGroup) => (
                           <span className="sl-row" style={{ justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                             <Button size="small" variant="default" onPress={() => startEdit(g)}>Edit</Button>
@@ -353,7 +357,7 @@ function TheatreConfig({ t, canEdit, onBack }: { t: TheatreRow; canEdit: boolean
                     ]}
                   />
                 ) : <p className="sl-muted" style={{ margin: '0 0 8px' }}>No display groups configured.</p>}
-                {canEdit && <div style={{ marginTop: 12 }}><Button size="small" variant="default" onPress={() => startNew(ty)}>+ Add display group</Button></div>}
+                {editable && <div style={{ marginTop: 12 }}><Button size="small" variant="default" onPress={() => startNew(ty)}>+ Add display group</Button></div>}
               </div>
             )}
           </section>
