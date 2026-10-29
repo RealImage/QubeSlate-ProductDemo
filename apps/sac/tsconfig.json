@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "tsBuildInfoFile": "../../node_modules/.tmp/sac.tsbuildinfo", "outDir": "../../node_modules/.tmp/sac", "noUncheckedIndexedAccess": false },
+  "include": ["src"]
+}

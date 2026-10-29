@@ -1,27 +1,43 @@
 {
-  "name": "app",
+  "name": "qube-slate",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:dev": "vite build --mode development",
-    "lint": "oxlint",
-    "preview": "vite preview"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
   },
-  "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.2"
+  "scripts": {
+    "dev": "concurrently -n api,adv,sac,admin -c gray,blue,green,magenta \"npm:dev:api\" \"npm:dev:advertiser\" \"npm:dev:sac\" \"npm:dev:admin\"",
+    "dev:api": "npm run dev -w @slate/mock-server",
+    "dev:advertiser": "npm run dev -w @slate/advertiser",
+    "dev:sac": "npm run dev -w @slate/sac",
+    "dev:admin": "npm run dev -w @slate/admin",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc -b",
+    "lint": "oxlint apps packages",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "9.2.1",
     "oxlint": "^1.79.0",
+    "tsx": "4.20.6",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "4.0.8",
+    "sass-embedded": "1.93.2",
+    "@tanstack/react-query": "5.90.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2"
   }
 }

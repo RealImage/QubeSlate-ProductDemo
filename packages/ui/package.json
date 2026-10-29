@@ -1,0 +1,21 @@
+{
+  "name": "@slate/ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./legacy-ds/*": "./legacy-ds/*",
+    "./assets/*": "./assets/*"
+  },
+  "dependencies": {
+    "prefab": "file:vendor/prefab-1.0.0-beta.18.tgz",
+    "lodash": "^4.17.21",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.6.0"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19",
+    "react-router-dom": ">=7"
+  }
+}
