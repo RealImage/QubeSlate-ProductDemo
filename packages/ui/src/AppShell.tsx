@@ -14,9 +14,10 @@ export type NavEntry = NavLeaf | NavGroupDef;
 
 const isGroup = (e: NavEntry): e is NavGroupDef => 'items' in e;
 
-function isActive(leaf: NavLeaf, pathname: string) {
+/** Length of the longest path prefix of this leaf that matches, or -1. */
+function matchLength(leaf: NavLeaf, pathname: string) {
   const prefixes = [leaf.to, ...(leaf.match ?? [])];
-  return prefixes.some(p => (p === '/' ? pathname === '/' : pathname === p || pathname.startsWith(p + '/')));
+  return Math.max(-1, ...prefixes.filter(p => (p === '/' ? pathname === '/' : pathname === p || pathname.startsWith(p + '/'))).map(p => p.length));
 }
 
 /**
@@ -34,9 +35,13 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra }: {
   const { session, signOut, portal } = useSession();
   const [open, setOpen] = useState(true);
   const stored = sessionStore.get(portal);
+  // Only the most specific match is active, so /campaigns/rate-bias doesn't also light up /campaigns.
+  const leaves = nav.flatMap(e => (isGroup(e) ? e.items : [e]));
+  const best = Math.max(-1, ...leaves.map(l => matchLength(l, pathname)));
+  const isActive = (l: NavLeaf) => best >= 0 && matchLength(l, pathname) === best;
 
   const leaf = (l: NavLeaf) => (
-    <Sidebar.NavItem key={l.to} isActive={isActive(l, pathname)}>
+    <Sidebar.NavItem key={l.to} isActive={isActive(l)}>
       <Link to={l.to}>{l.icon}<Sidebar.Label>{l.label}</Sidebar.Label></Link>
     </Sidebar.NavItem>
   );
@@ -52,7 +57,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra }: {
         </Sidebar.Header>
         <Sidebar.Nav>
           {nav.map(e => isGroup(e)
-            ? <Sidebar.NavGroup key={e.label} label={e.label} icon={e.icon} isActive={e.items.some(i => isActive(i, pathname))}>{e.items.map(leaf)}</Sidebar.NavGroup>
+            ? <Sidebar.NavGroup key={e.label} label={e.label} icon={e.icon} isActive={e.items.some(isActive)}>{e.items.map(leaf)}</Sidebar.NavGroup>
             : leaf(e))}
         </Sidebar.Nav>
         <Sidebar.Footer>
