@@ -54,6 +54,10 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       action, entity, entityId, detail, impersonatedBy: s.impersonator?.name ?? null
     });
   }
+  /** A real calendar date in YYYY-MM-DD form (rejects 2026-02-30 and free text). */
+  const isIsoDate = (v: unknown): v is string =>
+    typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v + 'T00:00:00Z')) &&
+    new Date(v + 'T00:00:00Z').toISOString().slice(0, 10) === v;
   const find = <T extends { id: string }>(list: T[], key: string, what: string) => {
     const x = list.find(i => i.id === key);
     if (!x) throw notFound(`${what} not found.`);
@@ -206,6 +210,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
     if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
+    if (!req.body.role) throw invalid('Choose a role for the new user.');
     assertRole(s.user.portal, req.body.role);
     const { name, email, phone, role } = req.body;
     const u: User = { id: id('U'), name, email, phone, role, portal: s.user.portal, orgId: s.user.orgId, status: 'invited', lastActiveAt: null };
@@ -221,7 +226,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (u.id === s.user.id && req.body.role && req.body.role !== u.role) throw invalid('You cannot change your own role.');
     assertRole(u.portal, req.body.role);
     const { name, phone, role, status } = req.body;
-    if (((role && role !== u.role) || (status && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
+    if (status !== undefined && !['active', 'invited', 'disabled'].includes(status as string)) throw invalid('Status must be active, invited or disabled.');
+    if (((role !== undefined && role !== u.role) || (status !== undefined && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
     Object.assign(u, Object.fromEntries(Object.entries({ name, phone, role, status }).filter(([, v]) => v !== undefined)));
     audit(s, 'user.update', 'user', u.id, `Updated ${u.email}`);
     return u;
@@ -538,7 +544,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
         const k = b.contract;
         if (!k?.ref?.trim() || !(k.creditLimit > 0)) throw invalid('Contracted advertisers need a contract reference and credit limit.');
         if (!Number.isInteger(k.paymentTermsDays) || k.paymentTermsDays < 0 || k.paymentTermsDays > 180) throw invalid('Payment terms must be 0–180 days.');
-        if (!k.validUntil || k.validUntil < today()) throw invalid('Contract end date must be today or later.');
+        if (!isIsoDate(k.validUntil)) throw invalid('Contract end date must be a valid date (YYYY-MM-DD).');
+        if (k.validUntil < today()) throw invalid('Contract end date must be today or later.');
       }
       Object.assign(s.c, { kycStatus: 'approved', billingType: b.billingType, contract: b.billingType === 'contracted' ? b.contract : null, kycReviewedAt: now(), kycNote: b.note });
       s.c.kycDocs.forEach(d => { if (d.status === 'uploaded') d.status = 'verified'; });
