@@ -9,7 +9,7 @@ import { buildRoutes, createSeed } from './routes';
 import type { Db } from './seed';
 
 const PORT = Number(process.env.SLATE_API_PORT ?? 4100);
-const FILE = resolve(dirname(fileURLToPath(import.meta.url)), '../.data/db.json');
+const FILE = resolve(dirname(fileURLToPath(import.meta.url)), '../.data', PORT === 4100 ? 'db.json' : `db-${PORT}.json`);
 const fresh = process.argv.includes('--fresh');
 
 const state: { db: Db } = { db: !fresh && existsSync(FILE) ? JSON.parse(readFileSync(FILE, 'utf8')) : createSeed() };

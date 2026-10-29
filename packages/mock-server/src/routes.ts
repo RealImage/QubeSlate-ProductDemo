@@ -677,6 +677,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const s = adminOf(req, 'tenants.manage');
     const sac = find(db().sacs, req.params.id!, 'SAC');
     const { adminName: _n, adminEmail: _e, ...rest } = req.body;
+    if (rest.slug !== undefined && db().sacs.some(x => x.id !== sac.id && x.slug === rest.slug)) throw invalid('That portal slug is taken.');
     Object.assign(sac, rest);
     audit(s, 'sac.update', 'sac', sac.id, Object.keys(rest).join(', '));
     return sacRow(sac);
@@ -687,6 +688,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const b = req.body;
     if (b.enabled && b.provider === 'stub' && b.mode === 'live') throw invalid('The stub gateway cannot run in live mode.');
     if (b.enabled && b.provider !== 'stub' && !b.merchantId.trim()) throw invalid('Merchant ID is required to enable the gateway.');
+    const hasKey = !!b.secretKey || (!!sac.gateway.keyHint && sac.gateway.provider === b.provider);
+    if (b.enabled && b.provider !== 'stub' && !hasKey) throw invalid('A secret key is required to enable this gateway.');
+    if (b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
     sac.gateway = {
       provider: b.provider, mode: b.mode, merchantId: b.merchantId, enabled: b.enabled, updatedAt: now(),
       keyHint: b.secretKey ? '••••' + b.secretKey.slice(-4) : sac.gateway.keyHint
