@@ -42,7 +42,9 @@ function MediaTable({ media, brands }: { media: Media[]; brands: Brand[] }) {
   const [type, setType] = useState<TypeFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [brandId, setBrandId] = useState<string>('all');
-  const [open, setOpen] = useState<Media | null>(null);
+  // Track the id, not the row: the list polls while uploads process, and the drawer must show the latest copy.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = openId ? media.find(m => m.id === openId) ?? null : null;
   const brandName = (id: string) => brands.find(b => b.id === id)?.name ?? '—';
 
   const shown = useMemo(() => {
@@ -99,11 +101,11 @@ function MediaTable({ media, brands }: { media: Media[]; brands: Brand[] }) {
         {filtered && <Button size="small" variant="link" onPress={() => { setSearch(''); setType('all'); setStatus('all'); setBrandId('all'); }}>Clear all</Button>}
         <span className="sl-muted sl-small">{shown.length} of {media.length}</span>
       </div>
-      <DataTable rows={shown} columns={columns} rowKey={m => m.id} pageSize={10} onRowClick={setOpen} defaultSort={{ key: 'created', dir: 'desc' }} caption="Media"
+      <DataTable rows={shown} columns={columns} rowKey={m => m.id} pageSize={10} onRowClick={m => setOpenId(m.id)} defaultSort={{ key: 'created', dir: 'desc' }} caption="Media"
         empty={<EmptyState title={media.length ? 'No media matches' : 'No media yet'}>
           {media.length ? 'Try a different search term or clear the filters.' : 'Upload a CPL for cinema or a video/image for DOOH.'}
         </EmptyState>} />
-      {open && <MediaSheet media={open} brand={brandName(open.brandId)} onClose={() => setOpen(null)} />}
+      {open && <MediaSheet media={open} brand={brandName(open.brandId)} onClose={() => setOpenId(null)} />}
     </>
   );
 }

@@ -58,7 +58,7 @@ function DashboardBody({ d }: { d: Dashboard }) {
         <Card title="Delivery to date">
           <div className="sl-stack" style={{ gap: 12 }}>
             <div className="adv-total">{pct(d.deliveryRate)}</div>
-            <Progress value={d.deliveryRate} tone={d.playsDelivered ? deliveryTone(d.deliveryRate) : undefined} />
+            <Progress label="Plays delivered vs planned" value={d.deliveryRate} tone={d.playsDelivered ? deliveryTone(d.deliveryRate) : undefined} />
             <span className="sl-muted sl-small">{num(d.playsDelivered)} plays confirmed by theatre play logs against planned plays to date.</span>
             {d.pendingApprovals > 0 && <Link to="/campaigns?status=pending_approval">{d.pendingApprovals} campaign{d.pendingApprovals === 1 ? '' : 's'} awaiting approval</Link>}
           </div>

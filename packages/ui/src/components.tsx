@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Tag, Button } from 'prefab';
 import { ApiError } from '@slate/api';
 
@@ -50,9 +50,10 @@ export function StatusTag({ tone, children, size = 'small' }: { tone: Tone; chil
   return <Tag variant={tone} size={size}>{children}</Tag>;
 }
 
-export function Progress({ value, tone }: { value: number; tone?: 'positive' | 'notice' | 'negative' }) {
+/** `label` names what is progressing for screen readers, e.g. "Plays delivered". */
+export function Progress({ value, tone, label }: { value: number; tone?: 'positive' | 'notice' | 'negative'; label: string }) {
   const color = tone ? `var(--fill-${tone})` : undefined;
-  return <div className="sl-progress" role="progressbar" aria-valuenow={Math.round(value * 100)} aria-valuemin={0} aria-valuemax={100}>
+  return <div className="sl-progress" role="progressbar" aria-label={label} aria-valuenow={Math.round(value * 100)} aria-valuemin={0} aria-valuemax={100}>
     <span style={{ width: `${Math.min(100, Math.max(0, value * 100))}%`, background: color }} />
   </div>;
 }
@@ -90,11 +91,27 @@ export function Checklist({ items }: { items: { label: string; done: boolean }[]
 export function ChoiceCards<T extends string>({ options, value, onChange, label }: {
   options: { value: T; title: string; hint?: string; disabled?: boolean }[]; value: T | null; onChange: (v: T) => void; label: string;
 }) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const enabled = options.map((o, i) => (o.disabled ? -1 : i)).filter(i => i >= 0);
+  // Roving tab stop: the selected option, or the first enabled one when nothing is selected.
+  const tabStop = options.findIndex(o => o.value === value && !o.disabled);
+  const focusable = tabStop >= 0 ? tabStop : enabled[0];
+  const onKeyDown = (e: KeyboardEvent, i: number) => {
+    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    if (!step || !enabled.length) return;
+    e.preventDefault();
+    const pos = enabled.indexOf(i);
+    const next = enabled[(pos + step + enabled.length) % enabled.length]!;
+    refs.current[next]?.focus();
+    onChange(options[next]!.value);
+  };
   return (
     <div className="sl-choices" role="radiogroup" aria-label={label}>
-      {options.map(o => (
-        <button key={o.value} type="button" role="radio" className="sl-choice" aria-checked={value === o.value} disabled={o.disabled}
-          style={o.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : undefined} onClick={() => !o.disabled && onChange(o.value)}>
+      {options.map((o, i) => (
+        <button key={o.value} ref={el => { refs.current[i] = el; }} type="button" role="radio" className="sl-choice"
+          aria-checked={value === o.value} aria-disabled={o.disabled || undefined} tabIndex={i === focusable ? 0 : -1}
+          style={o.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+          onClick={() => !o.disabled && onChange(o.value)} onKeyDown={e => onKeyDown(e, i)}>
           <strong>{o.title}</strong>{o.hint && <span>{o.hint}</span>}
         </button>
       ))}

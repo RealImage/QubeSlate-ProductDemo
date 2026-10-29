@@ -33,7 +33,7 @@ function useNav(): NavEntry[] {
         ...(can('billing.view') ? [{ label: 'Billing Details', to: '/company/billing' }] : [])
       ]
     },
-    { label: 'Reports', icon: <ReportsIcon />, items: [{ label: 'Billing', to: '/reports/billing' }] }
+    ...(can('billing.view') ? [{ label: 'Reports', icon: <ReportsIcon />, items: [{ label: 'Billing', to: '/reports/billing' }] }] : [])
   ];
 }
 

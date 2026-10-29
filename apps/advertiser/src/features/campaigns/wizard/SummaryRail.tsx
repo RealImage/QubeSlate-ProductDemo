@@ -29,7 +29,7 @@ export function SummaryRail({ form, detail, brandName, media, onSaveDraft, savin
           <span className="sl-muted sl-small">
             {net === 0 ? `No placements yet · budget ${form.budget ? inrShort(form.budget) : 'not set'}` : `${pct(ratio)} of ${inrShort(form.budget)} budget · + ${inr(gst)} GST = ${inr(total)}`}
           </span>
-          {form.budget > 0 && <Progress value={ratio} tone={ratio > 1 ? 'negative' : undefined} />}
+          {form.budget > 0 && <Progress label="Booked value against budget" value={ratio} tone={ratio > 1 ? 'negative' : undefined} />}
         </div>
       </Card>
       <Card title="Selection">

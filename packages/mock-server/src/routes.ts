@@ -26,6 +26,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!user) throw new HttpError(401, 'Not signed in.');
     const impId = req.headers['x-slate-impersonator'];
     const impersonator = impId ? db().users.find(u => u.id === impId && u.portal === 'admin') ?? null : null;
+    // A suspended SAC loses access for its own users and for every advertiser it sells to.
+    const sacId = user.portal === 'sac' ? user.orgId : user.portal === 'advertiser' ? db().companies.find(c => c.id === user.orgId)?.sacId : null;
+    if (sacId && db().sacs.find(s => s.id === sacId)?.status === 'suspended') {
+      throw forbidden('This account is suspended. Contact Qube support.');
+    }
     return { user, impersonator };
   }
   function need(req: Req, portal: User['portal'], permission?: Permission) {
@@ -49,6 +54,10 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       action, entity, entityId, detail, impersonatedBy: s.impersonator?.name ?? null
     });
   }
+  /** A real calendar date in YYYY-MM-DD form (rejects 2026-02-30 and free text). */
+  const isIsoDate = (v: unknown): v is string =>
+    typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v + 'T00:00:00Z')) &&
+    new Date(v + 'T00:00:00Z').toISOString().slice(0, 10) === v;
   const find = <T extends { id: string }>(list: T[], key: string, what: string) => {
     const x = list.find(i => i.id === key);
     if (!x) throw notFound(`${what} not found.`);
@@ -148,8 +157,12 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   r.put('/api/company', (req: Req<Partial<Pick<Company, 'name' | 'gstin' | 'pan' | 'address' | 'contacts'>>>) => {
     const s = companyOf(req, 'company.edit');
     const c = s.company;
-    const regChanged = (req.body.gstin && req.body.gstin !== c.gstin) || (req.body.pan && req.body.pan !== c.pan);
-    Object.assign(c, req.body);
+    const { name, address, contacts, gstin, pan } = req.body;
+    if (gstin !== undefined && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin)) throw invalid('Enter a valid 15-character GSTIN.');
+    if (pan !== undefined && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) throw invalid('Enter a valid 10-character PAN.');
+    if (name !== undefined && !name.trim()) throw invalid('Registered name is required.');
+    const regChanged = (gstin !== undefined && gstin !== c.gstin) || (pan !== undefined && pan !== c.pan);
+    Object.assign(c, Object.fromEntries(Object.entries({ name, address, contacts, gstin, pan }).filter(([, v]) => v !== undefined)));
     if (regChanged && c.kycStatus === 'approved') {
       c.kycStatus = 'pending'; c.kycSubmittedAt = now(); c.kycReviewedAt = null;
       audit(s, 'kyc.resubmit', 'company', c.id, 'GST/PAN changed — KYC re-submitted for review');
@@ -210,6 +223,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
     if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
+    if (!req.body.role) throw invalid('Choose a role for the new user.');
     assertRole(s.user.portal, req.body.role);
     const { name, email, phone, role } = req.body;
     const u: User = { id: id('U'), name, email, phone, role, portal: s.user.portal, orgId: s.user.orgId, status: 'invited', lastActiveAt: null };
@@ -225,7 +239,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (u.id === s.user.id && req.body.role && req.body.role !== u.role) throw invalid('You cannot change your own role.');
     assertRole(u.portal, req.body.role);
     const { name, phone, role, status } = req.body;
-    if (((role && role !== u.role) || (status && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
+    if (status !== undefined && !['active', 'invited', 'disabled'].includes(status as string)) throw invalid('Status must be active, invited or disabled.');
+    if (((role !== undefined && role !== u.role) || (status !== undefined && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
     Object.assign(u, Object.fromEntries(Object.entries({ name, phone, role, status }).filter(([, v]) => v !== undefined)));
     audit(s, 'user.update', 'user', u.id, `Updated ${u.email}`);
     return u;
@@ -554,7 +569,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
         const k = b.contract;
         if (!k?.ref?.trim() || !(k.creditLimit > 0)) throw invalid('Contracted advertisers need a contract reference and credit limit.');
         if (!Number.isInteger(k.paymentTermsDays) || k.paymentTermsDays < 0 || k.paymentTermsDays > 180) throw invalid('Payment terms must be 0–180 days.');
-        if (!k.validUntil || k.validUntil < today()) throw invalid('Contract end date must be today or later.');
+        if (!isIsoDate(k.validUntil)) throw invalid('Contract end date must be a valid date (YYYY-MM-DD).');
+        if (k.validUntil < today()) throw invalid('Contract end date must be today or later.');
       }
       Object.assign(s.c, { kycStatus: 'approved', billingType: b.billingType, contract: b.billingType === 'contracted' ? b.contract : null, kycReviewedAt: now(), kycNote: b.note });
       s.c.kycDocs.forEach(d => { if (d.status === 'uploaded') d.status = 'verified'; });
@@ -737,7 +753,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (b.mode === 'live' && sac.gateway.mode !== 'live' && !b.secretKey) throw invalid('Enter live keys when switching to live mode.');
     sac.gateway = {
       provider: b.provider, mode: b.mode, merchantId: b.merchantId, enabled: b.enabled, updatedAt: now(),
-      keyHint: b.secretKey ? '••••' + b.secretKey.slice(-4) : sac.gateway.keyHint
+      // A stored key belongs to its provider; switching provider without a new key leaves none.
+      keyHint: b.secretKey ? '••••' + b.secretKey.slice(-4) : b.provider === sac.gateway.provider ? sac.gateway.keyHint : ''
     };
     audit(s, 'gateway.update', 'sac', sac.id, `${b.provider} ${b.mode} ${b.enabled ? 'enabled' : 'disabled'}${b.secretKey ? ' · key rotated' : ''}`);
     return sacRow(sac);
