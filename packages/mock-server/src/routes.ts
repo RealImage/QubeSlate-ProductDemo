@@ -5,10 +5,11 @@ import {
   BILLING_CURRENCIES, BILLING_FREQUENCIES, BILLING_METHODS, CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, addGateway, checkoutGateway, cleanContacts,
   cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, normaliseSacHost, removeGateway,
   sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError,
-  type Campaign, type Company, type Permission, type Placement, type User
+  brandCategoryIds, brandMatchesCategory, dedupe, deleteBlock, nodeNameError, normaliseName, pathLabel, pathLabels, reorderedSiblings, subtreeIds, unknownIds, usageCounts,
+  type Brand, type Campaign, type CategoryNode, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
-  AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
+  AdminBrandRow, BrandInput, BrandItemInput, BrandsPage, BrandView, CategoryInput, CategoryMaster, AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
   Dashboard, DecisionInput, DeliveryBreakdown, DemoAccount, DeviceRow, DoohConfigInput, ExhibitorInput, ExhibitorRow,
   GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacsPage, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
   PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, SacSyncResult, SacTheatreRow, SacTheatresPage, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
@@ -278,14 +279,28 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
 
   // ================= advertiser: brands, inventory =================
-  r.get('/api/brands', req => db().brands.filter(b => b.companyId === companyOf(req).company.id));
-  r.post('/api/brands', (req: Req<{ name: string; category: string }>) => {
+  /** Brand with the union of its brand / product / variant category mappings resolved to readable paths. */
+  const brandView = (b: Brand): BrandView => {
+    const ids = brandCategoryIds(b).filter(c => pathLabel(db().categories, c));
+    return { ...b, allCategoryIds: ids, categoryPaths: pathLabels(db().categories, ids) };
+  };
+  /** Category ids from a request: deduplicated, and every one must exist in the master. */
+  const checkedCategoryIds = (raw: unknown, required: boolean): string[] => {
+    const ids = dedupe(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string') : []);
+    if (required && !ids.length) throw invalid('Choose at least one category.');
+    if (unknownIds(db().categories, ids).length) throw invalid('One of the chosen categories no longer exists.');
+    return ids;
+  };
+  r.get('/api/categories', req => { session(req); return db().categories; });
+  r.get('/api/brands', req => db().brands.filter(b => b.companyId === companyOf(req).company.id).map(brandView));
+  r.post('/api/brands', (req: Req<{ name: string; categoryIds: string[] }>) => {
     const s = companyOf(req, 'company.edit');
     if (!req.body.name?.trim()) throw invalid('Brand name is required.');
-    const b = { id: id('BR'), companyId: s.company.id, name: req.body.name.trim(), category: req.body.category, status: 'pending' as const, requestedAt: now(), reviewedAt: null, note: null };
+    const categoryIds = checkedCategoryIds(req.body.categoryIds, true);
+    const b: Brand = { id: id('BR'), companyId: s.company.id, name: req.body.name.trim(), categoryIds, products: [], status: 'pending', requestedAt: now(), reviewedAt: null, note: null };
     db().brands.push(b);
     audit(s, 'brand.request', 'brand', b.id, `Requested approval for ${b.name}`);
-    return b;
+    return brandView(b);
   });
   r.get('/api/inventory/theatres', req => theatresFor(companyOf(req).company));
   r.get('/api/inventory/dooh-groups', req => doohFor(companyOf(req).company));
@@ -628,7 +643,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.get('/api/sac/brands', (req): BrandRow[] => {
     const ids = sacCompanies(sacOf(req).sac.id).map(c => c.id);
-    return db().brands.filter(b => ids.includes(b.companyId)).map(b => ({ ...b, companyName: db().companies.find(c => c.id === b.companyId)!.name }));
+    return db().brands.filter(b => ids.includes(b.companyId)).map(b => ({ ...brandView(b), companyName: db().companies.find(c => c.id === b.companyId)!.name }));
   });
   r.post('/api/sac/brands/:id/decision', (req: Req<{ decision: 'approve' | 'reject'; note: string | null }>) => {
     const s = sacOf(req, 'approvals.decide');
@@ -803,6 +818,173 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const page = Math.min(Math.max(1, Number(req.query.get('page')) || 1), Math.max(1, Math.ceil(matching.length / pageSize)));
     const counts = mappedCounts();
     return { rows: matching.slice((page - 1) * pageSize, page * pageSize).map(x => sacRow(x, counts)), total: matching.length, page, pageSize };
+  });
+
+  // ---------- category master ----------
+  const master = (): CategoryMaster => ({ nodes: db().categories, usage: Object.fromEntries(usageCounts(db().categories, db().brands)) });
+  const category = (key: string) => find(db().categories, key, 'Category');
+  r.get('/api/admin/categories', req => { adminOf(req); return master(); });
+  r.post('/api/admin/categories', (req: Req<CategoryInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const parent = req.body.parentId ? category(req.body.parentId) : null;
+    if (parent && parent.level >= 3) throw invalid('Categories go no deeper than SubCategory 2.');
+    const err = nodeNameError(db().categories, parent?.id ?? null, req.body.name ?? '');
+    if (err) throw invalid(err);
+    const sibs = db().categories.filter(n => n.parentId === (parent?.id ?? null));
+    const node: CategoryNode = {
+      id: id('CAT'), parentId: parent?.id ?? null, level: ((parent?.level ?? 0) + 1) as CategoryNode['level'],
+      name: normaliseName(req.body.name), order: Math.max(0, ...sibs.map(n => n.order)) + 1
+    };
+    db().categories.push(node);
+    audit(s, 'category.create', 'category', node.id, pathLabel(db().categories, node.id));
+    return master();
+  });
+  r.put('/api/admin/categories/:id', (req: Req<{ name: string }>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const node = category(req.params.id!);
+    const err = nodeNameError(db().categories, node.parentId, req.body.name ?? '', node.id);
+    if (err) throw invalid(err);
+    const before = pathLabel(db().categories, node.id);
+    node.name = normaliseName(req.body.name);
+    audit(s, 'category.rename', 'category', node.id, `${before} → ${node.name}`);
+    return master();
+  });
+  r.post('/api/admin/categories/:id/move', (req: Req<{ dir: 'up' | 'down' }>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const node = category(req.params.id!);
+    if (req.body.dir !== 'up' && req.body.dir !== 'down') throw invalid('Move up or down.');
+    const next = reorderedSiblings(db().categories, node.id, req.body.dir);
+    if (!next) throw invalid(`Already ${req.body.dir === 'up' ? 'first' : 'last'}.`);
+    for (const n of next) category(n.id).order = n.order;
+    audit(s, 'category.reorder', 'category', node.id, `${pathLabel(db().categories, node.id)} moved ${req.body.dir}`);
+    return master();
+  });
+  r.delete('/api/admin/categories/:id', req => {
+    const s = adminOf(req, 'catalog.manage');
+    const node = category(req.params.id!);
+    const block = deleteBlock(db().categories, db().brands, node.id);
+    if (block.blocked) throw invalid(block.message!);
+    const label = pathLabel(db().categories, node.id);
+    const gone = subtreeIds(db().categories, node.id);
+    db().categories = db().categories.filter(n => !gone.has(n.id));
+    audit(s, 'category.delete', 'category', node.id, gone.size > 1 ? `${label} (and ${gone.size - 1} below it)` : label);
+    return master();
+  });
+
+  // ---------- brands, platform-wide ----------
+  const adminBrandRow = (b: Brand): AdminBrandRow => {
+    const company = db().companies.find(c => c.id === b.companyId)!;
+    return { ...brandView(b), companyName: company.name, sacId: company.sacId, sacName: db().sacs.find(x => x.id === company.sacId)?.name ?? '—' };
+  };
+  const adminBrand = (key: string) => find(db().brands, key, 'Brand');
+  r.get('/api/admin/brands', (req): BrandsPage => {
+    adminOf(req);
+    const q = (req.query.get('q') ?? '').trim().toLowerCase();
+    const sacId = req.query.get('sacId') ?? '';
+    const status = req.query.get('status') ?? '';
+    const categoryId = req.query.get('categoryId') ?? '';
+    const pageSize = Math.min(1000, Math.max(1, Number(req.query.get('pageSize')) || 100));
+    const companies = new Map(db().companies.map(c => [c.id, c]));
+    const matching = db().brands.filter(b => {
+      const co = companies.get(b.companyId);
+      if (sacId && co?.sacId !== sacId) return false;
+      if (status && b.status !== status) return false;
+      if (categoryId && !brandMatchesCategory(db().categories, b, categoryId)) return false;
+      if (!q) return true;
+      const hay = [b.name, co?.name ?? '', ...b.products.flatMap(p => [p.name, ...p.variants.map(v => v.name)]), ...pathLabels(db().categories, brandCategoryIds(b))];
+      return hay.some(x => x.toLowerCase().includes(q));
+    }).sort((a, b) => a.name.localeCompare(b.name));
+    const page = Math.min(Math.max(1, Number(req.query.get('page')) || 1), Math.max(1, Math.ceil(matching.length / pageSize)));
+    return { rows: matching.slice((page - 1) * pageSize, page * pageSize).map(adminBrandRow), total: matching.length, page, pageSize };
+  });
+  r.get('/api/admin/brands/:id', req => { adminOf(req); return adminBrandRow(adminBrand(req.params.id!)); });
+  const itemName = (raw: unknown, what: string) => {
+    const n = normaliseName(typeof raw === 'string' ? raw : '');
+    if (!n) throw invalid(`${what} name is required.`);
+    if (n.length > 80) throw invalid(`Keep the ${what.toLowerCase()} name under 80 characters.`);
+    return n;
+  };
+  /** Names are unique among siblings (case-insensitive): products in a brand, variants in a product. */
+  const uniqueAmong = (siblings: { id: string; name: string }[], name: string, selfId: string | null, what: string, where: string) => {
+    if (siblings.some(x => x.id !== selfId && x.name.toLowerCase() === name.toLowerCase())) throw invalid(`${where} already has a ${what.toLowerCase()} called “${name}”.`);
+  };
+  const productOf = (b: Brand, key: string) => {
+    const p = b.products.find(x => x.id === key);
+    if (!p) throw notFound('Product not found.');
+    return p;
+  };
+  r.put('/api/admin/brands/:id', (req: Req<BrandInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const name = itemName(req.body.name, 'Brand');
+    b.categoryIds = checkedCategoryIds(req.body.categoryIds, false);
+    audit(s, 'brand.update', 'brand', b.id, b.name === name ? name : `${b.name} → ${name}`);
+    b.name = name;
+    return adminBrandRow(b);
+  });
+  r.post('/api/admin/brands/:id/products', (req: Req<BrandItemInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const name = itemName(req.body.name, 'Product');
+    uniqueAmong(b.products, name, null, 'Product', b.name);
+    b.products.push({ id: id('PR'), name, categoryIds: checkedCategoryIds(req.body.categoryIds, false), variants: [] });
+    audit(s, 'brand.product.add', 'brand', b.id, `${b.name} › ${name}`);
+    return adminBrandRow(b);
+  });
+  r.put('/api/admin/brands/:id/products/:pid', (req: Req<BrandItemInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const p = productOf(b, req.params.pid!);
+    const name = itemName(req.body.name, 'Product');
+    uniqueAmong(b.products, name, p.id, 'Product', b.name);
+    p.categoryIds = checkedCategoryIds(req.body.categoryIds, false);
+    audit(s, 'brand.product.update', 'brand', b.id, `${b.name} › ${p.name === name ? name : `${p.name} → ${name}`}`);
+    p.name = name;
+    return adminBrandRow(b);
+  });
+  r.delete('/api/admin/brands/:id/products/:pid', req => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const p = productOf(b, req.params.pid!);
+    b.products = b.products.filter(x => x.id !== p.id);
+    audit(s, 'brand.product.delete', 'brand', b.id, `${b.name} › ${p.name}`);
+    return adminBrandRow(b);
+  });
+  r.post('/api/admin/brands/:id/products/:pid/variants', (req: Req<BrandItemInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const p = productOf(b, req.params.pid!);
+    const name = itemName(req.body.name, 'Variant');
+    uniqueAmong(p.variants, name, null, 'Variant', p.name);
+    p.variants.push({ id: id('VR'), name, categoryIds: checkedCategoryIds(req.body.categoryIds, false) });
+    audit(s, 'brand.variant.add', 'brand', b.id, `${b.name} › ${p.name} › ${name}`);
+    return adminBrandRow(b);
+  });
+  const variantOf = (p: Brand['products'][number], key: string) => {
+    const v = p.variants.find(x => x.id === key);
+    if (!v) throw notFound('Variant not found.');
+    return v;
+  };
+  r.put('/api/admin/brands/:id/products/:pid/variants/:vid', (req: Req<BrandItemInput>) => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const p = productOf(b, req.params.pid!);
+    const v = variantOf(p, req.params.vid!);
+    const name = itemName(req.body.name, 'Variant');
+    uniqueAmong(p.variants, name, v.id, 'Variant', p.name);
+    v.categoryIds = checkedCategoryIds(req.body.categoryIds, false);
+    audit(s, 'brand.variant.update', 'brand', b.id, `${b.name} › ${p.name} › ${v.name === name ? name : `${v.name} → ${name}`}`);
+    v.name = name;
+    return adminBrandRow(b);
+  });
+  r.delete('/api/admin/brands/:id/products/:pid/variants/:vid', req => {
+    const s = adminOf(req, 'catalog.manage');
+    const b = adminBrand(req.params.id!);
+    const p = productOf(b, req.params.pid!);
+    const v = variantOf(p, req.params.vid!);
+    p.variants = p.variants.filter(x => x.id !== v.id);
+    audit(s, 'brand.variant.delete', 'brand', b.id, `${b.name} › ${p.name} › ${v.name}`);
+    return adminBrandRow(b);
   });
 
   type Actor = ReturnType<typeof adminOf>;

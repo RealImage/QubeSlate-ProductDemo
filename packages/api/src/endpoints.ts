@@ -1,5 +1,5 @@
 import type {
-  AuditEvent, Brand, Company, Exhibitor, Media, Theatre, DoohGroup, User, PlacementAction, KycDoc
+  AuditEvent, Brand, CategoryNode, Company, Exhibitor, Media, Theatre, DoohGroup, User, PlacementAction, KycDoc
 } from '@slate/domain';
 import { http } from './client';
 import type * as C from './contracts';
@@ -25,8 +25,8 @@ export const advertiserApi = {
   updateCompany: (b: Partial<Pick<Company, 'name' | 'gstin' | 'pan' | 'address' | 'contacts'>>) => http.put<Company>('/company', b),
   uploadKycDoc: (kind: KycDoc['kind'], fileName: string) => http.post<Company>('/company/kyc-docs', { kind, fileName }),
   submitKyc: () => http.post<Company>('/company/submit-kyc'),
-  brands: () => http.get<Brand[]>('/brands'),
-  requestBrand: (b: { name: string; category: string }) => http.post<Brand>('/brands', b),
+  brands: () => http.get<C.BrandView[]>('/brands'),
+  requestBrand: (b: { name: string; categoryIds: string[] }) => http.post<C.BrandView>('/brands', b),
   theatres: () => http.get<Theatre[]>('/inventory/theatres'),
   doohGroups: () => http.get<DoohGroup[]>('/inventory/dooh-groups'),
 
@@ -96,7 +96,30 @@ export const sacApi = {
   invoices: () => http.get<C.InvoiceRow[]>('/invoices')
 };
 
+/** The category master is readable by every portal (brand requests and catalogues need it). */
+export const catalogApi = {
+  categories: () => http.get<CategoryNode[]>('/categories')
+};
+
+const itemPath = (brandId: string, productId?: string, variantId?: string) =>
+  `/admin/brands/${brandId}` + (productId ? `/products/${productId}` : '') + (variantId ? `/variants/${variantId}` : '');
+
 export const adminApi = {
+  categoryMaster: () => http.get<C.CategoryMaster>('/admin/categories'),
+  addCategory: (b: C.CategoryInput) => http.post<C.CategoryMaster>('/admin/categories', b),
+  renameCategory: (id: string, name: string) => http.put<C.CategoryMaster>(`/admin/categories/${id}`, { name }),
+  moveCategory: (id: string, dir: 'up' | 'down') => http.post<C.CategoryMaster>(`/admin/categories/${id}/move`, { dir }),
+  deleteCategory: (id: string) => http.del<C.CategoryMaster>(`/admin/categories/${id}`),
+  brands: (query: C.BrandsQuery = {}) =>
+    http.get<C.BrandsPage>('/admin/brands' + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),
+  brand: (id: string) => http.get<C.AdminBrandRow>(itemPath(id)),
+  updateBrand: (id: string, b: C.BrandInput) => http.put<C.AdminBrandRow>(itemPath(id), b),
+  addProduct: (brandId: string, b: C.BrandItemInput) => http.post<C.AdminBrandRow>(`${itemPath(brandId)}/products`, b),
+  updateProduct: (brandId: string, productId: string, b: C.BrandItemInput) => http.put<C.AdminBrandRow>(itemPath(brandId, productId), b),
+  deleteProduct: (brandId: string, productId: string) => http.del<C.AdminBrandRow>(itemPath(brandId, productId)),
+  addVariant: (brandId: string, productId: string, b: C.BrandItemInput) => http.post<C.AdminBrandRow>(`${itemPath(brandId, productId)}/variants`, b),
+  updateVariant: (brandId: string, productId: string, variantId: string, b: C.BrandItemInput) => http.put<C.AdminBrandRow>(itemPath(brandId, productId, variantId), b),
+  deleteVariant: (brandId: string, productId: string, variantId: string) => http.del<C.AdminBrandRow>(itemPath(brandId, productId, variantId)),
   overview: () => http.get<C.PlatformOverview>('/admin/overview'),
   exhibitors: () => http.get<C.ExhibitorRow[]>('/admin/exhibitors'),
   createExhibitor: (b: C.ExhibitorInput) => http.post<Exhibitor>('/admin/exhibitors', b),

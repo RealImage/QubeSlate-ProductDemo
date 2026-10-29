@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { sacApi } from '@slate/api';
 import { APPROVAL_TONE, dateTime } from '@slate/domain';
-import { Card, DataTable, EmptyState, Input, Page, PageHeader, Query, Select, StatusTag } from '@slate/ui';
+import { CategoryChips, Card, DataTable, EmptyState, Input, Page, PageHeader, Query, Select, StatusTag } from '@slate/ui';
 
 export function BrandCatalogue() {
   const q = useQuery({ queryKey: ['sac', 'brands'], queryFn: sacApi.brands });
@@ -10,7 +10,7 @@ export function BrandCatalogue() {
   const [status, setStatus] = useState('all');
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return (q.data ?? []).filter(b => (status === 'all' || b.status === status) && (!s || `${b.name} ${b.category} ${b.companyName}`.toLowerCase().includes(s)));
+    return (q.data ?? []).filter(b => (status === 'all' || b.status === status) && (!s || `${b.name} ${b.categoryPaths.join(' ')} ${b.companyName}`.toLowerCase().includes(s)));
   }, [q.data, search, status]);
   return (
     <Page>
@@ -36,7 +36,7 @@ export function BrandCatalogue() {
               empty={<EmptyState title="No brands match">{q.data?.length ? 'Try a different search or status.' : 'No brands have been requested yet.'}</EmptyState>}
               columns={[
                 { key: 'name', header: 'Brand', sort: b => b.name, cell: b => <div className="sl-table__primary">{b.name}</div> },
-                { key: 'category', header: 'Category', sort: b => b.category, cell: b => b.category },
+                { key: 'category', header: 'Categories', cell: b => <CategoryChips paths={b.categoryPaths} /> },
                 { key: 'advertiser', header: 'Advertiser', sort: b => b.companyName, cell: b => b.companyName },
                 { key: 'status', header: 'Status', sort: b => b.status, cell: b => <StatusTag tone={APPROVAL_TONE[b.status] ?? 'default'}>{b.status[0]!.toUpperCase() + b.status.slice(1)}</StatusTag> },
                 { key: 'requested', header: 'Requested', sort: b => b.requestedAt, cell: b => dateTime(b.requestedAt) },

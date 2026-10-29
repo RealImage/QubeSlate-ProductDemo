@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
 import {
-  CampaignIcon, CompaniesIcon, DashboardIcon, DeviceIcon, HeartbeatBoxIcon, LogsIcon, MultipleUsersIcon, OrganisationIcon, SecurityIcon, TheatreIcon
+  CampaignIcon, CompaniesIcon, DashboardIcon, DeviceIcon, HeartbeatBoxIcon, ListIcon, LogsIcon, MultipleUsersIcon, OrganisationIcon, SecurityIcon, TheatreIcon
 } from 'prefab/icons';
+import { BrandsPage } from './features/catalog/BrandsPage';
+import { CategoriesPage } from './features/catalog/CategoriesPage';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { ExhibitorsPage } from './features/tenants/ExhibitorsPage';
 import { SacDetailPage } from './features/tenants/SacDetailPage';
@@ -20,6 +22,10 @@ const nav: NavEntry[] = [
   { label: 'Tenants', icon: <OrganisationIcon />, items: [
     { label: 'Exhibitors', to: '/tenants/exhibitors', icon: <CompaniesIcon /> },
     { label: 'SACs', to: '/tenants/sacs', icon: <OrganisationIcon /> }
+  ] },
+  { label: 'Catalog', icon: <ListIcon />, items: [
+    { label: 'Brands', to: '/catalog/brands', icon: <CompaniesIcon /> },
+    { label: 'Category Lists', to: '/catalog/categories', icon: <ListIcon /> }
   ] },
   { label: 'Network', icon: <HeartbeatBoxIcon />, items: [
     { label: 'Theatres', to: '/network/theatres', icon: <TheatreIcon /> },
@@ -43,6 +49,8 @@ export function App() {
           <Route path="tenants/exhibitors" element={<ExhibitorsPage />} />
           <Route path="tenants/sacs" element={<SacsPage />} />
           <Route path="tenants/sacs/:id" element={<SacDetailPage />} />
+          <Route path="catalog/brands" element={<BrandsPage />} />
+          <Route path="catalog/categories" element={<CategoriesPage />} />
           <Route path="network/theatres" element={<TheatresPage />} />
           <Route path="network/devices" element={<DevicesPage />} />
           <Route path="network/ingestion" element={<IngestionPage />} />

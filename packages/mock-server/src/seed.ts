@@ -1,13 +1,14 @@
 import {
-  DEFAULT_SUPPORT_EMAIL, defaultBranding, emptyContacts, rampScreenHistory,
+  DEFAULT_SUPPORT_EMAIL, defaultBranding, pathLabel, emptyContacts, rampScreenHistory,
   DOOH_TYPES, exhibitorsOf, sacInventory, quotePlacement, resolveReach, statusOnApproval, withGst,
-  type AuditEvent, type Brand, type Campaign, type Company, type DeliveryRecord, type Device, type DoohGroup,
+  type AuditEvent, type Brand, type BrandProduct, type CategoryNode, type Campaign, type Company, type DeliveryRecord, type Device, type DoohGroup,
   type CinemaSpot, type Exhibitor, type Invoice, type Media, type PaymentGateway, type Placement, type PlacementPosition, type Sac, type SacContact, type Screen, type ScreenHistory,
   type TargetGroup, type Theatre, type User
 } from '@slate/domain';
+import { seedCategories } from './taxonomy';
 
 /** Bump when the persisted shape changes; the server reseeds data written by an older version. */
-export const DB_SCHEMA = 3; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status
+export const DB_SCHEMA = 4; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status; 4: category master, brand products / variants / category mappings
 
 export interface Db {
   schema: number;
@@ -20,6 +21,8 @@ export interface Db {
   devices: Device[];
   companies: Company[];
   brands: Brand[];
+  /** The category master (Category › SubCategory1 › SubCategory2). */
+  categories: CategoryNode[];
   users: User[];
   targetGroups: TargetGroup[];
   media: Media[];
@@ -397,15 +400,62 @@ export function createSeed(): Db {
     }
   ];
 
-  const brand = (id: string, companyId: string, name: string, category: string, status: Brand['status'] = 'approved', ago = 50): Brand =>
-    ({ id, companyId, name, category, status, requestedAt: at(-ago), reviewedAt: status === 'pending' ? null : at(-ago + 1), note: null });
+  // Category mappings are written as "Category / SubCategory1 / SubCategory2" paths and resolved to master ids.
+  const categories = seedCategories();
+  const catId = (path: string) => {
+    // Match on the whole path: some names themselves contain " / " (e.g. "Laptops / Desktops").
+    const hit = categories.find(n => pathLabel(categories, n.id) === path);
+    if (!hit) throw new Error(`Seed category not found: ${path}`);
+    return hit.id;
+  };
+  const cats = (paths: string[]) => paths.map(catId);
+  let itemSeq = 0;
+  type VariantSeed = [name: string, paths?: string[]];
+  const product = (name: string, paths: string[], variants: VariantSeed[] = []): BrandProduct => ({
+    id: `PR-${++itemSeq}`, name, categoryIds: cats(paths), variants: variants.map(([vn, vp]) => ({ id: `VR-${++itemSeq}`, name: vn, categoryIds: cats(vp ?? []) }))
+  });
+  const brand = (id: string, companyId: string, name: string, paths: string[], products: BrandProduct[] = [], status: Brand['status'] = 'approved', ago = 50): Brand =>
+    ({ id, companyId, name, categoryIds: cats(paths), products, status, requestedAt: at(-ago), reviewedAt: status === 'pending' ? null : at(-ago + 1), note: null });
   const brands: Brand[] = [
-    brand('BR-TAN', 'CO-MER', 'Tanishq', 'Jewellery'), brand('BR-RE', 'CO-MER', 'Royal Enfield', 'Automotive'),
-    brand('BR-AMUL', 'CO-MER', 'Amul', 'FMCG — Dairy'), brand('BR-K811', 'CO-MER', 'Kotak 811', 'BFSI'),
-    brand('BR-SUG', 'CO-MER', 'Sugar Cosmetics', 'Beauty', 'pending', 3),
-    brand('BR-NWA', 'CO-NWD', 'Northwind Air', 'Consumer durables'), brand('BR-NWC', 'CO-NWD', 'Northwind Chill', 'Beverages'),
-    brand('BR-SUN', 'CO-SUN', 'Sunrise Filter Coffee', 'Beverages', 'pending', 2),
-    brand('BR-KAI', 'CO-KAI', 'Kairos Fresh', 'Retail')
+    brand('BR-TAN', 'CO-MER', 'Tanishq', [], [
+      product('Rivaah', ['Lifestyle / Fashion'], [['Rivaah Festive', ['Lifestyle / Fashion / Accessories']], ['Rivaah Bridal Set']]),
+      product('Mia', ['Lifestyle / Fashion / Accessories'], [['Mia Everyday Studs']])
+    ]),
+    brand('BR-RE', 'CO-MER', 'Royal Enfield', ['Auto'], [
+      product('Himalayan', ['Auto / Automotive'], [['Himalayan 450', ['Auto / Automotive / Bikes']], ['Himalayan Scram 411']]),
+      product('Classic 350', [], [['Classic 350 Signals', ['Auto / Automotive / Bikes']]]),
+      product('Riding Gear', ['Auto / Automotive / Auto Accessories'])
+    ]),
+    brand('BR-AMUL', 'CO-MER', 'Amul', ['FMCG'], [
+      product('Amul Dark', ['FMCG / Consumer Goods'], [['Amul Dark 55%', ['FMCG / Consumer Goods / Food & Beverages']], ['Amul Dark 75%']]),
+      product('Amul Butter', [], [['Amul Butter 500g', ['FMCG / Consumer Goods / Food & Beverages']]])
+    ]),
+    brand('BR-K811', 'CO-MER', 'Kotak 811', ['BFSI / Financial Services / Banks', 'BFSI / Financial Technology (FinTech) / Digital Payment Platforms'], [
+      product('811 Savings Account', [], [['811 Zero Balance']])
+    ]),
+    brand('BR-SUG', 'CO-MER', 'Sugar Cosmetics', [], [
+      product('Matte Attack', ['FMCG / Consumer Goods / Personal Care'], [['Matte Attack Transferproof Lipstick']])
+    ], 'pending', 3),
+    brand('BR-NWA', 'CO-NWD', 'Northwind Air', ['Consumer Durables'], [
+      product('Northwind Air AC', ['Consumer Durables / Consumer Electronics & Appliances / Home Appliances'], [['Air 1.5 Ton Inverter'], ['Air 2 Ton Split']]),
+      product('Northwind Smart Hub', ['Consumer Durables / Home & Living / Smart Home Products'])
+    ]),
+    brand('BR-NWC', 'CO-NWD', 'Northwind Chill', ['FMCG / Consumer Goods / Food & Beverages']),
+    brand('BR-SUN', 'CO-SUN', 'Sunrise Filter Coffee', [], [
+      product('Filter Coffee Powder', ['FMCG / Consumer Goods / Food & Beverages'])
+    ], 'pending', 2),
+    brand('BR-KAI', 'CO-KAI', 'Kairos Fresh', ['Organised Retail / Retail / Supermarkets']),
+    brand('BR-APL', 'CO-NWD', 'Apple', [], [
+      product('iPhone', ['Consumer Durables / Consumer Electronics & Appliances / Mobile Phones'], [['iPhone 18'], ['iPhone 18 Pro']]),
+      product('MacBook', ['Consumer Durables / Consumer Electronics & Appliances / Laptops / Desktops'], [['MacBook Air M5']])
+    ], 'approved', 20),
+    brand('BR-TATA', 'CO-MER', 'Tata Motors', ['Auto / Automotive / Cars'], [
+      product('Nexon', [], [['Nexon EV', ['Auto / Automotive / Cars']]]),
+      product('Tata Service', ['Auto / Services / Car Servicing & Maintenance'])
+    ], 'approved', 15),
+    brand('BR-BRIT', 'CO-KAI', 'Britannia', ['FMCG / Consumer Goods / Food & Beverages'], [
+      product('Good Day', [], [['Good Day Cashew 200g']])
+    ], 'pending', 1)
   ];
 
   const u = (id: string, name: string, portal: User['portal'], orgId: string, role: User['role'], status: User['status'] = 'active'): User => ({
@@ -477,7 +527,7 @@ export function createSeed(): Db {
   m('MD-11', 'BR-NWA', 'Northwind Air Summer 30s', 'CPL', 30, ['2D', '2K', 'Flat', '5.1'], 'ready', 60, 'Vikram Desai', ['Hindi', 'English']);
 
   const db: Db = {
-    exhibitors, sacs, screenHistory, theatres, doohGroups, devices, companies, brands, users, targetGroups, media,
+    exhibitors, sacs, screenHistory, theatres, doohGroups, devices, companies, brands, categories, users, targetGroups, media,
     campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000, schema: DB_SCHEMA
   };
 
