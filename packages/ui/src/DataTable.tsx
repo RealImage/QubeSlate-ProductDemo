@@ -3,6 +3,15 @@ import { Pagination } from 'prefab';
 import { SortAscendingIcon, SortDescendingIcon, SortIcon } from 'prefab/icons';
 import { EmptyState } from './components';
 
+const INTERACTIVE = 'a, button, input, select, textarea, label, [role="button"], [role="checkbox"], [role="menuitem"]';
+
+/** Row clicks ignore events that started on a control inside the row (a cell action, link or input). */
+function fromInnerControl(e: { target: EventTarget; currentTarget: EventTarget }) {
+  const el = e.target as Element;
+  const hit = el.closest?.(INTERACTIVE);
+  return !!hit && hit !== e.currentTarget && (e.currentTarget as Element).contains(hit);
+}
+
 export interface Column<T> {
   key: string;
   header: ReactNode;
@@ -65,8 +74,8 @@ export function DataTable<T>({ rows, columns, rowKey, onRowClick, pageSize = 25,
           </thead>
           <tbody>
             {shown.map(r => (
-              <tr key={rowKey(r)} className={onRowClick ? 'is-clickable' : undefined} onClick={onRowClick ? () => onRowClick(r) : undefined}
-                tabIndex={onRowClick ? 0 : undefined} onKeyDown={onRowClick ? e => { if (e.key === 'Enter') onRowClick(r); } : undefined}>
+              <tr key={rowKey(r)} className={onRowClick ? 'is-clickable' : undefined} onClick={onRowClick ? e => { if (!fromInnerControl(e)) onRowClick(r); } : undefined}
+                tabIndex={onRowClick ? 0 : undefined} onKeyDown={onRowClick ? e => { if (e.key === 'Enter' && e.target === e.currentTarget) onRowClick(r); } : undefined}>
                 {columns.map(c => <td key={c.key} className={c.align === 'right' ? 'num' : undefined}>{c.cell(r)}</td>)}
               </tr>
             ))}
