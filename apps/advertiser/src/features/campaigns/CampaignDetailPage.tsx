@@ -16,10 +16,11 @@ const METHOD: Record<string, string> = { card: 'Card', upi: 'UPI', netbanking: '
 export function CampaignDetailPage() {
   const { id = '' } = useParams();
   const q = useQuery({ queryKey: qk.campaign(id), queryFn: () => advertiserApi.campaign(id) });
+  const { can } = useOrg();
   return (
     <Page>
       <p className="sl-eyebrow"><Link to="/campaigns">Campaign Management</Link> / {q.data?.code ?? id}</p>
-      <Query q={q} rows={8}>{c => (c.status === 'draft' ? <Navigate to={`/campaigns/${c.id}/edit`} replace /> : <Detail c={c} />)}</Query>
+      <Query q={q} rows={8}>{c => (c.status === 'draft' && can('campaign.edit') ? <Navigate to={`/campaigns/${c.id}/edit`} replace /> : <Detail c={c} />)}</Query>
     </Page>
   );
 }

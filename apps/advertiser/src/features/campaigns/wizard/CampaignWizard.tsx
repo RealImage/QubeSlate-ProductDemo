@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { advertiserApi, type CampaignDetail, type CampaignInput } from '@slate/api';
@@ -64,11 +64,14 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
   const brandName = (id: string, list: Brand[] | undefined = brands.data) => list?.find(b => b.id === id)?.name ?? initial?.brandName ?? '';
   const [form, setForm] = useState<WizardForm>(() => (initial ? fromDetail(initial, initial.brandName) : blank));
   const [dirty, setDirty] = useState(false);
+  // Bumped on every edit; a save only clears `dirty` if nothing changed while it was in flight.
+  const revision = useRef(0);
   const [showErrors, setShowErrors] = useState(false);
   const step = Math.min(4, Math.max(0, Number(params.get('step') ?? 0) || 0));
   const setStep = (s: number) => setParams(s ? { step: String(s) } : {}, { replace: true });
 
   const update = (patch: Partial<WizardForm>) => {
+    revision.current += 1;
     setDirty(true);
     setForm(f => {
       const next = { ...f, ...patch };
@@ -79,11 +82,11 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
     });
   };
 
-  /** What gets saved: drop attachments that no longer fit the selected channels. */
+  /** What gets saved: drop attachments that no longer fit the selected channels or brand. */
   const toInput = (): CampaignInput => {
     const { nameEdited: _ignored, ...input } = form;
     const tgOk = (id: string) => { const t = tgs.data?.find(x => x.id === id); return !t || input.channels.includes(t.channel); };
-    const mOk = (id: string) => { const m = media.data?.find(x => x.id === id); return !m || mediaFits(m, input.channels); };
+    const mOk = (id: string) => { const m = media.data?.find(x => x.id === id); return !m || (m.brandId === input.brandId && mediaFits(m, input.channels)); };
     return { ...input, name: input.name.trim(), targetGroupIds: input.targetGroupIds.filter(tgOk), mediaIds: input.mediaIds.filter(mOk) };
   };
 
@@ -94,7 +97,6 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
       qc.invalidateQueries({ queryKey: qk.campaigns });
       qc.invalidateQueries({ queryKey: qk.dashboard });
       qc.invalidateQueries({ queryKey: qk.targetGroups });
-      setDirty(false);
     }
   });
 
@@ -106,7 +108,9 @@ function Wizard({ initial }: { initial?: CampaignDetail }) {
     if (!defValid) { setShowErrors(true); setStep(0); return null; }
     if (campaignId && !dirty) return campaignId;
     try {
+      const started = revision.current;
       const d = await save.mutateAsync(toInput());
+      if (revision.current === started) setDirty(false);
       return d.id;
     } catch {
       return null;

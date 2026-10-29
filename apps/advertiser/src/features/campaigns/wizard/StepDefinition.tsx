@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button, Card, Checkbox, ChoiceCards, DateRangePicker, EmptyState, Input, Loading, Select } from '@slate/ui';
 import { CAMPAIGN_TYPES, inr, suggestCampaignName, type Brand, type CampaignType, type Channel, type Company } from '@slate/domain';
 import { Field } from '../../../components/controls';
-import { todayIst } from '../../../components/org';
+import { todayIst, useOrg } from '../../../components/org';
 import { RequestBrandDialog } from '../../company/BrandsPage';
 import type { WizardForm } from './CampaignWizard';
 
@@ -27,6 +27,8 @@ export function StepDefinition({ form, update, brands, brandsLoading, showErrors
   company: Pick<Company, 'name'>;
 }) {
   const [requesting, setRequesting] = useState(false);
+  // Brand requests need company.edit (admins); planners are pointed at an admin instead.
+  const canRequest = useOrg().can('company.edit');
   const e = definitionErrors(form);
   const err = (k: keyof typeof e) => (showErrors ? e[k] : undefined);
   const brand = brands.find(b => b.id === form.brandId);
@@ -37,8 +39,8 @@ export function StepDefinition({ form, update, brands, brandsLoading, showErrors
     <Card title="Campaign information" description="Who the campaign is for and when it runs.">
       <div className="sl-stack">
         {brandsLoading ? <Loading rows={2} /> : brands.length === 0 ? (
-          <EmptyState title="No approved brands yet" action={<Button variant="secondary" onPress={() => setRequesting(true)}>Request a brand</Button>}>
-            Campaigns run for a brand your sales house has approved for {company.name}.
+          <EmptyState title="No approved brands yet" action={canRequest && <Button variant="secondary" onPress={() => setRequesting(true)}>Request a brand</Button>}>
+            Campaigns run for a brand your sales house has approved for {company.name}.{!canRequest && ' Ask a company admin to request one.'}
           </EmptyState>
         ) : (
           <div>
@@ -47,7 +49,9 @@ export function StepDefinition({ form, update, brands, brandsLoading, showErrors
               {brands.map(b => <Select.Option key={b.id} id={b.id} textValue={b.name}>{b.name}{b.category ? ` · ${b.category}` : ''}</Select.Option>)}
             </Select>
             <p className="sl-small" style={{ margin: '4px 0 0' }}>
-              Brand missing? <Button variant="link" size="small" onPress={() => setRequesting(true)}>Request a new brand</Button> or see <Link to="/company/brands">all brands</Link>.
+              Brand missing? {canRequest
+                ? <><Button variant="link" size="small" onPress={() => setRequesting(true)}>Request a new brand</Button> or see </>
+                : 'Ask a company admin to request it, or see '}<Link to="/company/brands">all brands</Link>.
             </p>
           </div>
         )}

@@ -394,10 +394,21 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     audit(s, 'campaign.create', 'campaign', c.id, c.name);
     return campaignDetail(c);
   });
+  /** Placements that no longer fit the campaign's flight, channels or attachments. */
+  const misfits = (campaignId: string, c: Pick<Campaign, 'start' | 'end' | 'channels' | 'mediaIds' | 'targetGroupIds'>) =>
+    db().placements.filter(p => p.campaignId === campaignId && (
+      p.from < c.start || p.to > c.end || !c.channels.includes(p.position.channel) ||
+      !c.mediaIds.includes(p.mediaId) || !c.targetGroupIds.includes(p.targetGroupId)));
+  const assertPlacementsFit = (campaignId: string, c: Parameters<typeof misfits>[1]) => {
+    const bad = misfits(campaignId, c);
+    if (bad.length) throw invalid(`${bad.map(p => p.code).join(', ')} no longer fit${bad.length === 1 ? 's' : ''} the campaign's flight, channels, media or target groups. Remove or change ${bad.length === 1 ? 'it' : 'them'} first.`);
+  };
+
   r.put('/api/campaigns/:id', (req: Req<CampaignInput>) => {
     const s = ownCampaign(req, 'campaign.edit');
     if (s.c.status !== 'draft') throw invalid('Only draft campaigns can be edited.');
     validateCampaign(req.body, s.company);
+    assertPlacementsFit(s.c.id, req.body);
     Object.assign(s.c, req.body);
     return campaignDetail(s.c);
   });
@@ -458,6 +469,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (c.status !== 'draft') throw invalid('This campaign has already been submitted.');
     try {
       if (submissionPath(company) !== path) throw invalid(path === 'pay' ? 'Your account is billed against a contract — submit instead of paying.' : 'Card advertisers pay at checkout.');
+      assertPlacementsFit(c.id, c);
       const pls = db().placements.filter(p => p.campaignId === c.id);
       assertSubmittable(checkoutChecklist({ campaign: c, media: db().media, placements: pls, company, outstanding: outstanding(company.id) }));
       const { gst, total } = withGst(pls.reduce((a, p) => a + p.cost, 0));
