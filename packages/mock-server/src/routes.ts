@@ -225,6 +225,8 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (u.orgId !== s.user.orgId) throw notFound('User not found.');
     if (u.id === s.user.id && req.body.role && req.body.role !== u.role) throw invalid('You cannot change your own role.');
     assertRole(u.portal, req.body.role);
+    // Email is the login identity: it can't be edited; invite the new address instead.
+    if (req.body.email !== undefined && req.body.email !== u.email) throw invalid('Email can’t be changed. Invite the new address and remove this user.');
     const { name, phone, role, status } = req.body;
     if (status !== undefined && !['active', 'invited', 'disabled'].includes(status as string)) throw invalid('Status must be active, invited or disabled.');
     if (((role !== undefined && role !== u.role) || (status !== undefined && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
