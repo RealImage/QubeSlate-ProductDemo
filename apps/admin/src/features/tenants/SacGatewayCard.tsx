@@ -24,7 +24,7 @@ export function SacGatewayCard({ sac, canEdit }: { sac: Sac; canEdit: boolean })
   const [confirm, setConfirm] = useState(false);
 
   const m = useMutation({
-    mutationFn: () => adminApi.updateGateway(sac.id, { provider, mode, merchantId: merchantId.trim(), secretKey: rotating && secret ? secret : null, enabled }),
+    mutationFn: () => adminApi.updateGateway(sac.id, { provider, mode, merchantId: merchantId.trim(), secretKey: (rotating || needsNewKey) && secret ? secret : null, enabled }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['admin'] });
       toast.add({ variant: 'positive', message: 'Payment gateway saved.' });
@@ -35,8 +35,11 @@ export function SacGatewayCard({ sac, canEdit }: { sac: Sac; canEdit: boolean })
 
   const stubLive = enabled && provider === 'stub' && mode === 'live';
   const needsMerchant = enabled && provider !== 'stub' && !merchantId.trim();
-  const needsKey = enabled && provider !== 'stub' && !g.keyHint && !secret;
-  const changed = provider !== g.provider || mode !== g.mode || merchantId.trim() !== g.merchantId || enabled !== g.enabled || (rotating && secret !== '');
+  // A stored key only carries over for the same provider in the same mode; any other transition needs a new key (the API enforces this too).
+  const keyCarriesOver = !!g.keyHint && provider === g.provider && (mode === g.mode || mode === 'test');
+  const needsNewKey = provider !== 'stub' && !keyCarriesOver && (enabled || (mode === 'live' && g.mode !== 'live'));
+  const needsKey = needsNewKey && !secret;
+  const changed = provider !== g.provider || mode !== g.mode || merchantId.trim() !== g.merchantId || enabled !== g.enabled || ((rotating || needsNewKey) && secret !== '');
   const valid = !stubLive && !needsMerchant && !needsKey;
   const goingLive = mode === 'live' && (g.mode !== 'live' || enabled !== g.enabled || secret !== '' || provider !== g.provider);
 
@@ -61,7 +64,7 @@ export function SacGatewayCard({ sac, canEdit }: { sac: Sac; canEdit: boolean })
           </Alert>
         )}
         <Input label="Merchant ID" value={merchantId} onChange={setMerchantId} isReadOnly={!canEdit} isInvalid={needsMerchant} errorMessage={needsMerchant ? 'Merchant ID is required to enable the gateway.' : undefined} />
-        {rotating ? (
+        {rotating || needsNewKey ? (
           <Input label="Secret key" type="password" autoComplete="off" value={secret} onChange={setSecret} isReadOnly={!canEdit} isInvalid={needsKey}
             errorMessage={needsKey ? 'A secret key is required to enable the gateway.' : undefined} description="Write-only. It is never shown again after saving."
             suffix={g.keyHint ? <span className="sl-small sl-muted">Keeps {g.keyHint} if empty</span> : undefined} />

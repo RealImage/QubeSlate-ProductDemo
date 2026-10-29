@@ -221,7 +221,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   r.post('/api/users', (req: Req<UserInput>) => {
     const s = session(req);
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
-    if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
+    if (!req.body.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email ?? '')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
     if (!req.body.role) throw invalid('Choose a role for the new user.');
     assertRole(s.user.portal, req.body.role);
@@ -306,6 +306,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const s = companyOf(req, 'targets.edit');
     const tg = find(db().targetGroups, req.params.id!, 'Target group');
     if (tg.companyId !== s.company.id) throw notFound('Target group not found.');
+    if (req.body.channel !== tg.channel && db().campaigns.some(c => c.targetGroupIds.includes(tg.id))) {
+      throw invalid('This target group is used by campaigns, so its channel can’t change. Create a new group instead.');
+    }
     Object.assign(tg, req.body, { updatedAt: now() });
     return tgRow(s.company, tg);
   });
@@ -328,6 +331,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!b.name?.trim()) throw invalid('Media name is required.');
     if (!db().brands.some(x => x.id === b.brandId && x.companyId === s.company.id && x.status === 'approved')) throw invalid('Pick an approved brand.');
     if (b.fileType === 'CPL' && !b.censorCertificate) throw invalid('A censor certificate is required for CPLs.');
+    if (b.fileType === 'CPL' && !b.attributes?.length) throw invalid('Pick the CPL’s projection, aspect and sound attributes.');
     if (b.fileType !== 'Image' && !(b.durationSecs > 0)) throw invalid('Duration is required.');
     if (b.fileType !== 'CPL' && !b.orientation) throw invalid('Orientation is required.');
     const m = { ...b, id: id('MD'), companyId: s.company.id, status: 'processing' as const, rejectionReason: null, createdAt: now(), createdBy: s.user.name };
@@ -380,6 +384,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       const m = db().media.find(x => x.id === mId && x.companyId === company.id);
       if (!m) throw invalid('One of the media items is not available.');
       if (m.brandId !== b.brandId) throw invalid(`“${m.name}” belongs to a different brand.`);
+      // CPL plays in cinemas; video and image play on DOOH displays.
+      const usable = m.fileType === 'CPL' ? b.channels.includes('cinema') : b.channels.includes('dooh');
+      if (!usable) throw invalid(`“${m.name}” (${m.fileType}) can't play on the selected channels.`);
     }
   };
   r.post('/api/campaigns', (req: Req<CampaignInput>) => {

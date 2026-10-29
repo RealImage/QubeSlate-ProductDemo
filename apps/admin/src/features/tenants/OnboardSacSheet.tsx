@@ -29,7 +29,8 @@ export function OnboardSacSheet({ open, onClose }: { open: boolean; onClose: () 
   });
   const slugOk = /^[a-z0-9-]*$/.test(f.slug.trim().toLowerCase());
   const valid = f.name.trim() !== '' && f.slug.trim() !== '' && slugOk && f.adminName.trim() !== '' && f.adminEmail.includes('@') && f.exhibitorIds.length > 0;
-  const close = () => { m.reset(); onClose(); };
+  // Dismissing mid-request would let its success handler act on a reopened form.
+  const close = () => { if (m.isPending) return; m.reset(); onClose(); };
 
   return (
     <Sheet isOpen={open} onOpenChange={o => !o && close()} size={480}>
@@ -54,7 +55,7 @@ export function OnboardSacSheet({ open, onClose }: { open: boolean; onClose: () 
         </form>
       </Sheet.Body>
       <Sheet.Footer>
-        <Button variant="default" onPress={close}>Cancel</Button>
+        <Button variant="default" onPress={close} isDisabled={m.isPending}>Cancel</Button>
         <Button variant="primary" type="submit" form="onboard-sac" isPending={m.isPending} isDisabled={!valid}>Onboard SAC</Button>
       </Sheet.Footer>
     </Sheet>

@@ -44,7 +44,7 @@ function SignUpDialog({ onClose }: { onClose: () => void }) {
     address: !f.address.trim() ? 'Registered address is required.' : null,
     name: !f.name.trim() ? 'Your name is required.' : null,
     email: !/^\S+@\S+\.\S+$/.test(f.email) ? 'Enter a valid work email.' : null,
-    phone: f.phone.replace(/\D/g, '').length < 10 ? 'Enter a 10-digit phone number.' : null
+    phone: f.phone.replace(/\D/g, '').length !== 10 ? 'Enter a 10-digit phone number (without +91).' : null
   };
   const valid = Object.values(errors).every(e => !e);
   const err = (k: keyof typeof errors) => (touched ? errors[k] ?? undefined : undefined);

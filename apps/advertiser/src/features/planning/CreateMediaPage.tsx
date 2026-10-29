@@ -58,6 +58,7 @@ function MediaForm({ brands }: { brands: Brand[] }) {
     duration: fileType !== 'Image' && !(Number.isInteger(durationSecs) && durationSecs > 0) ? 'Enter the duration in whole seconds.' : undefined,
     cert: isCpl && !certFile ? 'A censor certificate is required for CPLs.' : undefined,
     certNumber: isCpl && !certNumber.trim() ? 'Enter the certificate number.' : undefined,
+    attributes: isCpl && !attributes.length ? 'Pick the package’s projection, aspect and sound formats.' : undefined,
     orientation: !isCpl && !orientation ? 'Pick an orientation.' : undefined
   };
   const show = (k: keyof typeof errors) => (touched ? errors[k] : undefined);
@@ -140,7 +141,7 @@ function MediaForm({ brands }: { brands: Brand[] }) {
               {(['U', 'UA', 'A'] as const).map(r => <Select.Option key={r} id={r}>{r}</Select.Option>)}
             </Select>
             <div className="adv-span">
-              <Field label="Attributes" hint="Projection, aspect and sound formats in the package.">
+              <Field label="Attributes" hint="Projection, aspect and sound formats in the package." error={show('attributes')}>
                 <ChipToggle label="Attributes" options={[...CPL_ATTRIBUTES]} value={attributes} onChange={v => setAttributes(v as CplAttribute[])} />
               </Field>
             </div>
