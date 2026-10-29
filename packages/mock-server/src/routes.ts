@@ -187,6 +187,16 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return { userId: user.id };
   });
 
+  const PORTAL_ROLES: Record<User['portal'], User['role'][]> = {
+    advertiser: ['admin', 'planner', 'viewer'], sac: ['sac_admin', 'ad_ops', 'finance', 'viewer'], admin: ['qube_admin', 'qube_support']
+  };
+  const ADMIN_ROLE: Record<User['portal'], User['role']> = { advertiser: 'admin', sac: 'sac_admin', admin: 'qube_admin' };
+  const assertRole = (portal: User['portal'], role: User['role'] | undefined) => {
+    if (role !== undefined && !PORTAL_ROLES[portal].includes(role)) throw invalid('That role does not exist in this portal.');
+  };
+  const isLastAdmin = (u: User) => u.role === ADMIN_ROLE[u.portal] && u.status === 'active' &&
+    db().users.filter(x => x.orgId === u.orgId && x.portal === u.portal && x.role === u.role && x.status === 'active').length === 1;
+
   r.get('/api/users', req => {
     const s = session(req);
     return db().users.filter(u => u.portal === s.user.portal && u.orgId === s.user.orgId);
@@ -196,7 +206,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (!can(s.user.role, 'users.manage') && s.user.role !== 'qube_admin') throw forbidden();
     if (!req.body.name?.trim() || !req.body.email?.includes('@')) throw invalid('Name and a valid email are required.');
     if (db().users.some(u => u.email.toLowerCase() === req.body.email.toLowerCase())) throw invalid('A user with this email already exists.');
-    const u: User = { id: id('U'), ...req.body, portal: s.user.portal, orgId: s.user.orgId, status: 'invited', lastActiveAt: null };
+    assertRole(s.user.portal, req.body.role);
+    const { name, email, phone, role } = req.body;
+    const u: User = { id: id('U'), name, email, phone, role, portal: s.user.portal, orgId: s.user.orgId, status: 'invited', lastActiveAt: null };
     db().users.push(u);
     audit(s, 'user.invite', 'user', u.id, `Invited ${u.email} as ${u.role}`);
     return u;
@@ -207,7 +219,10 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const u = find(db().users, req.params.id!, 'User');
     if (u.orgId !== s.user.orgId) throw notFound('User not found.');
     if (u.id === s.user.id && req.body.role && req.body.role !== u.role) throw invalid('You cannot change your own role.');
-    Object.assign(u, req.body);
+    assertRole(u.portal, req.body.role);
+    const { name, phone, role, status } = req.body;
+    if (((role && role !== u.role) || (status && status !== 'active')) && isLastAdmin(u)) throw invalid('Keep at least one active admin.');
+    Object.assign(u, Object.fromEntries(Object.entries({ name, phone, role, status }).filter(([, v]) => v !== undefined)));
     audit(s, 'user.update', 'user', u.id, `Updated ${u.email}`);
     return u;
   });
@@ -217,6 +232,7 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const u = find(db().users, req.params.id!, 'User');
     if (u.orgId !== s.user.orgId) throw notFound('User not found.');
     if (u.id === s.user.id) throw invalid('You cannot remove yourself.');
+    if (isLastAdmin(u)) throw invalid('Keep at least one active admin.');
     db().users = db().users.filter(x => x.id !== u.id);
     audit(s, 'user.remove', 'user', u.id, `Removed ${u.email}`);
   });
@@ -518,7 +534,12 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (s.c.kycStatus !== 'pending') throw invalid('Only advertisers pending review can be decided.');
     if (b.decision === 'approve') {
       if (!b.billingType) throw invalid('Choose Card / Prepaid or Contracted before approving.');
-      if (b.billingType === 'contracted' && (!b.contract?.ref || !(b.contract.creditLimit > 0))) throw invalid('Contracted advertisers need a contract reference and credit limit.');
+      if (b.billingType === 'contracted') {
+        const k = b.contract;
+        if (!k?.ref?.trim() || !(k.creditLimit > 0)) throw invalid('Contracted advertisers need a contract reference and credit limit.');
+        if (!Number.isInteger(k.paymentTermsDays) || k.paymentTermsDays < 0 || k.paymentTermsDays > 180) throw invalid('Payment terms must be 0–180 days.');
+        if (!k.validUntil || k.validUntil < today()) throw invalid('Contract end date must be today or later.');
+      }
       Object.assign(s.c, { kycStatus: 'approved', billingType: b.billingType, contract: b.billingType === 'contracted' ? b.contract : null, kycReviewedAt: now(), kycNote: b.note });
       s.c.kycDocs.forEach(d => { if (d.status === 'uploaded') d.status = 'verified'; });
     } else {
@@ -596,7 +617,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const s = sacOf(req, 'inventory.edit');
     const t = find(db().theatres, req.params.id!, 'Theatre');
     if (!s.sac.exhibitorIds.includes(t.exhibitorId)) throw notFound('Theatre not found.');
-    const errors = req.body.groups.flatMap(g => validateDoohGroup(g, req.body.groups).map(e => `${g.name || 'Unnamed group'}: ${e}`));
+    // New groups arrive without ids; give each a temporary one so the uniqueness check compares them too.
+    const keyed = req.body.groups.map((g, i) => ({ ...g, id: g.id || `new-${i}` }));
+    const errors = keyed.flatMap(g => validateDoohGroup(g, keyed).map(e => `${g.name || 'Unnamed group'}: ${e}`));
     if (errors.length) throw invalid(errors.join(' '));
     t.hours = req.body.hours;
     t.updatedAt = now();
