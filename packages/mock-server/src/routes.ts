@@ -293,11 +293,18 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   };
   r.get('/api/categories', req => { session(req); return db().categories; });
   r.get('/api/brands', req => db().brands.filter(b => b.companyId === companyOf(req).company.id).map(brandView));
+  /** One rule for brand, product and variant names, whoever creates or edits them. */
+  const itemName = (raw: unknown, what: string) => {
+    const n = normaliseName(typeof raw === 'string' ? raw : '');
+    if (!n) throw invalid(`${what} name is required.`);
+    if (n.length > 80) throw invalid(`Keep the ${what.toLowerCase()} name under 80 characters.`);
+    return n;
+  };
   r.post('/api/brands', (req: Req<{ name: string; categoryIds: string[] }>) => {
     const s = companyOf(req, 'company.edit');
-    if (!req.body.name?.trim()) throw invalid('Brand name is required.');
+    const name = itemName(req.body.name, 'Brand');
     const categoryIds = checkedCategoryIds(req.body.categoryIds, true);
-    const b: Brand = { id: id('BR'), companyId: s.company.id, name: req.body.name.trim(), categoryIds, products: [], status: 'pending', requestedAt: now(), reviewedAt: null, note: null };
+    const b: Brand = { id: id('BR'), companyId: s.company.id, name, categoryIds, products: [], status: 'pending', requestedAt: now(), reviewedAt: null, note: null };
     db().brands.push(b);
     audit(s, 'brand.request', 'brand', b.id, `Requested approval for ${b.name}`);
     return brandView(b);
@@ -925,12 +932,6 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return { rows: matching.slice((page - 1) * pageSize, page * pageSize).map(adminBrandRow), total: matching.length, page, pageSize };
   });
   r.get('/api/admin/brands/:id', req => { adminOf(req); return adminBrandRow(adminBrand(req.params.id!)); });
-  const itemName = (raw: unknown, what: string) => {
-    const n = normaliseName(typeof raw === 'string' ? raw : '');
-    if (!n) throw invalid(`${what} name is required.`);
-    if (n.length > 80) throw invalid(`Keep the ${what.toLowerCase()} name under 80 characters.`);
-    return n;
-  };
   /** Names are unique among siblings (case-insensitive): products in a brand, variants in a product. */
   const uniqueAmong = (siblings: { id: string; name: string }[], name: string, selfId: string | null, what: string, where: string) => {
     if (siblings.some(x => x.id !== selfId && x.name.toLowerCase() === name.toLowerCase())) throw invalid(`${where} already has a ${what.toLowerCase()} called “${name}”.`);

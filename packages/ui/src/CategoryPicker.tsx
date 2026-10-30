@@ -79,11 +79,11 @@ export function CategoryPickerDialog({ nodes, value, title = 'Choose categories'
               <div key={node.id} className="sl-cattree__row" style={{ paddingLeft: 4 + (node.level - 1) * 22 }}>
                 {hasKids ? (
                   <button type="button" className="sl-cattree__toggle" onClick={() => flip(node.id)} disabled={!!visible}
-                    aria-expanded={visible ? true : open.has(node.id)} aria-label={`${open.has(node.id) || visible ? 'Collapse' : 'Expand'} ${node.name}`}>
+                    aria-expanded={visible ? true : open.has(node.id)} aria-label={`${open.has(node.id) || visible ? 'Collapse' : 'Expand'} ${pathLabel(nodes, node.id)}`}>
                     {open.has(node.id) || visible ? <ChevronDownIcon width={14} height={14} /> : <ChevronRightIcon width={14} height={14} />}
                   </button>
                 ) : <span className="sl-cattree__toggle" aria-hidden />}
-                <Checkbox isSelected={sel.includes(node.id)} onChange={on => toggle(node.id, on)} aria-label={`${node.name} (${CATEGORY_LEVEL_LABEL[node.level]})`}>
+                <Checkbox isSelected={sel.includes(node.id)} onChange={on => toggle(node.id, on)} aria-label={`${pathLabel(nodes, node.id)} (${CATEGORY_LEVEL_LABEL[node.level]})`}>
                   <span className={node.level === 1 ? 'sl-cattree__l1' : undefined}>{node.name}</span>
                 </Checkbox>
               </div>

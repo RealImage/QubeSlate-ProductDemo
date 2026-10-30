@@ -193,11 +193,11 @@ a:hover { text-decoration: underline; }
 .sl-catchips { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .sl-catchip {
   display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 8px; border-radius: 999px; font-size: 12px; line-height: 18px;
-  background: var(--sl-active-fill); color: var(--sl-brand); border: 1px solid transparent; white-space: nowrap;
+  background: var(--sl-active-fill); color: var(--sl-brand); border: 1px solid transparent; overflow-wrap: anywhere;
 }
 .sl-catchip--more { background: var(--sl-muted-fill); color: var(--sl-text-2); border-color: var(--sl-hairline); }
 .sl-catchip.is-flagged { border-color: #e0a400; background: #fff7e0; color: #7a5200; }
-.sl-catchip--removable button { all: unset; cursor: pointer; padding: 0 2px; font-size: 14px; line-height: 1; }
+.sl-catchip--removable button { all: unset; flex: none; cursor: pointer; padding: 0 2px; font-size: 14px; line-height: 1; }
 .sl-catchip--removable button:focus-visible { outline: 2px solid var(--sl-brand); border-radius: 4px; }
 .sl-catfield { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--sl-control); border-radius: 6px; }
 .sl-catfield__label { font-size: 13px; font-weight: 500; }
