@@ -31,8 +31,12 @@ function matchLength(leaf: NavLeaf, pathname: string) {
  */
 function NavGroup({ group, isActive, children }: { group: NavGroupDef; isActive: boolean; children: ReactNode }) {
   const total = group.items.reduce((n, i) => n + (i.count ?? 0), 0);
-  const nav = <Sidebar.NavGroup label={group.label} icon={group.icon} isActive={isActive}>{children}</Sidebar.NavGroup>;
-  return total ? <div className="sl-navgroup" style={{ '--sl-navgroup-count': total } as CSSProperties}>{nav}</div> : nav;
+  // The wrapper stays mounted whatever the total, so a count change never remounts the group (and drops focus inside it).
+  return (
+    <div className={total ? 'sl-navgroup sl-navgroup--count' : 'sl-navgroup'} style={{ '--sl-navgroup-count': total } as CSSProperties}>
+      <Sidebar.NavGroup label={group.label} icon={group.icon} isActive={isActive}>{children}</Sidebar.NavGroup>
+    </div>
+  );
 }
 
 /**

@@ -260,8 +260,8 @@ a:hover { text-decoration: underline; }
 .pf-sidebar--collapsed .sl-navcount { display: none; }
 .sl-navgroup { display: contents; }
 .sl-navgroup > .pf-sidebar__nav-group { counter-reset: sl-navgroup var(--sl-navgroup-count); }
-.sl-navgroup .pf-sidebar__nav-group-trigger[aria-expanded='false'] > .pf-sidebar__label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-.sl-navgroup .pf-sidebar__nav-group-trigger[aria-expanded='false'] > .pf-sidebar__label::after {
+.sl-navgroup--count .pf-sidebar__nav-group-trigger[aria-expanded='false'] > .pf-sidebar__label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.sl-navgroup--count .pf-sidebar__nav-group-trigger[aria-expanded='false'] > .pf-sidebar__label::after {
   content: counter(sl-navgroup); margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; font-size: 11.5px; line-height: 18px;
   text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--fill-notice-subtle); color: var(--text-notice-alt);
 }
