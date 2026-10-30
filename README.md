@@ -79,5 +79,5 @@ The SAC app still carries the earlier vendored Qube design-system CSS (`packages
 
 - **⌘K search (pilot, SAC portal first).** One box in the top bar, opened with ⌘K / Ctrl K, that jumps to any campaign, advertiser, brand, report or page. Search-first: results come from the existing APIs, with no AI involved. Build it in `@slate/ui` so all three portals can share it, and propose the component to prefab-ui once it settles.
 - **⌘K assistant (after the search pilot).** Questions about the data on the current page ("which live campaigns are under-delivering this week?"), answered with links back into Slate. Starts only once there is a backend to answer them.
-- **Dark mode.** Slate's colours all come from prefab's Qube Wire tokens, so dark mode is a dark set of those tokens plus a light / dark / system switch; best done in prefab-ui so every Qube product gets it.
+- **Dark mode upstream.** Slate has its own dark set of the Qube Wire tokens (`packages/ui/src/styles.css`, switched by `packages/ui/src/theme.tsx`). Propose it to prefab-ui so every Qube product shares one dark palette.
 - **prefab-ui upstream.** Outline status tags, the hairline KPI strip and count badges on sidebar groups are Slate overrides today (`packages/ui/src/styles.css`); propose them to prefab-ui and drop the overrides when they land.
