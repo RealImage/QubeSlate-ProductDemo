@@ -1,5 +1,5 @@
 import type {
-  AuditEvent, Brand, CategoryNode, Company, Exhibitor, Media, Theatre, DoohGroup, User, PlacementAction, KycDoc
+  AuditEvent, Brand, CategoryNode, Company, Exhibitor, Media, Theatre, DoohGroup, User, PlacementAction, KycDoc, KycFile
 } from '@slate/domain';
 import { http } from './client';
 import type * as C from './contracts';
@@ -23,7 +23,7 @@ export const advertiserApi = {
   dashboard: () => http.get<C.Dashboard>('/dashboard'),
   company: () => http.get<Company>('/company'),
   updateCompany: (b: Partial<Pick<Company, 'name' | 'gstin' | 'pan' | 'address' | 'contacts'>>) => http.put<Company>('/company', b),
-  uploadKycDoc: (kind: KycDoc['kind'], fileName: string) => http.post<Company>('/company/kyc-docs', { kind, fileName }),
+  uploadKycDoc: (kind: KycDoc['kind'], fileName: string, dataUrl: string) => http.post<Company>('/company/kyc-docs', { kind, fileName, dataUrl }),
   submitKyc: () => http.post<Company>('/company/submit-kyc'),
   brands: () => http.get<C.BrandView[]>('/brands'),
   requestBrand: (b: { name: string; categoryIds: string[] }) => http.post<C.BrandView>('/brands', b),
@@ -83,6 +83,7 @@ export const sacApi = {
   dashboard: () => http.get<SacDashboard>('/sac/dashboard'),
   advertisers: () => http.get<C.AdvertiserRow[]>('/sac/advertisers'),
   advertiser: (id: string) => http.get<C.AdvertiserRow>(`/sac/advertisers/${id}`),
+  kycDocFile: (id: string, kind: KycDoc['kind']) => http.get<KycFile>(`/sac/advertisers/${id}/kyc-docs/${encodeURIComponent(kind)}`),
   decideKyc: (id: string, b: C.KycDecisionInput) => http.post<C.AdvertiserRow>(`/sac/advertisers/${id}/kyc-decision`, b),
   setTerms: (id: string, b: C.AdvertiserTermsInput) => http.put<C.AdvertiserRow>(`/sac/advertisers/${id}/terms`, b),
   brands: () => http.get<C.BrandRow[]>('/sac/brands'),

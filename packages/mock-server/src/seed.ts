@@ -2,13 +2,13 @@ import {
   DEFAULT_SUPPORT_EMAIL, defaultBranding, pathLabel, emptyContacts, rampScreenHistory,
   DOOH_TYPES, exhibitorsOf, sacInventory, quotePlacement, resolveReach, statusOnApproval, withGst,
   type AuditEvent, type Brand, type BrandProduct, type CategoryNode, type Campaign, type Company, type DeliveryRecord, type Device, type DoohGroup,
-  type CinemaSpot, type Exhibitor, type Invoice, type Media, type PaymentGateway, type Placement, type PlacementPosition, type Sac, type SacContact, type Screen, type ScreenHistory,
+  type CinemaSpot, type Exhibitor, type Invoice, type KycFile, type Media, type PaymentGateway, type Placement, type PlacementPosition, type Sac, type SacContact, type Screen, type ScreenHistory,
   type TargetGroup, type Theatre, type User
 } from '@slate/domain';
 import { seedCategories } from './taxonomy';
 
 /** Bump when the persisted shape changes; the server reseeds data written by an older version. */
-export const DB_SCHEMA = 5; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status; 4: category master, brand products / variants / category mappings; 5: categories drop manual order (alphabetical)
+export const DB_SCHEMA = 6; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status; 4: category master, brand products / variants / category mappings; 5: categories drop manual order (alphabetical); 6: uploaded KYC file content
 
 export interface Db {
   schema: number;
@@ -23,6 +23,8 @@ export interface Db {
   brands: Brand[];
   /** The category master (Category › SubCategory1 › SubCategory2). */
   categories: CategoryNode[];
+  /** Uploaded KYC document content, keyed by kycFileKey(companyId, kind). Seeded documents have none and preview as a sample. */
+  kycFiles: Record<string, KycFile>;
   users: User[];
   targetGroups: TargetGroup[];
   media: Media[];
@@ -527,7 +529,7 @@ export function createSeed(): Db {
   m('MD-11', 'BR-NWA', 'Northwind Air Summer 30s', 'CPL', 30, ['2D', '2K', 'Flat', '5.1'], 'ready', 60, 'Vikram Desai', ['Hindi', 'English']);
 
   const db: Db = {
-    exhibitors, sacs, screenHistory, theatres, doohGroups, devices, companies, brands, categories, users, targetGroups, media,
+    exhibitors, sacs, screenHistory, theatres, doohGroups, devices, companies, brands, categories, kycFiles: {}, users, targetGroups, media,
     campaigns: [], placements: [], delivery: [], invoices: [], audit: [], seq: 5000, schema: DB_SCHEMA
   };
 

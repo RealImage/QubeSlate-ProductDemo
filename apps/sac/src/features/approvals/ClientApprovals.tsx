@@ -5,13 +5,15 @@ import { dateTime } from '@slate/domain';
 import { Button, Card, ChoiceCards, DataTable, EmptyState, KeyValue, Page, PageHeader, Query, Sheet, StatusTag, Textarea, toast } from '@slate/ui';
 import type { BillingType, Contract } from '@slate/domain';
 import { FormError } from '../shared';
+import { KycDocActions } from './KycDocViewer';
 import { ContractFields, emptyContractDraft, contractFromDraft, contractDraftError, type ContractDraft } from '../advertisers/ContractFields';
 
 const DOC_TONE = { missing: 'negative', uploaded: 'notice', verified: 'positive', rejected: 'negative' } as const;
 
 function ReviewForm({ a, canDecide, onClose }: { a: AdvertiserRow; canDecide: boolean; onClose: () => void }) {
   const qc = useQueryClient();
-  const [billing, setBilling] = useState<BillingType | null>(null);
+  // Card / Prepaid unless the reviewer opts this advertiser into a contract.
+  const [billing, setBilling] = useState<BillingType>('card');
   const [contract, setContract] = useState<ContractDraft>(emptyContractDraft());
   const [note, setNote] = useState('');
   const [showErrors, setShowErrors] = useState(false);
@@ -26,7 +28,7 @@ function ReviewForm({ a, canDecide, onClose }: { a: AdvertiserRow; canDecide: bo
   });
 
   const contractError = billing === 'contracted' ? contractDraftError(contract) : null;
-  const approveError = !billing ? 'Choose a billing type to approve.' : contractError;
+  const approveError = contractError;
   const approve = () => {
     if (approveError) { setShowErrors(true); return; }
     decide.mutate({ decision: 'approve', note: note.trim() || null, billingType: billing, contract: billing === 'contracted' ? contractFromDraft(contract) : null });
@@ -51,7 +53,10 @@ function ReviewForm({ a, canDecide, onClose }: { a: AdvertiserRow; canDecide: bo
               {a.kycDocs.map(d => (
                 <li key={d.kind} className="sl-row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
                   <span><strong style={{ fontWeight: 500 }}>{d.kind}</strong><br /><span className="sl-muted sl-small">{d.fileName ?? 'Not uploaded'}{d.uploadedAt ? ` · ${dateTime(d.uploadedAt)}` : ''}</span></span>
-                  <StatusTag tone={DOC_TONE[d.status]}>{d.status[0]!.toUpperCase() + d.status.slice(1)}</StatusTag>
+                  <span className="sl-row" style={{ gap: 4, flexWrap: 'nowrap' }}>
+                    <StatusTag tone={DOC_TONE[d.status]}>{d.status[0]!.toUpperCase() + d.status.slice(1)}</StatusTag>
+                    {d.fileName && <KycDocActions advertiserId={a.id} doc={d} />}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -60,7 +65,7 @@ function ReviewForm({ a, canDecide, onClose }: { a: AdvertiserRow; canDecide: bo
             <section className="sl-stack" style={{ gap: 12 }}>
               <h3 style={{ margin: 0, fontSize: 14 }}>Decision</h3>
               <div className="sl-stack" style={{ gap: 6 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 500 }}>Billing type (required to approve)</span>
+                <span style={{ fontSize: 12.5, fontWeight: 500 }}>Billing type</span>
                 <ChoiceCards label="Billing type" value={billing} onChange={setBilling} options={[
                   { value: 'card', title: 'Card / Prepaid', hint: 'Pays at checkout. Rejected campaigns are refunded.' },
                   { value: 'contracted', title: 'Contracted', hint: 'Invoiced against a contract and credit limit.' }

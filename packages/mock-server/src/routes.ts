@@ -5,7 +5,7 @@ import {
   BILLING_CURRENCIES, BILLING_FREQUENCIES, BILLING_METHODS, CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, addGateway, checkoutGateway, cleanContacts,
   cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, primaryColourError, normaliseSacHost, removeGateway,
   sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError,
-  brandCategoryIds, brandMatchesCategory, dedupe, deleteBlock, nodeNameError, normaliseName, pathLabel, pathLabels, subtreeIds, unknownIds, usageCounts,
+  brandCategoryIds, brandMatchesCategory, dedupe, deleteBlock, nodeNameError, normaliseName, pathLabel, pathLabels, subtreeIds, unknownIds, usageCounts, kycFileError, kycFileType,
   type Brand, type Campaign, type CategoryNode, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
@@ -16,6 +16,7 @@ import type {
 } from '@slate/api/contracts';
 import { forbidden, HttpError, invalid, notFound, Router, type Req } from './http';
 import { createSeed, today, type Db } from './seed';
+import { kycFileKey, sampleKycFile } from './kycSample';
 
 export function buildRoutes(state: { db: Db }, reset: () => void) {
   const r = new Router();
@@ -189,10 +190,14 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     } else audit(s, 'company.update', 'company', c.id, 'Updated company details');
     return c;
   });
-  r.post('/api/company/kyc-docs', (req: Req<{ kind: Company['kycDocs'][number]['kind']; fileName: string }>) => {
+  r.post('/api/company/kyc-docs', (req: Req<{ kind: Company['kycDocs'][number]['kind']; fileName: string; dataUrl: string }>) => {
     const s = companyOf(req, 'company.edit');
     const doc = s.company.kycDocs.find(d => d.kind === req.body.kind);
     if (!doc) throw invalid('Unknown document type.');
+    if (!req.body.fileName?.trim()) throw invalid('Name the file.');
+    const fileErr = kycFileError(req.body.dataUrl ?? '');
+    if (fileErr) throw invalid(fileErr);
+    db().kycFiles[kycFileKey(s.company.id, doc.kind)] = { fileName: req.body.fileName, mimeType: kycFileType(req.body.dataUrl)!, dataUrl: req.body.dataUrl };
     Object.assign(doc, { fileName: req.body.fileName, uploadedAt: now(), status: 'uploaded', note: undefined });
     return s.company;
   });
@@ -618,26 +623,34 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
   });
   r.get('/api/sac/advertisers', req => sacCompanies(sacOf(req).sac.id).map(advertiserRow));
   r.get('/api/sac/advertisers/:id', req => advertiserRow(ownAdvertiser(req).c));
+  r.get('/api/sac/advertisers/:id/kyc-docs/:kind', req => {
+    const { c } = ownAdvertiser(req);
+    const doc = c.kycDocs.find(d => d.kind === req.params.kind);
+    if (!doc?.fileName) throw notFound('That document has not been uploaded.');
+    return db().kycFiles[kycFileKey(c.id, doc.kind)] ?? sampleKycFile(c, doc);
+  });
   r.post('/api/sac/advertisers/:id/kyc-decision', (req: Req<KycDecisionInput>) => {
     const s = ownAdvertiser(req, 'approvals.decide');
     const b = req.body;
     if (s.c.kycStatus !== 'pending') throw invalid('Only advertisers pending review can be decided.');
     if (b.decision === 'approve') {
-      if (!b.billingType) throw invalid('Choose Card / Prepaid or Contracted before approving.');
-      if (b.billingType === 'contracted') {
+      // Card / Prepaid is the default; Contracted is the opt-in.
+      const billingType = b.billingType ?? 'card';
+      if (billingType !== 'card' && billingType !== 'contracted') throw invalid('Billing type must be Card / Prepaid or Contracted.');
+      if (billingType === 'contracted') {
         const k = b.contract;
         if (!k?.ref?.trim() || !(k.creditLimit > 0)) throw invalid('Contracted advertisers need a contract reference and credit limit.');
         if (!Number.isInteger(k.paymentTermsDays) || k.paymentTermsDays < 0 || k.paymentTermsDays > 180) throw invalid('Payment terms must be 0–180 days.');
         if (!isIsoDate(k.validUntil)) throw invalid('Contract end date must be a valid date (YYYY-MM-DD).');
         if (k.validUntil < today()) throw invalid('Contract end date must be today or later.');
       }
-      Object.assign(s.c, { kycStatus: 'approved', billingType: b.billingType, contract: b.billingType === 'contracted' ? b.contract : null, kycReviewedAt: now(), kycNote: b.note });
+      Object.assign(s.c, { kycStatus: 'approved', billingType, contract: billingType === 'contracted' ? b.contract : null, kycReviewedAt: now(), kycNote: b.note });
       s.c.kycDocs.forEach(d => { if (d.status === 'uploaded') d.status = 'verified'; });
     } else {
       if (!b.note?.trim()) throw invalid('Give the advertiser a reason for rejecting.');
       Object.assign(s.c, { kycStatus: 'rejected', kycReviewedAt: now(), kycNote: b.note });
     }
-    audit(s, `kyc.${b.decision}`, 'company', s.c.id, b.decision === 'approve' ? `Approved · ${b.billingType === 'card' ? 'Card / Prepaid' : 'Contracted'}` : `Rejected: ${b.note}`);
+    audit(s, `kyc.${b.decision}`, 'company', s.c.id, b.decision === 'approve' ? `Approved · ${s.c.billingType === 'contracted' ? 'Contracted' : 'Card / Prepaid'}` : `Rejected: ${b.note}`);
     return advertiserRow(s.c);
   });
   r.put('/api/sac/advertisers/:id/terms', (req: Req<AdvertiserTermsInput>) => {

@@ -207,6 +207,14 @@ export interface KycDoc {
   status: 'missing' | 'uploaded' | 'verified' | 'rejected';
   note?: string;
 }
+export type KycFileType = 'application/pdf' | 'image/png' | 'image/jpeg';
+/** The stored content of one KYC document, for preview and download. */
+export interface KycFile {
+  fileName: string;
+  mimeType: KycFileType;
+  /** base64 data URL */
+  dataUrl: string;
+}
 
 export interface Contact {
   id: string;
