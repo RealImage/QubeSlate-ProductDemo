@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import {
   AppliedFilters, FilterButton, FilterGroup, FilterOptions, FilterPanel, ListFooter, TableControls, useFilterDraft, usePage, type AppliedFilter
 } from '@slate/ui';
-import { PrototypeNote } from '../components/PrototypeNote';
 import { compositions, routeTitles } from '../data/mockData';
 import { fmtDate } from '../data/helpers';
 import { EmptyState, PageHeader, StatusTag, Table, Td, Th } from '../components/ui/primitives';
@@ -83,7 +82,6 @@ function CompositionList({ pathname }: { pathname: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1400 }}>
       <PageHeader title={crumbLeaf} description={stubDescription} />
-      <PrototypeNote />
       <section className="sl-card" ref={listRef} style={{ scrollMarginTop: 16 }}>
         <div className="sl-listbar">
           <div className="sl-listbar__search">
