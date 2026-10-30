@@ -108,7 +108,6 @@ export const adminApi = {
   categoryMaster: () => http.get<C.CategoryMaster>('/admin/categories'),
   addCategory: (b: C.CategoryInput) => http.post<C.CategoryMaster>('/admin/categories', b),
   renameCategory: (id: string, name: string) => http.put<C.CategoryMaster>(`/admin/categories/${id}`, { name }),
-  moveCategory: (id: string, dir: 'up' | 'down') => http.post<C.CategoryMaster>(`/admin/categories/${id}/move`, { dir }),
   deleteCategory: (id: string) => http.del<C.CategoryMaster>(`/admin/categories/${id}`),
   brands: (query: C.BrandsQuery = {}) =>
     http.get<C.BrandsPage>('/admin/brands' + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),

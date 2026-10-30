@@ -58,23 +58,22 @@ function splitLeaves(s: string): string[] {
   return out.map(x => x.trim()).filter(Boolean);
 }
 
-/** Builds the nodes with stable, sequential ids (CAT-001 …) and per-parent sort order. */
+/** Builds the nodes with stable, sequential ids (CAT-001 …). */
 export function seedCategories(): CategoryNode[] {
   const nodes: CategoryNode[] = [];
   const next = () => `CAT-${String(nodes.length + 1).padStart(3, '0')}`;
   let cat = '', sub = '';
   let catId: string | null = null, subId: string | null = null;
-  const orderUnder = (parentId: string | null) => nodes.filter(n => n.parentId === parentId).length + 1;
   for (const line of TABLE.split('\n')) {
     if (!line.trim()) continue;
     const [c = '', s = '', leaves = ''] = line.split('|').map(x => x.trim());
     if (c) { cat = c; sub = ''; catId = null; subId = null; }
-    if (!catId) { catId = next(); nodes.push({ id: catId, parentId: null, level: 1, name: cat, order: orderUnder(null) }); }
+    if (!catId) { catId = next(); nodes.push({ id: catId, parentId: null, level: 1, name: cat }); }
     // A repeated sub-category name under the same category continues the same node.
     const existing = nodes.find(n => n.parentId === catId && n.name === s);
     if (existing) subId = existing.id;
-    else { sub = s; subId = next(); nodes.push({ id: subId, parentId: catId, level: 2, name: sub, order: orderUnder(catId) }); }
-    for (const leaf of splitLeaves(leaves)) nodes.push({ id: next(), parentId: subId, level: 3, name: leaf, order: orderUnder(subId) });
+    else { sub = s; subId = next(); nodes.push({ id: subId, parentId: catId, level: 2, name: sub }); }
+    for (const leaf of splitLeaves(leaves)) nodes.push({ id: next(), parentId: subId, level: 3, name: leaf });
   }
   return nodes;
 }
