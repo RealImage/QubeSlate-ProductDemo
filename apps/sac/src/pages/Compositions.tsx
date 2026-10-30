@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { compositions, routeTitles } from '../data/mockData';
 import { fmtDate } from '../data/helpers';
@@ -33,7 +32,6 @@ export function Compositions() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1400 }}>
       <PageHeader title={crumbLeaf} description={stubDescription} />
-      <PrototypeNote />
       <FilterBar>
         <ChipRow chips={chips} onSelect={v => patch({ compFilter: v })} />
         <CountLabel>{rows.length} compositions</CountLabel>
