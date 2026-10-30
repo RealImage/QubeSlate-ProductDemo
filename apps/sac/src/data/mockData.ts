@@ -88,7 +88,7 @@ export interface Composition {
   state: string; campaign: string | null; ingested: string;
 }
 
-export const compositions: Composition[] = [
+const seedCompositions: Composition[] = [
   { id: 'c-1', name: 'Autumn Auto — 30s Hero', cpl: '123e4567-e89b-12d3-a456-426614174000', sec: 30, format: 'DCP · 2K Flat', size: '2.4 GB', state: 'Available', campaign: 'Autumn Auto Launch', ingested: '2026-08-19' },
   { id: 'c-2', name: 'Product Launch Teaser', cpl: '6ba7b810-9dad-11d1-80b4-00c04fd430c8', sec: 15, format: 'DCP · 2K Scope', size: '—', state: 'Missing', campaign: 'Autumn Auto Launch', ingested: '—' },
   { id: 'c-3', name: 'Brand Awareness Static', cpl: '9f1c2d44-31aa-4c0e-9c11-7b2f5d8e6a03', sec: 10, format: 'Slide · PNG', size: '15 MB', state: 'Available', campaign: 'Summer Movie Festival', ingested: '2026-06-02' },
@@ -99,6 +99,46 @@ export const compositions: Composition[] = [
   { id: 'c-8', name: 'Spring Travel — 30s', cpl: 'd47c2a95-1e83-4d61-9f28-5b3a7c6e0f12', sec: 30, format: 'DCP · 2K Flat', size: '2.3 GB', state: 'Archived', campaign: 'Spring Travel Push', ingested: '2026-03-14' },
   { id: 'c-9', name: 'Winter Retail — 10s Slide', cpl: 'a8f31e57-4b90-42cd-8e16-9c2d5f7a3b08', sec: 10, format: 'Slide · PNG', size: '9 MB', state: 'Archived', campaign: 'Winter Retail 2025', ingested: '2025-11-08' }
 ];
+
+/**
+ * A compositions library holds thousands of CPLs, so the prototype pads the hand-written rows above with generated ones
+ * (seeded, so every load shows the same library).
+ */
+function generateCompositions(count: number): Composition[] {
+  let seed = 20261030;
+  const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+  const pick = <T,>(xs: readonly T[]) => xs[Math.floor(rand() * xs.length)];
+  const hex = (n: number) => Array.from({ length: n }, () => Math.floor(rand() * 16).toString(16)).join('');
+  const brands = ['Amul Dark', 'Northwind Air', 'Tanishq Rivaah', 'Royal Enfield', 'Sunrise Foods', 'Meridian Bank', 'Zest Cola', 'Orbit Mobile',
+    'Lumen Paints', 'Kaveri Silks', 'Peak Shoes', 'Monsoon Travels', 'Harbor Insurance', 'Spice Route', 'Velocity Bikes', 'Nimbus Streaming'];
+  const cuts = ['Hero', 'Teaser', 'Sting', 'Cutdown', 'Tag', 'Launch', 'Festive', 'Brand Film', 'Offer', 'Reminder'];
+  const campaigns = ['Autumn Auto Launch', 'Summer Movie Festival', 'Regional Bank Awareness', 'Streaming Service Teaser', 'Diwali Burst',
+    'Winter Lobby', 'Festive Q3', 'Monsoon Offers', 'IPL Season', 'New Year Countdown', 'Back to School', 'Republic Day Sale'];
+  const formats = ['DCP · 2K Flat', 'DCP · 2K Flat', 'DCP · 2K Scope', 'DCP · 4K Flat', 'DCP · 4K Scope', 'Slide · PNG', 'Slide · JPEG'];
+  const durations = [10, 15, 15, 20, 30, 30, 30, 45, 60];
+  const states = ['Available', 'Available', 'Available', 'Available', 'Available', 'Missing', 'In Certification', 'In Certification', 'Archived'];
+  const day = 24 * 3600 * 1000;
+  const today = Date.UTC(2026, 9, 30);
+  return Array.from({ length: count }, (_, i) => {
+    const sec = pick(durations);
+    const format = pick(formats);
+    const state = pick(states);
+    const slide = format.startsWith('Slide');
+    const gb = (sec / 30) * (format.includes('4K') ? 4.8 : 2.3) * (0.85 + rand() * 0.3);
+    return {
+      id: `c-${i + 10}`,
+      name: `${pick(brands)} — ${sec}s ${pick(cuts)}${rand() < 0.3 ? ` v${2 + Math.floor(rand() * 3)}` : ''}`,
+      cpl: `${hex(8)}-${hex(4)}-4${hex(3)}-${pick(['8', '9', 'a', 'b'])}${hex(3)}-${hex(12)}`,
+      sec, format,
+      size: state === 'Missing' ? '—' : slide ? `${4 + Math.floor(rand() * 20)} MB` : `${gb.toFixed(1)} GB`,
+      state,
+      campaign: rand() < 0.18 ? null : pick(campaigns),
+      ingested: state === 'Missing' ? '—' : new Date(today - Math.floor(rand() * 400) * day).toISOString().slice(0, 10)
+    };
+  });
+}
+
+export const compositions: Composition[] = [...seedCompositions, ...generateCompositions(2491)];
 
 export interface PlaylistItem {
   seg: 'Pre-show' | 'Intermission'; name: string; type: string; sec: number; pos: string;

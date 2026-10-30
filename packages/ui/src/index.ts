@@ -12,4 +12,5 @@ export * from './AppShell';
 export * from './SignIn';
 export * from './ConfirmDialog';
 export * from './CategoryPicker';
+export * from './Filters';
 export { default as slateLogoUrl } from '../assets/QubeSlate.svg';
