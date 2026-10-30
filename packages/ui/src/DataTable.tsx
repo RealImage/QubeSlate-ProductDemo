@@ -23,19 +23,28 @@ export interface Column<T> {
 }
 
 /** Sortable, paginated table. Horizontal scroll stays inside the card; the footer stays put. */
-export function DataTable<T>({ rows, columns, rowKey, onRowClick, pageSize = 25, defaultSort, empty, caption }: {
+export type SortState = { key: string; dir: 'asc' | 'desc' };
+
+export function DataTable<T>({ rows, columns, rowKey, onRowClick, pageSize = 25, defaultSort, sort: sortProp, onSortChange, empty, caption }: {
   rows: T[];
   columns: Column<T>[];
   rowKey: (row: T) => string;
   onRowClick?: (row: T) => void;
   pageSize?: number;
-  defaultSort?: { key: string; dir: 'asc' | 'desc' };
+  defaultSort?: SortState;
+  /** Server-sorted tables: pass the current sort and handle changes; rows are shown in the order given. */
+  sort?: SortState;
+  onSortChange?: (sort: SortState) => void;
   empty?: ReactNode;
   caption?: string;
 }) {
-  const [sort, setSort] = useState(defaultSort ?? null);
+  const [localSort, setLocalSort] = useState<SortState | null>(defaultSort ?? null);
+  const controlled = onSortChange !== undefined;
+  const sort = controlled ? sortProp ?? null : localSort;
+  const setSort = controlled ? onSortChange : setLocalSort;
   const [page, setPage] = useState(1);
   const sorted = useMemo(() => {
+    if (controlled) return rows;
     const col = sort && columns.find(c => c.key === sort.key);
     if (!col?.sort) return rows;
     const get = col.sort;
@@ -44,7 +53,7 @@ export function DataTable<T>({ rows, columns, rowKey, onRowClick, pageSize = 25,
       const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
       return sort!.dir === 'asc' ? r : -r;
     });
-  }, [rows, columns, sort]);
+  }, [rows, columns, sort, controlled]);
   const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const current = Math.min(page, pages);
   const shown = sorted.slice((current - 1) * pageSize, current * pageSize);

@@ -41,16 +41,33 @@ export const isEmail = (v: string) => /^\S+@\S+\.\S+$/.test(v.trim());
 export const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/;
 export const isHexColour = (v: string) => HEX_COLOUR.test(v);
 
-/** Black or white, whichever reads better on the given #RRGGBB background (WCAG contrast ratio). */
-export function contrastText(hex: string): '#000000' | '#ffffff' {
-  if (!isHexColour(hex)) return '#ffffff';
+/** WCAG relative luminance of a #RRGGBB colour. */
+function luminance(hex: string): number {
   const lin = (i: number) => {
     const c = parseInt(hex.slice(i, i + 2), 16) / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
-  const l = 0.2126 * lin(1) + 0.7152 * lin(3) + 0.0722 * lin(5);
+  return 0.2126 * lin(1) + 0.7152 * lin(3) + 0.0722 * lin(5);
+}
+
+/** Black or white, whichever reads better on the given #RRGGBB background (WCAG contrast ratio). */
+export function contrastText(hex: string): '#000000' | '#ffffff' {
+  if (!isHexColour(hex)) return '#ffffff';
+  const l = luminance(hex);
   // Contrast against white is 1.05 / (l + 0.05); against black (l + 0.05) / 0.05.
   return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? '#ffffff' : '#000000';
+}
+
+/** WCAG contrast ratio of a #RRGGBB colour against white. */
+export const contrastOnWhite = (hex: string) => 1.05 / (luminance(hex) + 0.05);
+
+/**
+ * The portals use the primary colour as text and borders on white and as a fill behind white text,
+ * so it must reach the WCAG 4.5:1 text contrast against white.
+ */
+export function primaryColourError(hex: string): string | null {
+  if (!isHexColour(hex)) return 'Use a #RRGGBB hex value.';
+  return contrastOnWhite(hex) < 4.5 ? 'Too light: buttons and links need a darker colour (4.5:1 contrast with white).' : null;
 }
 
 export const LOGO_TYPES = ['image/png', 'image/svg+xml', 'image/jpeg'];

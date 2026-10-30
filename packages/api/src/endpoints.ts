@@ -126,7 +126,14 @@ export const adminApi = {
   sacs: (query: C.SacsQuery = {}) =>
     http.get<C.SacsPage>('/admin/sacs' + q(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, v === undefined ? undefined : String(v)])))),
   /** Every SAC (for pickers, overview and filters); the list screen pages instead. */
-  allSacs: async () => (await http.get<C.SacsPage>('/admin/sacs?pageSize=1000')).rows,
+  allSacs: async () => {
+    const rows: C.SacRow[] = [];
+    for (let page = 1; ; page++) {
+      const p = await http.get<C.SacsPage>(`/admin/sacs?pageSize=1000&page=${page}`);
+      rows.push(...p.rows);
+      if (p.rows.length === 0 || rows.length >= p.total) return rows;
+    }
+  },
   createSac: (b: C.SacInput) => http.post<C.SacRow>('/admin/sacs', b),
   /** One call per section; each returns the refreshed row. */
   updateSacDetails: (id: string, b: C.SacDetailsInput) => http.put<C.SacRow>(`/admin/sacs/${id}/details`, b),

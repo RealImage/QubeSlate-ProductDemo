@@ -297,9 +297,14 @@ export interface SacsQuery {
   q?: string;
   /** Matches city or country. */
   location?: string;
+  sort?: SacSortKey;
+  dir?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }
+
+/** Columns the SACs list can sort by on the server (applied before paging). */
+export type SacSortKey = 'name' | 'theatres' | 'screens' | 'advertisers' | 'users' | 'connectedTheatres' | 'status' | 'createdAt' | 'updatedAt' | 'updatedBy';
 
 export interface SacsPage {
   rows: SacRow[];
