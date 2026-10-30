@@ -9,7 +9,11 @@ import slateLogo from '../assets/QubeSlate.svg';
 import slateMark from '../assets/QubeLogoOnlyBlueIcon.svg';
 
 /** `icon` shows on top-level items only; items inside a group are text, like the rest of the Qube products. */
-export interface NavLeaf { label: string; to: string; icon?: ReactNode; /** Extra path prefixes that keep this item active. */ match?: string[] }
+export interface NavLeaf {
+  label: string; to: string; icon?: ReactNode;
+  /** Extra path prefixes that keep this item active. */ match?: string[];
+  /** Items waiting on the user; shown as a badge when above zero. */ count?: number;
+}
 export interface NavGroupDef { label: string; icon: ReactNode; items: NavLeaf[] }
 export type NavEntry = NavLeaf | NavGroupDef;
 
@@ -19,6 +23,16 @@ const isGroup = (e: NavEntry): e is NavGroupDef => 'items' in e;
 function matchLength(leaf: NavLeaf, pathname: string) {
   const prefixes = [leaf.to, ...(leaf.match ?? [])];
   return Math.max(-1, ...prefixes.filter(p => (p === '/' ? pathname === '/' : pathname === p || pathname.startsWith(p + '/'))).map(p => p.length));
+}
+
+/**
+ * prefab's NavGroup label is plain text, so a group's total is drawn by CSS from a counter (see .sl-navgroup) and shows
+ * only while the group is closed. TODO(prefab-ui): accept a badge on NavGroup and drop this wrapper.
+ */
+function NavGroup({ group, isActive, children }: { group: NavGroupDef; isActive: boolean; children: ReactNode }) {
+  const total = group.items.reduce((n, i) => n + (i.count ?? 0), 0);
+  const nav = <Sidebar.NavGroup label={group.label} icon={group.icon} isActive={isActive}>{children}</Sidebar.NavGroup>;
+  return total ? <div className="sl-navgroup" style={{ '--sl-navgroup-count': total } as CSSProperties}>{nav}</div> : nav;
 }
 
 /**
@@ -75,7 +89,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
 
   const leaf = (l: NavLeaf, nested = false) => (
     <Sidebar.NavItem key={l.to} isActive={isActive(l)}>
-      <Link to={l.to}>{!nested && l.icon}<Sidebar.Label>{l.label}</Sidebar.Label></Link>
+      <Link to={l.to}>{!nested && l.icon}<Sidebar.Label>{l.label}</Sidebar.Label>{!!l.count && <span className="sl-navcount" aria-label={`${l.count} waiting`}>{l.count}</span>}</Link>
     </Sidebar.NavItem>
   );
 
@@ -90,7 +104,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
         </Sidebar.Header>
         <Sidebar.Nav>
           {nav.map(e => isGroup(e)
-            ? <Sidebar.NavGroup key={e.label} label={e.label} icon={e.icon} isActive={e.items.some(isActive)}>{e.items.map(i => leaf(i, true))}</Sidebar.NavGroup>
+            ? <NavGroup key={e.label} group={e} isActive={e.items.some(isActive)}>{e.items.map(i => leaf(i, true))}</NavGroup>
             : leaf(e))}
         </Sidebar.Nav>
         <Sidebar.Footer>

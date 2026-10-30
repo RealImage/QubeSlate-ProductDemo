@@ -1,7 +1,9 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
 import { CampaignApprovalIcon, CampaignIcon, ContentIcon, DashboardIcon, ListIcon, MoviesIcon, MultipleUsersIcon, ReportsIcon, SettingsIcon } from 'prefab/icons';
-import { useSession } from '@slate/api';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { sacApi, useSession } from '@slate/api';
 import { Dashboard } from './features/reports/Dashboard';
 import { ProofOfPlay } from './features/reports/ProofOfPlay';
 import { CampaignApprovals } from './features/approvals/CampaignApprovals';
@@ -23,12 +25,13 @@ import { ReportsAnalytics } from './pages/ReportsAnalytics';
 import { RateBias } from './pages/RateBias';
 import { PlatformSettings } from './pages/PlatformSettings';
 
-const nav: NavEntry[] = [
+/** Pending counts come from the dashboard query, so they refresh whenever an approval invalidates ['sac']. */
+const buildNav = (pending?: { kyc: number; brands: number; campaigns: number }): NavEntry[] => [
   { label: 'Dashboard', to: '/', icon: <DashboardIcon /> },
   { label: 'Approvals', icon: <CampaignApprovalIcon />, items: [
-    { label: 'Campaign', to: '/approvals/campaigns' },
-    { label: 'Brand', to: '/approvals/brands' },
-    { label: 'Client / KYC', to: '/approvals/clients' }
+    { label: 'Campaign', to: '/approvals/campaigns', count: pending?.campaigns },
+    { label: 'Brand', to: '/approvals/brands', count: pending?.brands },
+    { label: 'Client / KYC', to: '/approvals/clients', count: pending?.kyc }
   ] },
   { label: 'Campaigns', icon: <CampaignIcon />, items: [
     { label: 'Campaign Management', to: '/campaigns' },
@@ -67,6 +70,9 @@ function LegacyPage() {
 function App() {
   const { session } = useSession();
   const org = session?.org.kind === 'sac' ? session.org : null;
+  const dash = useQuery({ queryKey: ['sac', 'dashboard'], queryFn: sacApi.dashboard, enabled: !!org });
+  const d = dash.data;
+  const nav = useMemo(() => buildNav(d && { kyc: d.pendingKyc, brands: d.pendingBrands, campaigns: d.pendingCampaigns }), [d]);
   return (
     <>
       <RequireSession signIn={<SignInPage headline="Sell exhibitor inventory and keep every advertiser approved and on contract." />}>

@@ -47,7 +47,7 @@ export function StatCard({ label, value, hint, tone }: { label: ReactNode; value
 
 type Tone = 'positive' | 'notice' | 'negative' | 'primary-secondary' | 'secondary' | 'default' | 'primary';
 export function StatusTag({ tone, children, size = 'small' }: { tone: Tone; children: ReactNode; size?: 'xsmall' | 'small' | 'medium' }) {
-  return <Tag variant={tone} size={size}>{children}</Tag>;
+  return <Tag variant={tone} size={size} className="sl-status">{children}</Tag>;
 }
 
 /** `label` names what is progressing for screen readers, e.g. "Plays delivered". */
