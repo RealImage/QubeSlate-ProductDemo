@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   brandCategoryIds, brandMappings, brandMatchesCategory, categoryPath, deleteBlock, nodeNameError, pathLabel, pathLabels, redundantIds,
-  reorderedSiblings, subtreeIds, usageCounts, type CategoryNode
+  childrenOf, subtreeIds, usageCounts, type CategoryNode
 } from './catalog';
 
-const n = (id: string, parentId: string | null, level: 1 | 2 | 3, name: string, order = 1): CategoryNode => ({ id, parentId, level, name, order });
+const n = (id: string, parentId: string | null, level: 1 | 2 | 3, name: string): CategoryNode => ({ id, parentId, level, name });
 const nodes: CategoryNode[] = [
-  n('A', null, 1, 'Auto', 1), n('A1', 'A', 2, 'Automotive'), n('A1a', 'A1', 3, 'Cars', 1), n('A1b', 'A1', 3, 'Bikes', 2), n('A2', 'A', 2, 'Services', 2),
-  n('F', null, 1, 'FMCG', 2), n('F1', 'F', 2, 'Consumer Goods'), n('F1a', 'F1', 3, 'Food & Beverages')
+  n('A', null, 1, 'Auto'), n('A1', 'A', 2, 'Automotive'), n('A1a', 'A1', 3, 'Cars'), n('A1b', 'A1', 3, 'Bikes'), n('A2', 'A', 2, 'Services'),
+  n('F', null, 1, 'FMCG'), n('F1', 'F', 2, 'Consumer Goods'), n('F1a', 'F1', 3, 'Food & Beverages')
 ];
 const brand = (name: string, categoryIds: string[], products: { name: string; categoryIds?: string[]; variants?: { name: string; categoryIds?: string[] }[] }[] = []) => ({
   name, categoryIds,
@@ -36,14 +36,10 @@ describe('sibling names', () => {
   });
 });
 
-describe('reorder', () => {
-  it('swaps with the neighbour and renumbers', () => {
-    const next = reorderedSiblings(nodes, 'A1b', 'up')!;
-    expect(next.map(x => [x.id, x.order])).toEqual([['A1b', 1], ['A1a', 2]]);
-  });
-  it('is a no-op at the edges', () => {
-    expect(reorderedSiblings(nodes, 'A1a', 'up')).toBeNull();
-    expect(reorderedSiblings(nodes, 'A1b', 'down')).toBeNull();
+describe('ordering', () => {
+  it('lists siblings alphabetically, ignoring case', () => {
+    expect(childrenOf(nodes, 'A1').map(x => x.name)).toEqual(['Bikes', 'Cars']);
+    expect(childrenOf([...nodes, n('a', null, 1, 'apparel')], null).map(x => x.name)).toEqual(['apparel', 'Auto', 'FMCG']);
   });
 });
 

@@ -209,17 +209,28 @@ a:hover { text-decoration: underline; }
 .sl-cattree__toggle:disabled { cursor: default; opacity: 0.6; }
 .sl-cattree__l1 { font-weight: 600; }
 
-.sl-split { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 900px) { .sl-split { grid-template-columns: 1fr; } }
-.sl-list { list-style: none; margin: 0; padding: 4px; max-height: 620px; overflow: auto; }
-.sl-list__item { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-.sl-list__item:hover { background: var(--sl-muted-fill); }
-.sl-list__item[aria-current='true'] { background: var(--sl-active-fill); color: var(--sl-brand); font-weight: 600; }
-.sl-list__item:focus-visible { outline: 2px solid var(--sl-brand); outline-offset: -2px; }
+/* Category master: one continuous, collapsible tree. Row actions show on hover / keyboard focus (always on touch). */
+.sl-tree__tools { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--sl-hairline); }
+.sl-tree__tools > :first-child { flex: 1 1 260px; }
+.sl-tree, .sl-tree ul { list-style: none; margin: 0; padding: 0; }
+.sl-tree { padding: 6px 8px 10px; }
+.sl-tree ul { margin-left: 19px; padding-left: 8px; border-left: 1px solid var(--sl-hairline); }
+.sl-tree__row { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 2px 4px; border-radius: 6px; }
+.sl-tree__row:hover, .sl-tree__row:has(:focus-visible) { background: var(--sl-muted-fill); }
+.sl-tree__name { display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sl-tree__l1 > .sl-tree__row .sl-tree__label { font-weight: 600; }
+.sl-tree__l2 > .sl-tree__row .sl-tree__label { font-weight: 500; }
+.sl-tree__toggle { all: unset; box-sizing: border-box; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; color: var(--sl-text-2); flex: none; }
+.sl-tree__toggle:hover { background: var(--sl-hairline); }
+.sl-tree__toggle:focus-visible { outline: 2px solid var(--sl-brand); }
+.sl-tree__toggle svg { width: 18px; height: 18px; }
+.sl-tree__spacer { width: 26px; flex: none; }
+.sl-tree mark { background: var(--sl-active-fill); color: inherit; border-radius: 2px; }
+.sl-tree__row .sl-node__actions { opacity: 0; }
+.sl-tree__row:hover .sl-node__actions, .sl-tree__row:has(:focus-visible) .sl-node__actions { opacity: 1; }
+@media (hover: none) { .sl-tree__row .sl-node__actions { opacity: 1; } }
 .sl-count { font-size: 12px; color: var(--sl-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sl-node { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px 6px 0; }
 .sl-node__name { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .sl-node__actions { display: flex; gap: 2px; flex: none; }
-.sl-node--l2 { border-top: 1px solid var(--sl-hairline); }
-.sl-node--l2 .sl-node__name { font-weight: 600; }
 .sl-node--l3 { padding-left: 30px; font-size: 13px; }

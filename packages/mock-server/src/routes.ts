@@ -5,7 +5,7 @@ import {
   BILLING_CURRENCIES, BILLING_FREQUENCIES, BILLING_METHODS, CONTACT_ROLES, DEFAULT_SUPPORT_EMAIL, LOGO_MAX_BYTES, addGateway, checkoutGateway, cleanContacts,
   cleanTaxIds, contactError, defaultBranding, defaultGateway, emptyContacts, gatewayError, isEmail, isHexColour, monthKey, primaryColourError, normaliseSacHost, removeGateway,
   sacSubdomain, sacUrlError, screenHistoryGrid, setDefaultGateway, stampGatewayDates, taxIdsError,
-  brandCategoryIds, brandMatchesCategory, dedupe, deleteBlock, nodeNameError, normaliseName, pathLabel, pathLabels, reorderedSiblings, subtreeIds, unknownIds, usageCounts,
+  brandCategoryIds, brandMatchesCategory, dedupe, deleteBlock, nodeNameError, normaliseName, pathLabel, pathLabels, subtreeIds, unknownIds, usageCounts,
   type Brand, type Campaign, type CategoryNode, type Company, type Permission, type Placement, type User
 } from '@slate/domain';
 import type {
@@ -849,10 +849,9 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     if (parent && parent.level >= 3) throw invalid('Categories go no deeper than SubCategory 2.');
     const err = nodeNameError(db().categories, parent?.id ?? null, req.body.name ?? '');
     if (err) throw invalid(err);
-    const sibs = db().categories.filter(n => n.parentId === (parent?.id ?? null));
     const node: CategoryNode = {
       id: id('CAT'), parentId: parent?.id ?? null, level: ((parent?.level ?? 0) + 1) as CategoryNode['level'],
-      name: normaliseName(req.body.name), order: Math.max(0, ...sibs.map(n => n.order)) + 1
+      name: normaliseName(req.body.name)
     };
     db().categories.push(node);
     audit(s, 'category.create', 'category', node.id, pathLabel(db().categories, node.id));
@@ -866,16 +865,6 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     const before = pathLabel(db().categories, node.id);
     node.name = normaliseName(req.body.name);
     audit(s, 'category.rename', 'category', node.id, `${before} → ${node.name}`);
-    return master();
-  });
-  r.post('/api/admin/categories/:id/move', (req: Req<{ dir: 'up' | 'down' }>) => {
-    const s = adminOf(req, 'catalog.manage');
-    const node = category(req.params.id!);
-    if (req.body.dir !== 'up' && req.body.dir !== 'down') throw invalid('Move up or down.');
-    const next = reorderedSiblings(db().categories, node.id, req.body.dir);
-    if (!next) throw invalid(`Already ${req.body.dir === 'up' ? 'first' : 'last'}.`);
-    for (const n of next) category(n.id).order = n.order;
-    audit(s, 'category.reorder', 'category', node.id, `${pathLabel(db().categories, node.id)} moved ${req.body.dir}`);
     return master();
   });
   r.delete('/api/admin/categories/:id', req => {

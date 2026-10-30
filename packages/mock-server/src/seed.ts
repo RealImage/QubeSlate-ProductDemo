@@ -8,7 +8,7 @@ import {
 import { seedCategories } from './taxonomy';
 
 /** Bump when the persisted shape changes; the server reseeds data written by an older version. */
-export const DB_SCHEMA = 4; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status; 4: category master, brand products / variants / category mappings
+export const DB_SCHEMA = 5; // 2: screen / DOOH level SAC mapping, theatre status; 3: SAC profile, billing, collections, gateways[], screen history, inactive status; 4: category master, brand products / variants / category mappings; 5: categories drop manual order (alphabetical)
 
 export interface Db {
   schema: number;

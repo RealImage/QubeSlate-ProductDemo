@@ -6,7 +6,6 @@ export interface CategoryNode {
   parentId: string | null;
   level: 1 | 2 | 3;
   name: string;
-  order: number;
 }
 
 export const CATEGORY_LEVEL_LABEL = { 1: 'Category', 2: 'SubCategory 1', 3: 'SubCategory 2' } as const;
@@ -14,9 +13,10 @@ export const PATH_SEPARATOR = ' / ';
 
 type Mapped = Pick<Brand, 'name' | 'categoryIds' | 'products'>;
 
-const byOrder = (a: CategoryNode, b: CategoryNode) => a.order - b.order || a.name.localeCompare(b.name);
+const byName = (a: CategoryNode, b: CategoryNode) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true });
 
-export const childrenOf = (nodes: CategoryNode[], parentId: string | null) => nodes.filter(n => n.parentId === parentId).sort(byOrder);
+/** Siblings are always listed alphabetically. */
+export const childrenOf = (nodes: CategoryNode[], parentId: string | null) => nodes.filter(n => n.parentId === parentId).sort(byName);
 
 /** Names from the top-level category down to the node; empty when the id is unknown. */
 export function categoryPath(nodes: CategoryNode[], id: string): string[] {
@@ -49,19 +49,6 @@ export function nodeNameError(nodes: CategoryNode[], parentId: string | null, na
   if (n.length > 80) return 'Keep the name under 80 characters.';
   const clash = nodes.some(x => x.parentId === parentId && x.id !== exceptId && x.name.toLowerCase() === n.toLowerCase());
   return clash ? `“${n}” already exists here.` : null;
-}
-
-/** Swap a node with its previous/next sibling and return the renumbered siblings, or null when it is already at the edge. */
-export function reorderedSiblings(nodes: CategoryNode[], id: string, dir: 'up' | 'down'): CategoryNode[] | null {
-  const node = nodes.find(n => n.id === id);
-  if (!node) return null;
-  const sibs = childrenOf(nodes, node.parentId);
-  const i = sibs.findIndex(n => n.id === id);
-  const j = dir === 'up' ? i - 1 : i + 1;
-  if (j < 0 || j >= sibs.length) return null;
-  const next = [...sibs];
-  [next[i], next[j]] = [next[j]!, next[i]!];
-  return next.map((n, k) => ({ ...n, order: k + 1 }));
 }
 
 // ---------- brand mappings ----------
