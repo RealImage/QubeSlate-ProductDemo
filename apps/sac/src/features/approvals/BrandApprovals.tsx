@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { sacApi, useSession, type BrandRow } from '@slate/api';
 import { APPROVAL_TONE, dateTime } from '@slate/domain';
-import { Button, Card, DataTable, EmptyState, Page, PageHeader, Query, StatusTag, toast } from '@slate/ui';
+import { Button, CategoryChips, Card, DataTable, EmptyState, Page, PageHeader, Query, StatusTag, toast } from '@slate/ui';
 import { NoteDialog, errorText } from '../shared';
 
 export function BrandApprovals() {
@@ -43,7 +43,7 @@ export function BrandApprovals() {
                   empty={<EmptyState title="No brands to review">Every requested brand has been decided.</EmptyState>}
                   columns={[
                     { key: 'name', header: 'Brand', sort: b => b.name, cell: b => <div className="sl-table__primary">{b.name}</div> },
-                    { key: 'category', header: 'Category', sort: b => b.category, cell: b => b.category },
+                    { key: 'category', header: 'Categories', cell: b => <CategoryChips paths={b.categoryPaths} /> },
                     { key: 'advertiser', header: 'Advertiser', sort: b => b.companyName, cell: b => b.companyName },
                     { key: 'requested', header: 'Requested', sort: b => b.requestedAt, cell: b => dateTime(b.requestedAt) },
                     ...(canDecide ? [{

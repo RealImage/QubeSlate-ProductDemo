@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import type { BrandView } from '@slate/api';
 import { Button, Card, Checkbox, ChoiceCards, DateRangePicker, EmptyState, Input, Loading, Select } from '@slate/ui';
-import { CAMPAIGN_TYPES, inr, suggestCampaignName, type Brand, type CampaignType, type Channel, type Company } from '@slate/domain';
+import { CAMPAIGN_TYPES, inr, suggestCampaignName, type CampaignType, type Channel, type Company } from '@slate/domain';
 import { Field } from '../../../components/controls';
 import { todayIst, useOrg } from '../../../components/org';
 import { RequestBrandDialog } from '../../company/BrandsPage';
@@ -21,7 +22,7 @@ export function definitionErrors(f: WizardForm) {
 export function StepDefinition({ form, update, brands, brandsLoading, showErrors, company }: {
   form: WizardForm;
   update: (p: Partial<WizardForm>) => void;
-  brands: Brand[];
+  brands: BrandView[];
   brandsLoading: boolean;
   showErrors: boolean;
   company: Pick<Company, 'name'>;
@@ -46,7 +47,7 @@ export function StepDefinition({ form, update, brands, brandsLoading, showErrors
           <div>
             <Select label="Brand" placeholder="Choose a brand" value={form.brandId || null} onChange={k => update({ brandId: k ? String(k) : '' })}
               errorMessage={err('brand')} description="Only brands approved for your company are listed.">
-              {brands.map(b => <Select.Option key={b.id} id={b.id} textValue={b.name}>{b.name}{b.category ? ` · ${b.category}` : ''}</Select.Option>)}
+              {brands.map(b => <Select.Option key={b.id} id={b.id} textValue={b.name}>{b.name}{b.categoryPaths[0] ? ` · ${b.categoryPaths[0]}${b.categoryPaths.length > 1 ? ` +${b.categoryPaths.length - 1}` : ''}` : ''}</Select.Option>)}
             </Select>
             <p className="sl-small" style={{ margin: '4px 0 0' }}>
               Brand missing? {canRequest

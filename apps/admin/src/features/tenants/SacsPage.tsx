@@ -5,7 +5,7 @@ import { adminApi, useSession, type SacRow, type SacSortKey } from '@slate/api';
 import { dateTime, num, orDash } from '@slate/domain';
 import { Button, Card, DataTable, EmptyState, ErrorState, Loading, Page, PageHeader, Pagination, type Column, type SortState } from '@slate/ui';
 import { AddIcon } from 'prefab/icons';
-import { FilterBar, SearchFilter } from '../../components/Filters';
+import { FilterBar, SearchFilter, useDebounced } from '../../components/Filters';
 import { SacStatusTag } from '../../components/SacStatusTag';
 import { OnboardSacSheet } from './OnboardSacSheet';
 import { SacActionsMenu } from './SacActionsMenu';
@@ -13,16 +13,6 @@ import { SacActionsMenu } from './SacActionsMenu';
 const PAGE_SIZE = 100;
 
 const locationOf = (r: SacRow) => [r.location.city, r.location.country].filter(Boolean).join(', ');
-
-/** Search boxes wait for a pause in typing before querying the server. */
-function useDebounced(value: string, ms = 300) {
-  const [v, setV] = useState(value.trim());
-  useEffect(() => {
-    const t = setTimeout(() => setV(value.trim()), ms);
-    return () => clearTimeout(t);
-  }, [value, ms]);
-  return v;
-}
 
 export function SacsPage() {
   const nav = useNavigate();

@@ -11,4 +11,5 @@ export * from './Tabs';
 export * from './AppShell';
 export * from './SignIn';
 export * from './ConfirmDialog';
+export * from './CategoryPicker';
 export { default as slateLogoUrl } from '../assets/QubeSlate.svg';

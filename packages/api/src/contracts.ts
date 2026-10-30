@@ -1,6 +1,6 @@
 // Request/response shapes for the Slate API. The mock server and the real backend both implement these.
 import type {
-  AuditEvent, BillingType, Brand, Campaign, CampaignDecision, CampaignType, Channel, ChecklistItem, Company, Contract,
+  AuditEvent, BillingType, Brand, CategoryNode, Campaign, CampaignDecision, CampaignType, Channel, ChecklistItem, Company, Contract,
   DeliveryRecord, DeliverySummary, Device, DoohGroup, Exhibitor, IngestionStatus, InventoryAccess, Invoice, Media,
   PaymentGateway, Placement, PlacementAction, PlacementPosition, Sac, SacBillingProfile, SacBranding, SacCollectionsProfile, SacContact, SacContactRole,
   ScreenFormat, ScreenHistoryGrid, TargetGroup, TaxId, Theatre, TheatreStatus, TimeBand, User
@@ -193,8 +193,56 @@ export interface AdvertiserTermsInput {
   inventoryAccess: InventoryAccess;
 }
 
-export interface BrandRow extends Brand {
+/** A brand as portals show it: the union of brand, product and variant mappings, resolved to readable paths. */
+export interface BrandView extends Brand {
+  /** Brand, product and variant mappings, deduplicated. */
+  allCategoryIds: string[];
+  /** Same order as `allCategoryIds`, e.g. "Auto / Automotive / Cars". */
+  categoryPaths: string[];
+}
+
+export interface BrandRow extends BrandView {
   companyName: string;
+}
+
+export interface AdminBrandRow extends BrandRow {
+  sacId: string;
+  sacName: string;
+}
+
+export interface BrandsQuery {
+  /** Matches brand, advertiser or product name. */
+  q?: string;
+  sacId?: string;
+  status?: Brand['status'];
+  /** A category-master node; brands match when any mapping is this node or a descendant. */
+  categoryId?: string;
+  sort?: BrandSortKey;
+  dir?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+/** Columns the brand catalog can sort by on the server (applied before paging). */
+export type BrandSortKey = 'name' | 'companyName' | 'products' | 'status' | 'requestedAt' | 'reviewedAt';
+
+export interface BrandsPage {
+  rows: AdminBrandRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface BrandInput { name: string; categoryIds: string[] }
+/** Products and variants share this shape. */
+export interface BrandItemInput { name: string; categoryIds: string[] }
+
+export interface CategoryInput { parentId: string | null; name: string }
+
+/** The category master plus, per node, how many brands use it (directly or through a descendant). */
+export interface CategoryMaster {
+  nodes: CategoryNode[];
+  usage: Record<string, number>;
 }
 
 export interface DecisionInput {

@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell, RequireSession, SignInPage, ToastRegion, type NavEntry } from '@slate/ui';
-import { DashboardIcon, HeartbeatBoxIcon, OrganisationIcon, SecurityIcon } from 'prefab/icons';
+import { DashboardIcon, HeartbeatBoxIcon, ListIcon, OrganisationIcon, SecurityIcon } from 'prefab/icons';
+import { BrandsPage } from './features/catalog/BrandsPage';
+import { CategoriesPage } from './features/catalog/CategoriesPage';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { ExhibitorsPage } from './features/tenants/ExhibitorsPage';
 import { SacDetailPage } from './features/tenants/SacDetailPage';
@@ -18,6 +20,10 @@ const nav: NavEntry[] = [
   { label: 'Tenants', icon: <OrganisationIcon />, items: [
     { label: 'Exhibitors', to: '/tenants/exhibitors' },
     { label: 'SACs', to: '/tenants/sacs' }
+  ] },
+  { label: 'Catalog', icon: <ListIcon />, items: [
+    { label: 'Brands', to: '/catalog/brands' },
+    { label: 'Category Lists', to: '/catalog/categories' }
   ] },
   { label: 'Network', icon: <HeartbeatBoxIcon />, items: [
     { label: 'Theatres', to: '/network/theatres' },
@@ -41,6 +47,8 @@ export function App() {
           <Route path="tenants/exhibitors" element={<ExhibitorsPage />} />
           <Route path="tenants/sacs" element={<SacsPage />} />
           <Route path="tenants/sacs/:id" element={<SacDetailPage />} />
+          <Route path="catalog/brands" element={<BrandsPage />} />
+          <Route path="catalog/categories" element={<CategoriesPage />} />
           <Route path="network/theatres" element={<TheatresPage />} />
           <Route path="network/devices" element={<DevicesPage />} />
           <Route path="network/ingestion" element={<IngestionPage />} />

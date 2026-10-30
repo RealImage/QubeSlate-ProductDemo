@@ -1,7 +1,17 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Input, Select } from '@slate/ui';
 
 export const ALL = 'all';
+
+/** Search boxes wait for a pause in typing before querying the server. */
+export function useDebounced(value: string, ms = 300) {
+  const [v, setV] = useState(value.trim());
+  useEffect(() => {
+    const t = setTimeout(() => setV(value.trim()), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
 
 export function FilterBar({ children }: { children: ReactNode }) {
   return <div className="sl-row" style={{ alignItems: 'flex-end', padding: '12px 16px', borderBottom: '1px solid var(--sl-hairline)' }}>{children}</div>;

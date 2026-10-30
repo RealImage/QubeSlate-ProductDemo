@@ -253,11 +253,16 @@ export interface Company {
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
+export interface BrandVariant { id: string; name: string; categoryIds: string[] }
+export interface BrandProduct { id: string; name: string; categoryIds: string[]; variants: BrandVariant[] }
+
 export interface Brand {
   id: string;
   companyId: string;
   name: string;
-  category: string;
+  /** Category-master nodes (any level) the brand itself maps to. Products and variants carry their own. */
+  categoryIds: string[];
+  products: BrandProduct[];
   status: ApprovalStatus;
   requestedAt: ISODateTime;
   reviewedAt: ISODateTime | null;

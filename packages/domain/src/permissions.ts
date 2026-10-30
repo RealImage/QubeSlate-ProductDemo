@@ -13,6 +13,7 @@ export type Permission =
   | 'inventory.edit'
   | 'tenants.manage'
   | 'gateway.manage'
+  | 'catalog.manage'
   | 'impersonate';
 
 // 'viewer' exists in both the advertiser and SAC portals and is read-only in each.
@@ -23,7 +24,7 @@ const GRANTS: Record<Role, Permission[]> = {
   sac_admin: ['approvals.decide', 'billing.classify', 'inventory.edit', 'users.manage'],
   ad_ops: ['approvals.decide', 'inventory.edit'],
   finance: ['billing.classify'],
-  qube_admin: ['tenants.manage', 'gateway.manage', 'impersonate', 'inventory.edit'],
+  qube_admin: ['tenants.manage', 'catalog.manage', 'gateway.manage', 'impersonate', 'inventory.edit'],
   qube_support: ['impersonate']
 };
 
