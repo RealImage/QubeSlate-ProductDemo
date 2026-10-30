@@ -8,3 +8,4 @@ export * from './format';
 export * from './permissions';
 export * from './sac';
 export * from './catalog';
+export * from './kyc';

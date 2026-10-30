@@ -6,7 +6,7 @@ import {
   Alert, Button, Card, Dialog, FileDropzone, Input, KeyValue, Page, PageHeader, Query, StatusTag, Textarea
 } from '@slate/ui';
 import { EditIcon, UploadIcon } from 'prefab/icons';
-import { APPROVAL_TONE, date, type Company, type KycDoc } from '@slate/domain';
+import { APPROVAL_TONE, KYC_FILE_TYPES, KYC_MAX_BYTES, date, type Company, type KycDoc } from '@slate/domain';
 import { errorText, notifyError, notifySuccess, qk, useCompany, useOrg } from '../../components/org';
 import { KYC_LABEL, kycAlert } from './KycBanner';
 import { GSTIN, PAN } from './SignUp';
@@ -196,8 +196,12 @@ function EditCompanyDialog({ company, onClose }: { company: Company; onClose: ()
 function UploadKycDialog({ kind, onClose }: { kind: KycDoc['kind']; onClose: () => void }) {
   const qc = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
+  const fileError = !file ? null
+    : !(KYC_FILE_TYPES as readonly string[]).includes(file.type) ? 'Upload a PDF, PNG or JPEG file.'
+    : file.size > KYC_MAX_BYTES ? 'The file must be 5 MB or smaller.' : null;
   const upload = useMutation({
-    mutationFn: (f: File) => advertiserApi.uploadKycDoc(kind, f.name),
+    // The reviewer previews exactly what was uploaded, so the content goes up with the name.
+    mutationFn: async (f: File) => advertiserApi.uploadKycDoc(kind, f.name, await readDataUrl(f)),
     onSuccess: c => { qc.setQueryData(qk.company, c); notifySuccess(`${kind} uploaded.`); onClose(); }
   });
   return (
@@ -206,18 +210,28 @@ function UploadKycDialog({ kind, onClose }: { kind: KycDoc['kind']; onClose: () 
       <Dialog.Body>
         <div className="sl-stack">
           <FileDropzone label={kind} acceptedTypes={['application/pdf', 'image/png', 'image/jpeg']} onFileSelect={files => setFile(files[0] ?? null)}
-            description="PDF, PNG or JPEG · single file">
+            description="PDF, PNG or JPEG · up to 5 MB">
             <FileDropzone.Icon><UploadIcon /></FileDropzone.Icon>
             <FileDropzone.Title>{file ? file.name : 'Drop the document here'}</FileDropzone.Title>
             <FileDropzone.Description>or click to browse</FileDropzone.Description>
           </FileDropzone>
+          {fileError && <Alert variant="negative" closable={false}>{fileError}</Alert>}
           {upload.error && <Alert variant="negative" closable={false}>{errorText(upload.error)}</Alert>}
         </div>
       </Dialog.Body>
       <Dialog.Footer>
         <Button variant="default" onPress={onClose}>Cancel</Button>
-        <Button variant="primary" onPress={() => file && upload.mutate(file)} isDisabled={!file} isPending={upload.isPending}>Upload</Button>
+        <Button variant="primary" onPress={() => file && upload.mutate(file)} isDisabled={!file || !!fileError} isPending={upload.isPending}>Upload</Button>
       </Dialog.Footer>
     </Dialog>
   );
+}
+
+function readDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(new Error('Could not read the file.'));
+    r.readAsDataURL(file);
+  });
 }
