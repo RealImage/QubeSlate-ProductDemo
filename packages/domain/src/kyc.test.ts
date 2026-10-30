@@ -18,4 +18,9 @@ describe('KYC files', () => {
     expect(kycFileError(`data:application/pdf;base64,${b64(KYC_MAX_BYTES + 1)}`)).toMatch(/5 MB/);
     expect(kycFileError(`data:text/plain;base64,${b64(3)}`)).toMatch(/PDF, PNG or JPEG/);
   });
+  it('rejects empty or malformed base64', () => {
+    expect(kycFileError('data:application/pdf;base64,')).toMatch(/empty/);
+    expect(kycFileError('data:application/pdf;base64,!!!!')).toMatch(/empty/);
+    expect(kycFileError('data:application/pdf;base64,AAA')).toMatch(/empty/);
+  });
 });

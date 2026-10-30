@@ -20,6 +20,8 @@ export function dataUrlBytes(dataUrl: string): number {
 /** Why an uploaded KYC file is not acceptable, or null when it is. */
 export function kycFileError(dataUrl: string): string | null {
   if (!kycFileType(dataUrl)) return 'Upload a PDF, PNG or JPEG file.';
+  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  if (!b64 || b64.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) return 'The file is empty or could not be read.';
   if (dataUrlBytes(dataUrl) > KYC_MAX_BYTES) return 'The file must be 5 MB or smaller.';
   return null;
 }

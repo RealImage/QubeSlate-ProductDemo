@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { sacApi } from '@slate/api';
 import type { KycDoc, KycFile } from '@slate/domain';
@@ -18,15 +18,25 @@ function toBlob(f: KycFile): Blob {
   return new Blob([Uint8Array.from(bin, ch => ch.charCodeAt(0))], { type: f.mimeType });
 }
 
-/** An object URL for the file, revoked when the file changes or the viewer closes. */
-function useObjectUrl(f: KycFile | undefined) {
-  const url = useMemo(() => (f ? URL.createObjectURL(toBlob(f)) : null), [f]);
-  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
-  return url;
+/**
+ * An object URL for the file, revoked when the file changes or the viewer closes. Created in the effect so every
+ * setup (including StrictMode's replay) has its own URL to clean up. `failed` when the content cannot be decoded.
+ */
+function useObjectUrl(f: KycFile | undefined): { url: string | null; failed: boolean } {
+  const [state, setState] = useState<{ url: string | null; failed: boolean }>({ url: null, failed: false });
+  useEffect(() => {
+    if (!f) return;
+    let url: string;
+    try { url = URL.createObjectURL(toBlob(f)); }
+    catch { setState({ url: null, failed: true }); return; }
+    setState({ url, failed: false });
+    return () => URL.revokeObjectURL(url);
+  }, [f]);
+  return state;
 }
 
 function save(f: KycFile) {
-  const url = URL.createObjectURL(toBlob(f));
+  const url = URL.createObjectURL(toBlob(f)); // callers catch a decode failure
   const a = Object.assign(document.createElement('a'), { href: url, download: f.fileName });
   document.body.append(a);
   a.click();
@@ -56,8 +66,12 @@ export function KycDocActions({ advertiserId, doc }: { advertiserId: string; doc
 
 function KycDocViewer({ advertiserId, doc, onClose }: { advertiserId: string; doc: KycDoc; onClose: () => void }) {
   const q = useQuery(fileQuery(advertiserId, doc));
-  const url = useObjectUrl(q.data);
+  const { url, failed: unreadable } = useObjectUrl(q.data);
   const [failed, setFailed] = useState(false);
+  const download = () => {
+    if (!q.data) return;
+    try { save(q.data); } catch { toast.add({ variant: 'negative', message: 'Could not download the file.' }); }
+  };
   return (
     <Dialog isOpen onOpenChange={o => !o && onClose()} width={860}>
       <Dialog.Header>{doc.kind}</Dialog.Header>
@@ -66,6 +80,7 @@ function KycDocViewer({ advertiserId, doc, onClose }: { advertiserId: string; do
           <span className="sl-muted sl-small">{q.data?.fileName ?? doc.fileName}</span>
           {q.isLoading ? <Loading rows={6} />
             : q.error ? <ErrorState error={q.error} onRetry={() => void q.refetch()} />
+            : unreadable ? <FormError error={new Error('This file could not be read. Ask the advertiser to upload it again.')} />
             : url && q.data?.mimeType === 'application/pdf' ? <iframe className="sl-docview" src={url} title={`${doc.kind} preview`} />
             : url ? (failed ? <FormError error={new Error('This image could not be shown. Download it to check.')} />
               : <div className="sl-docview sl-docview--image"><img src={url} alt={`${doc.kind} as uploaded`} onError={() => setFailed(true)} /></div>)
@@ -74,7 +89,7 @@ function KycDocViewer({ advertiserId, doc, onClose }: { advertiserId: string; do
       </Dialog.Body>
       <Dialog.Footer>
         <Button variant="default" onPress={onClose}>Close</Button>
-        <Button variant="primary" isDisabled={!q.data} onPress={() => q.data && save(q.data)}><DownloadIcon />Download</Button>
+        <Button variant="primary" isDisabled={!q.data || unreadable} onPress={download}><DownloadIcon />Download</Button>
       </Dialog.Footer>
     </Dialog>
   );
