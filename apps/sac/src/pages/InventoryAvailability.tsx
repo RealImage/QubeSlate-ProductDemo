@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { theatreDefs } from '../data/mockData';
 import { getTheatres, secs, fmtDate } from '../data/helpers';
@@ -63,7 +62,6 @@ export function InventoryAvailability() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1500 }}>
       <PageHeader title="Inventory Availability" description="Pre-show seconds sold and available, per screen and per show. Select screens to build a booking." />
-      <PrototypeNote />
 
       <Card padding="14px 16px" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

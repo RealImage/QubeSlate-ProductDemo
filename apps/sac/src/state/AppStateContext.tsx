@@ -10,7 +10,7 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
-/** Holds local state for pages still on mock data (see PrototypeNote). API-backed screens use React Query. */
+/** Holds local state for pages still on mock data. API-backed screens use React Query. */
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(initialAppState);
   const patch = useCallback((updater: Updater) => {

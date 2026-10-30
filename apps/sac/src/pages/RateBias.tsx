@@ -1,4 +1,3 @@
-import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { biasRules, ratePerSecond } from '../data/mockData';
 import { money } from '../data/helpers';
@@ -25,7 +24,6 @@ export function RateBias() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1100 }}>
       <PageHeader title="Campaign Rate Bias" description="Multipliers applied to the base rate card by geography, theatre type, daypart or segment." />
-      <PrototypeNote />
       <Card padding="14px 18px" style={{ background: 'var(--bg-surface)', border: '1px solid var(--wire-50)', fontSize: 13, color: 'var(--text-product)' }}>
         Base rate card: <strong style={{ fontWeight: 600 }}>{money(ratePerSecond * 1000)} per 1,000 seconds per screen</strong>
       </Card>

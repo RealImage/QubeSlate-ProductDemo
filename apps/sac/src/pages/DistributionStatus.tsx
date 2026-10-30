@@ -1,4 +1,3 @@
-import { PrototypeNote } from '../components/PrototypeNote';
 import { useAppState } from '../state/AppStateContext';
 import { distRows } from '../data/mockData';
 import { PageHeader, ProgressBar, StatusTag, Table, TableCard, Td, Th } from '../components/ui/primitives';
@@ -30,7 +29,6 @@ export function DistributionStatus() {
         description="Whether the content behind each placement actually reached the theatre."
         action={<StatusTag tone="negative" size="medium">{distFailed} of {rows.length} deliveries failed</StatusTag>}
       />
-      <PrototypeNote />
       <TableCard>
         <Table>
           <thead>
