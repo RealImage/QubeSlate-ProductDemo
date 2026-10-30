@@ -67,7 +67,8 @@ export function KycDocActions({ advertiserId, doc }: { advertiserId: string; doc
 function KycDocViewer({ advertiserId, doc, onClose }: { advertiserId: string; doc: KycDoc; onClose: () => void }) {
   const q = useQuery(fileQuery(advertiserId, doc));
   const { url, failed: unreadable } = useObjectUrl(q.data);
-  const [failed, setFailed] = useState(false);
+  // Tied to the URL it failed on, so a replacement file gets a fresh attempt.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const download = () => {
     if (!q.data) return;
     try { save(q.data); } catch { toast.add({ variant: 'negative', message: 'Could not download the file.' }); }
@@ -82,8 +83,8 @@ function KycDocViewer({ advertiserId, doc, onClose }: { advertiserId: string; do
             : q.error ? <ErrorState error={q.error} onRetry={() => void q.refetch()} />
             : unreadable ? <FormError error={new Error('This file could not be read. Ask the advertiser to upload it again.')} />
             : url && q.data?.mimeType === 'application/pdf' ? <iframe className="sl-docview" src={url} title={`${doc.kind} preview`} />
-            : url ? (failed ? <FormError error={new Error('This image could not be shown. Download it to check.')} />
-              : <div className="sl-docview sl-docview--image"><img src={url} alt={`${doc.kind} as uploaded`} onError={() => setFailed(true)} /></div>)
+            : url ? (failedUrl === url ? <FormError error={new Error('This image could not be shown. Download it to check.')} />
+              : <div className="sl-docview sl-docview--image"><img src={url} alt={`${doc.kind} as uploaded`} onError={() => setFailedUrl(url)} /></div>)
             : null}
         </div>
       </Dialog.Body>
