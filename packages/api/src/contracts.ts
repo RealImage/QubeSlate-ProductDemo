@@ -217,9 +217,14 @@ export interface BrandsQuery {
   status?: Brand['status'];
   /** A category-master node; brands match when any mapping is this node or a descendant. */
   categoryId?: string;
+  sort?: BrandSortKey;
+  dir?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }
+
+/** Columns the brand catalog can sort by on the server (applied before paging). */
+export type BrandSortKey = 'name' | 'companyName' | 'products' | 'status' | 'requestedAt' | 'reviewedAt';
 
 export interface BrandsPage {
   rows: AdminBrandRow[];

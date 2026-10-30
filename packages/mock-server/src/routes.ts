@@ -11,7 +11,7 @@ import {
 import type {
   AdminBrandRow, BrandInput, BrandItemInput, BrandsPage, BrandView, CategoryInput, CategoryMaster, AdvertiserRow, AdvertiserTermsInput, BillingOverview, BrandRow, CampaignDetail, CampaignInput, CampaignRow, CheckoutInput,
   Dashboard, DecisionInput, DeliveryBreakdown, DemoAccount, DeviceRow, DoohConfigInput, ExhibitorInput, ExhibitorRow,
-  GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacSortKey, SacsPage, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
+  GatewayInput, IngestionRow, PublicSac, SacActiveScreens, SacBillingInput, SacCollectionsInput, SacContactsInput, SacDetailsInput, SacSetupInput, SacStatusInput, SacSortKey, SacsPage, BrandSortKey, SessionSac, InvoiceRow, KycDecisionInput, MediaInput, PlacementInput, PlacementQuoteResponse, PlacementRow,
   PlatformOverview, ProofOfPlayRow, ReachPreview, SacInput, SacRow, SacSyncResult, SacTheatreRow, SacTheatresPage, Session, TargetGroupInput, TargetGroupWithReach, TheatreRow, UserInput
 } from '@slate/api/contracts';
 import { forbidden, HttpError, invalid, notFound, Router, type Req } from './http';
@@ -889,6 +889,11 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
     return { ...brandView(b), companyName: company.name, sacId: company.sacId, sacName: db().sacs.find(x => x.id === company.sacId)?.name ?? '—' };
   };
   const adminBrand = (key: string) => find(db().brands, key, 'Brand');
+  type BrandSortValue = (b: Db['brands'][number], companyName: string) => string | number;
+  const BRAND_SORTS: Record<BrandSortKey, BrandSortValue> = {
+    name: b => b.name, companyName: (_, co) => co, products: b => b.products.length,
+    status: b => b.status, requestedAt: b => b.requestedAt, reviewedAt: b => b.reviewedAt ?? ''
+  };
   r.get('/api/admin/brands', (req): BrandsPage => {
     adminOf(req);
     const q = (req.query.get('q') ?? '').trim().toLowerCase();
@@ -905,7 +910,17 @@ export function buildRoutes(state: { db: Db }, reset: () => void) {
       if (!q) return true;
       const hay = [b.name, co?.name ?? '', ...b.products.flatMap(p => [p.name, ...p.variants.map(v => v.name)]), ...pathLabels(db().categories, brandCategoryIds(b))];
       return hay.some(x => x.toLowerCase().includes(q));
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    });
+    // Sort the whole result before paging, so a column sort orders every brand, not just the current page.
+    const asked = req.query.get('sort') ?? '';
+    const get = BRAND_SORTS[Object.hasOwn(BRAND_SORTS, asked) ? asked as BrandSortKey : 'name'];
+    const dir = req.query.get('dir') === 'desc' ? -1 : 1;
+    const coName = (b: Db['brands'][number]) => companies.get(b.companyId)?.name ?? '';
+    matching.sort((a, b) => {
+      const x = get(a, coName(a)), y = get(b, coName(b));
+      const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
+      return (r || a.name.localeCompare(b.name)) * dir;
+    });
     const page = Math.min(Math.max(1, Number(req.query.get('page')) || 1), Math.max(1, Math.ceil(matching.length / pageSize)));
     return { rows: matching.slice((page - 1) * pageSize, page * pageSize).map(adminBrandRow), total: matching.length, page, pageSize };
   });
