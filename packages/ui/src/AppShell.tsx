@@ -49,15 +49,16 @@ function useBrandOnDocument(vars: Record<string, string> | null) {
 /**
  * Persistent left sidebar + top bar shared by every portal.
  * `portalLabel` sits beside the wordmark (ADVERTISER / SAC / ADMIN); `orgName` and `orgMeta` describe who is signed in.
- * `brand` restyles the shell with a SAC's colours and logo.
+ * `brand` restyles the shell with a SAC's colours and logo; `logo` swaps only the logo (null keeps Slate's).
  */
-export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, brand }: {
+export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, brand, logo: logoOnly }: {
   nav: NavEntry[];
   portalLabel: string;
   orgName: ReactNode;
   orgMeta?: ReactNode;
   topbarExtra?: ReactNode;
   brand?: SacBranding | null;
+  logo?: string | null;
 }) {
   const { pathname } = useLocation();
   const { session, signOut, portal } = useSession();
@@ -65,7 +66,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
   const stored = sessionStore.get(portal);
   const vars = brand ? brandStyle(brand) : null;
   useBrandOnDocument(vars);
-  const logo = brand?.logo ?? null;
+  const logo = brand?.logo ?? logoOnly ?? null;
   const logoAlt = logo ? 'SAC logo' : 'Qube Slate';
   // Only the most specific match is active, so /campaigns/rate-bias doesn't also light up /campaigns.
   const leaves = nav.flatMap(e => (isGroup(e) ? e.items : [e]));

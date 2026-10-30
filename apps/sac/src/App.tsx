@@ -71,7 +71,7 @@ function App() {
     <>
       <RequireSession signIn={<SignInPage headline="Sell exhibitor inventory and keep every advertiser approved and on contract." />}>
         <Routes>
-          <Route element={<AppShell nav={nav} portalLabel="SAC" orgName={org?.sac.name} orgMeta={org?.sac.legalName} />}>
+          <Route element={<AppShell nav={nav} portalLabel="SAC" orgName={org?.sac.name} orgMeta={org?.sac.legalName} logo={org?.sac.branding.logo} />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/approvals/campaigns" element={<CampaignApprovals />} />
             <Route path="/approvals/campaigns/:id" element={<CampaignDetailPage backTo="/approvals/campaigns" backLabel="Campaign approvals" />} />
