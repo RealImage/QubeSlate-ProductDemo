@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { catalogApi } from '@slate/api';
 import { CATEGORY_LEVEL_LABEL, childrenOf, dedupe, pathLabel, redundantIds, type CategoryNode } from '@slate/domain';
@@ -133,14 +133,18 @@ export function CategoryField({ label, value, onChange, required, error, descrip
   const nodes = cats.data ?? [];
   const paths = value.map(id => pathLabel(nodes, id)).filter(Boolean);
   const flagged = new Set(redundantIds(nodes, value).map(id => pathLabel(nodes, id)));
+  const ids = useId();
+  const action = cats.isLoading ? 'Loading…' : paths.length ? 'Edit categories' : 'Choose categories';
+  // The asterisk is visual only; the button's name carries the field label and its required state.
+  const buttonLabel = `${action}: ${label}${required ? ', required' : ''}${paths.length ? `, ${paths.length} selected` : ''}`;
   return (
-    <div className="sl-stack" style={{ gap: 6 }}>
-      <div className="sl-catfield__label">{label}{required ? <span aria-hidden> *</span> : <span className="sl-muted"> (optional)</span>}</div>
-      {description && <div className="sl-small sl-muted">{description}</div>}
+    <div className="sl-stack" style={{ gap: 6 }} role="group" aria-labelledby={`${ids}-label`} aria-describedby={description ? `${ids}-desc` : undefined}>
+      <div className="sl-catfield__label" id={`${ids}-label`}>{label}{required ? <span aria-hidden> *</span> : <span className="sl-muted"> (optional)</span>}</div>
+      {description && <div className="sl-small sl-muted" id={`${ids}-desc`}>{description}</div>}
       <div className="sl-catfield">
         <CategoryChips paths={paths} flagged={flagged} />
-        <Button variant="default" size="small" onPress={() => setPicking(true)} isDisabled={!cats.data}>
-          {cats.isLoading ? 'Loading…' : paths.length ? 'Edit categories' : 'Choose categories'}
+        <Button variant="default" size="small" onPress={() => setPicking(true)} isDisabled={!cats.data} aria-label={buttonLabel}>
+          {action}
         </Button>
       </div>
       {flagged.size > 0 && <div className="sl-small" style={{ color: 'var(--sl-warn, #8a5a00)' }}>Some categories sit under another chosen category and are redundant.</div>}
