@@ -13,9 +13,6 @@ export interface AppState {
   screenSel: string[];
   invDate: string;
 
-  // compositions
-  compFilter: string;
-
   // pre-show playlist
   plShow: string;
 
@@ -38,7 +35,6 @@ export const initialAppState: AppState = {
   invTheatre: 'TH-101',
   screenSel: ['TH-101-S1', 'TH-101-S2'],
   invDate: '2026-09-07',
-  compFilter: 'all',
   plShow: 'TH-101-S1|19:45',
   bPre: 720,
   bInt: 240,
