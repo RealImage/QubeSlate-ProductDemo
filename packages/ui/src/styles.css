@@ -20,6 +20,47 @@
   --sl-shadow-2: 0 4px 12px rgba(4, 38, 82, 0.1);
 }
 
+/*
+ * Dark mode: theme.tsx sets data-theme="dark" on <html> (from the Light / Dark / System switch in the sidebar).
+ * prefab's Qube Wire theme maps every semantic token onto the grey ramp, so the grey ramp runs the other way here and
+ * the semantic tokens that point at white, black or pale tints get dark equivalents. Components never change; only
+ * tokens do. The SAC's legacy pages read the same token names, so they follow too.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --grey-10: #0e1115; --grey-50: #1a1f26; --grey-100: #262d36; --grey-200: #36404c; --grey-300: #4d5867; --grey-400: #687585;
+  --grey-500: #8794a3; --grey-600: #a5b0bc; --grey-700: #c2cad3; --grey-800: #e2e6eb; --grey-900: #f2f4f6;
+
+  --fill-white: #151a20; --surface-white: #151a20;
+  --fill-black: #f2f4f6;
+  --bg-surface: var(--grey-10); --bg-surface-subtle: var(--grey-50); --bg-surface-black: #000000;
+
+  --fill-product: var(--wire-300); --fill-product-subtle: #10263b; --fill-product-alt: #163453;
+  --fill-nav-bar-selected: var(--wire-200);
+  --text-product: var(--wire-200); --icon-product: var(--wire-200); --border-product: var(--wire-200);
+  --bg-surface-accent-brand: #10263b;
+  --text-link: var(--blue-300); --icon-link: var(--blue-300); --border-link: var(--blue-300);
+  --text-white: #ffffff; --icon-white: #ffffff;
+
+  --fill-positive-subtle: #12301d; --text-positive: var(--green-300); --text-positive-alt: var(--green-200);
+  --icon-positive: var(--green-300); --icon-positive-alt: var(--green-200); --border-positive: var(--green-300);
+  --fill-notice-subtle: #352707; --text-notice: var(--yellow-400); --text-notice-alt: var(--yellow-200);
+  --icon-notice-alt: var(--yellow-300); --border-notice: var(--yellow-600);
+  --fill-negative-subtle: #3a1216; --text-negative: var(--red-300); --icon-negative: var(--red-300); --border-negative: var(--red-300);
+  --fill-orange-subtle: #3a1f0b; --text-orange: var(--orange-300); --icon-orange: var(--orange-300);
+  --fill-purple-subtle: #261a3d; --text-purple: var(--purple-200); --icon-purple: var(--purple-200);
+  --bg-surface-accent-blue: #0d2a40; --bg-surface-accent-green: #12301d; --bg-surface-accent-orange: #3a1f0b; --bg-surface-accent-red: #3a1216;
+
+  /* Hover and press overlays darken on light; on dark they lighten. */
+  --hover: var(--light-20); --hover-subtle: var(--light-10); --hover-more-subtle: var(--light-5); --hover-subtelest: var(--light-3);
+  --pressed: var(--light-35); --pressed-subtle: var(--light-20); --pressed-subtlest: var(--light-10);
+
+  --sl-brand: var(--wire-200);
+  --sl-text-2: var(--grey-600); --sl-text-3: var(--grey-500);
+  --sl-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sl-shadow-2: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
 html, body, #root { height: 100%; margin: 0; }
 body {
   background: var(--sl-page-bg);
@@ -202,7 +243,7 @@ a:hover { text-decoration: underline; }
   background: var(--sl-active-fill); color: var(--sl-brand); border: 1px solid transparent; overflow-wrap: anywhere;
 }
 .sl-catchip--more { background: var(--sl-muted-fill); color: var(--sl-text-2); border-color: var(--sl-hairline); }
-.sl-catchip.is-flagged { border-color: #e0a400; background: #fff7e0; color: #7a5200; }
+.sl-catchip.is-flagged { border-color: var(--border-notice); background: var(--fill-notice-subtle); color: var(--text-notice-alt); }
 .sl-catchip--removable button { all: unset; flex: none; cursor: pointer; padding: 0 2px; font-size: 14px; line-height: 1; }
 .sl-catchip--removable button:focus-visible { outline: 2px solid var(--sl-brand); border-radius: 4px; }
 .sl-catfield { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--sl-control); border-radius: 6px; }
@@ -293,3 +334,11 @@ a:hover { text-decoration: underline; }
   content: counter(sl-navgroup); margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; font-size: 11.5px; line-height: 18px;
   text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--fill-notice-subtle); color: var(--text-notice-alt);
 }
+
+/* The Slate wordmark is drawn in black (currentColor inside an <img>); flip it on dark. SAC logos are left alone. */
+:root[data-theme='dark'] .sl-logo--slate { filter: invert(1); }
+/* A SAC's uploaded logo is usually drawn for a white page; give it a white plate so dark artwork stays visible. */
+:root[data-theme='dark'] .sl-logo:not(.sl-logo--slate) { background: #ffffff; padding: 2px 6px; border-radius: 4px; box-sizing: content-box; }
+.sl-thememenu__item { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+.sl-thememenu__item svg { width: 16px; height: 16px; color: var(--sl-text-2); }
+.sl-thememenu__check { margin-left: auto; color: var(--text-product); }

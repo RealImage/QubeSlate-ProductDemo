@@ -1,10 +1,11 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Sidebar, SidebarMobileHeader, Button } from 'prefab';
+import { Sidebar, SidebarMobileHeader, Button, Menu } from 'prefab';
 import { LogoutIcon } from 'prefab/icons';
 import { contrastText, ROLE_LABEL, type SacBranding } from '@slate/domain';
 import { useSession, sessionStore } from '@slate/api';
 import { DevAccountSwitcher } from './SignIn';
+import { useThemePreference, type ThemePreference } from './theme';
 import slateLogo from '../assets/QubeSlate.svg';
 import slateMark from '../assets/QubeLogoOnlyBlueIcon.svg';
 
@@ -23,6 +24,32 @@ const isGroup = (e: NavEntry): e is NavGroupDef => 'items' in e;
 function matchLength(leaf: NavLeaf, pathname: string) {
   const prefixes = [leaf.to, ...(leaf.match ?? [])];
   return Math.max(-1, ...prefixes.filter(p => (p === '/' ? pathname === '/' : pathname === p || pathname.startsWith(p + '/'))).map(p => p.length));
+}
+
+const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+const THEME_ICON: Record<ThemePreference, ReactNode> = {
+  light: <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>,
+  dark: <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke}><path d="M20.5 14.5A8.5 8.5 0 019.5 3.5a8.5 8.5 0 1011 11z" /></svg>,
+  system: <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
+};
+const THEME_LABEL: Record<ThemePreference, string> = { light: 'Light', dark: 'Dark', system: 'System' };
+
+/** Light / Dark / System, remembered per browser. */
+function ThemeMenu() {
+  const [pref, setPref] = useThemePreference();
+  return (
+    <Menu>
+      <Sidebar.Button aria-label={`Theme: ${THEME_LABEL[pref]}`}>{THEME_ICON[pref]}</Sidebar.Button>
+      <Menu.Items placement="top start" selectionMode="single" selectedKeys={[pref]} disallowEmptySelection
+        onSelectionChange={keys => { const k = [...(keys as Set<ThemePreference>)][0]; if (k) setPref(k); }}>
+        {(['light', 'dark', 'system'] as const).map(t => (
+          <Menu.Item key={t} id={t} textValue={THEME_LABEL[t]}>
+            {({ isSelected }) => <span className="sl-thememenu__item">{THEME_ICON[t]}{THEME_LABEL[t]}{isSelected && <span className="sl-thememenu__check" aria-hidden="true">✓</span>}</span>}
+          </Menu.Item>
+        ))}
+      </Menu.Items>
+    </Menu>
+  );
 }
 
 /**
@@ -47,7 +74,7 @@ export function brandStyle(brand: Pick<SacBranding, 'headerColor' | 'primaryColo
   const { headerColor: header, primaryColor: primary, secondaryColor: secondary } = brand;
   return {
     '--sl-brand': primary, '--fill-product': primary, '--text-product': primary, '--border-product': primary, '--icon-product': primary,
-    '--fill-nav-bar-selected': primary, '--sl-active-fill': `color-mix(in srgb, ${primary} 10%, white)`,
+    '--fill-nav-bar-selected': primary, '--sl-active-fill': `color-mix(in srgb, ${primary} 10%, var(--fill-white))`,
     '--sl-secondary': secondary, '--sl-topbar-bg': header, '--sl-topbar-fg': contrastText(header)
   };
 }
@@ -99,12 +126,12 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
 
   return (
     <div className="sl-shell" style={vars as CSSProperties | undefined}>
-      <SidebarMobileHeader open={open} onOpenChange={setOpen}><img src={logo ?? slateLogo} alt={logoAlt} height={24} className="sl-logo" /></SidebarMobileHeader>
+      <SidebarMobileHeader open={open} onOpenChange={setOpen}><img src={logo ?? slateLogo} alt={logoAlt} height={24} className={logo ? 'sl-logo' : 'sl-logo sl-logo--slate'} /></SidebarMobileHeader>
       <Sidebar open={open} onOpenChange={setOpen}>
         <Sidebar.Header>
           {({ collapsed }) => collapsed
             ? <img src={logo ?? slateMark} alt={logoAlt} width={28} className="sl-logo" />
-            : <span className="sl-brandmark"><img src={logo ?? slateLogo} alt={logoAlt} height={24} className="sl-logo" /><small>{portalLabel}</small></span>}
+            : <span className="sl-brandmark"><img src={logo ?? slateLogo} alt={logoAlt} height={24} className={logo ? 'sl-logo' : 'sl-logo sl-logo--slate'} /><small>{portalLabel}</small></span>}
         </Sidebar.Header>
         <Sidebar.Nav>
           {nav.map(e => isGroup(e)
@@ -114,6 +141,7 @@ export function AppShell({ nav, portalLabel, orgName, orgMeta, topbarExtra, bran
         <Sidebar.Footer>
           {session && <Sidebar.User name={session.user.name} subtitle={ROLE_LABEL[session.user.role]} />}
           <Sidebar.Actions>
+            <ThemeMenu />
             <Sidebar.Button aria-label="Sign out" onPress={signOut}><LogoutIcon /></Sidebar.Button>
           </Sidebar.Actions>
         </Sidebar.Footer>

@@ -9,6 +9,7 @@ export * from './DataTable';
 export * from './Stepper';
 export * from './Tabs';
 export * from './AppShell';
+export * from './theme';
 export * from './SignIn';
 export * from './ConfirmDialog';
 export * from './CategoryPicker';
